@@ -77,10 +77,10 @@ export function optionalInt(url: URL, key: string): number | null {
   return value;
 }
 
-export function requiredInt(raw: string | undefined, key: string): number {
-  const value = Number(raw);
-  if (raw === undefined || raw.trim() === "" || !Number.isInteger(value)) {
-    throw new HttpError(400, "invalid_param", `"${key}" must be an integer.`);
+export function requiredInt(url: URL, key: string): number {
+  const value = optionalInt(url, key);
+  if (value === null) {
+    throw new HttpError(400, "missing_param", `"${key}" is required.`);
   }
   return value;
 }
@@ -96,14 +96,6 @@ export function requiredString(url: URL, key: string): string {
     throw new HttpError(400, "invalid_param", `"${key}" must be ${MAX_QUERY_LENGTH} characters or fewer.`);
   }
   return raw;
-}
-
-export function requiredSegment(raw: string | undefined, key: string): string {
-  const value = (raw ?? "").trim();
-  if (value === "") {
-    throw new HttpError(400, "missing_param", `"${key}" is required.`);
-  }
-  return value;
 }
 
 export interface DayMonth {
