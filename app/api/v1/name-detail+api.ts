@@ -1,5 +1,5 @@
-import { getTyphoonNameByName, isNameNotFound } from "@/lib/db/api/getTyphoonNameByName";
-import { CACHE, json, notFound, requiredString, route } from "@/lib/db/http";
+import { getTyphoonNameByName, isNameNotFound } from "@/be/api/getTyphoonNameByName";
+import { CACHE, json, notFound, requiredString, route } from "@/be/http";
 
 export const GET = route(async (request) => {
   const name = requiredString(new URL(request.url), "name");

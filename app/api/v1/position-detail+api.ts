@@ -1,5 +1,5 @@
-import { getPositionDetails } from "@/lib/db/api/getPositionDetails";
-import { CACHE, json, notFound, requiredInt, route } from "@/lib/db/http";
+import { getPositionDetails } from "@/be/api/getPositionDetails";
+import { CACHE, json, notFound, requiredInt, route } from "@/be/http";
 
 export const GET = route(async (request) => {
   const url = new URL(request.url);

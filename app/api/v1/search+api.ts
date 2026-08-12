@@ -1,5 +1,5 @@
-import { search } from "@/lib/db/api/search";
-import { CACHE, json, requiredString, route } from "@/lib/db/http";
+import { search } from "@/be/api/search";
+import { CACHE, json, requiredString, route } from "@/be/http";
 
 export const GET = route(async (request) => {
   const url = new URL(request.url);

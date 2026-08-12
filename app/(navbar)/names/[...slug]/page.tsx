@@ -1,19 +1,19 @@
-import { getAllStormHistory } from "@/lib/db/api/getStormHistory";
-import { getAllSuggestedNames } from "@/lib/db/api/getSuggestedNames";
-import { getTyphoonNames } from "@/lib/db/api/getTyphoonNames";
+import { getAllStormHistory } from "@/be/api/getStormHistory";
+import { getAllSuggestedNames } from "@/be/api/getSuggestedNames";
+import { getTyphoonNames } from "@/be/api/getTyphoonNames";
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { notFound, redirect } from "next/navigation";
-import { NAMES_DISPLAY_COOKIE, parseDisplayPrefs } from "../_utils/displayPrefs";
-import { getNamesDescription, getNamesTitle } from "../_utils/metadata";
+import { NAMES_DISPLAY_COOKIE, parseDisplayPrefs } from "@/lib/utils/name/displayPrefs";
+import { getNamesDescription, getNamesTitle } from "@/lib/utils/name/metadata";
 import {
   isHistoryScope,
   isValidNamesSlug,
   paramsToPath,
   slugToParams,
   slugToPath,
-} from "../_utils/routing";
-import NamesPageContent from "../NamesPageContent";
+} from "@/lib/utils/name/routing";
+import NamesPageContent from "@/lib/components/name/NamesPageContent";
 
 type PageProps = {
   params: Promise<{ slug: string[] }>;

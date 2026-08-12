@@ -1,6 +1,6 @@
-import { getNameList } from "@/lib/db/api/getNameList";
-import Footer from "@/lib/layout/Footer";
-import Navbar from "@/lib/layout/NavBar";
+import { getNameList } from "@/be/api/getNameList";
+import Footer from "@/lib/components/layout/Footer";
+import Navbar from "@/lib/components/layout/NavBar";
 import type { ReactNode } from "react";
 
 interface WithNavbarLayoutProps {

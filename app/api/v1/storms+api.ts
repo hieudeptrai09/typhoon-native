@@ -1,5 +1,5 @@
-import { getStorms } from "@/lib/db/api/getStorms";
-import { CACHE, json, optionalInt, route } from "@/lib/db/http";
+import { getStorms } from "@/be/api/getStorms";
+import { CACHE, json, optionalInt, route } from "@/be/http";
 
 export const GET = route(async (request) => {
   const url = new URL(request.url);

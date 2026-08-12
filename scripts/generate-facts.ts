@@ -6,8 +6,8 @@
  * runtime can only reach Postgres through the functions in db/functions.sql. Translating them would
  * also drag all the sentence-building below into SQL.
  */
-import { MONTH_NAMES } from "../lib/constants";
-import sql, { client, type QueryParam } from "../lib/db/direct";
+import { MONTH_NAMES } from "@/lib/constants";
+import sql, { client, type QueryParam } from "@/be/direct";
 
 type Row = Record<string, unknown>;
 

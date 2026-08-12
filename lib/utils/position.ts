@@ -1,17 +1,11 @@
-const POSITION_SLUGS: Record<number, string> = {
-  141: "cphc",
-  142: "nhc",
-  143: "imd",
-};
-
-const SLUG_POSITIONS: Record<string, number> = Object.fromEntries(
-  Object.entries(POSITION_SLUGS).map(([id, slug]) => [slug, Number(id)]),
-);
-
-// The naming table is a fixed grid of GRID_ROWS × GRID_COLS, filled left-to-right, top-to-bottom, so a position maps to a "row + country-column letter" label (e.g. 37 → "3I").
-export const GRID_ROWS = 10;
-export const GRID_COLS = 14;
-const GRID_MAX = GRID_ROWS * GRID_COLS; // 140
+import {
+  GRID_COLS,
+  GRID_MAX,
+  GRID_ROWS,
+  POSITION_SLUGS,
+  SLUG_POSITIONS,
+} from "@/lib/constants/position";
+import type { PositionValue } from "@/lib/types";
 
 export const positionColumnLetter = (col: number): string => String.fromCharCode(65 + col);
 
@@ -31,12 +25,6 @@ export const getPositionTitle = (position: number): string => {
 export const isExternalPosition = (position?: number): boolean =>
   position !== undefined && (position < 1 || position > GRID_MAX);
 
-// The agency positions as a render-ready list; integer-like keys iterate in ascending id order.
-export const SPECIAL_POSITIONS = Object.entries(POSITION_SLUGS).map(([id, slug]) => ({
-  id: Number(id),
-  label: slug.toUpperCase(),
-}));
-
 // Parse a grid label ("3I" / "3i") or a plain number ("37") into a 1–140 position, else null.
 export const parsePositionLabel = (input: string): number | null => {
   const trimmed = input.trim().toUpperCase();
@@ -53,13 +41,6 @@ export const parsePositionLabel = (input: string): number | null => {
   const num = Number(trimmed);
   return Number.isInteger(num) && num >= 1 && num <= GRID_MAX ? num : null;
 };
-
-// Filters pick a grid cell by its two visible coordinates (row number + country column) rather than
-// by the "3I" code, so a value only resolves to a position once both halves are chosen.
-export interface PositionValue {
-  row?: number;
-  col?: number;
-}
 
 // The empty value spells out both keys because Form.setFieldsValue merges plain objects into the
 // store: a bare {} would merge nothing and leave the previous pick in place.

@@ -1,8 +1,8 @@
 "use client";
 
-import FrownError from "@/lib/components/FrownError";
-import Footer from "@/lib/layout/Footer";
-import Navbar from "@/lib/layout/NavBar";
+import FrownError from "@/lib/components/common/FrownError";
+import Footer from "@/lib/components/layout/Footer";
+import Navbar from "@/lib/components/layout/NavBar";
 
 export default function Error({ reset }: { error: Error; reset: () => void }) {
   return (

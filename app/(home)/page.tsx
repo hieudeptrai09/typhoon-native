@@ -1,12 +1,12 @@
-import { getNameList } from "@/lib/db/api/getNameList";
-import Footer from "@/lib/layout/Footer";
+import { getNameList } from "@/be/api/getNameList";
+import Footer from "@/lib/components/layout/Footer";
 import Image from "next/image";
 import { Suspense } from "react";
-import Menu from "./_components/Menu";
-import QuickActionsMenu from "./_components/QuickActionsMenu";
+import Menu from "@/lib/components/home/Menu";
+import QuickActionsMenu from "@/lib/components/home/QuickActionsMenu";
 import StormHighlightBadge, {
   StormHighlightBadgeSkeleton,
-} from "./_components/StormHighlightBadge";
+} from "@/lib/components/home/StormHighlightBadge";
 
 const HomePage = async () => {
   // Search is a nav aid: a database hiccup should empty it, not fail the homepage.

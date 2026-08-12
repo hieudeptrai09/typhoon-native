@@ -1,4 +1,4 @@
-import TyphoonSymbol from "@/lib/components/TyphoonSpinner/TyphoonSymbol";
+import TyphoonSymbol from "@/lib/components/common/TyphoonSpinner/TyphoonSymbol";
 import { Home, Tag, Wind } from "lucide-react";
 import Link from "next/link";
 import "./not-found.css";

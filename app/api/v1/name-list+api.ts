@@ -1,4 +1,4 @@
-import { getNameList } from "@/lib/db/api/getNameList";
-import { CACHE, json, route } from "@/lib/db/http";
+import { getNameList } from "@/be/api/getNameList";
+import { CACHE, json, route } from "@/be/http";
 
 export const GET = route(async () => json(await getNameList(), CACHE.reference));
