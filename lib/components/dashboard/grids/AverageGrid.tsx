@@ -1,8 +1,8 @@
-import type { Storm } from "@/lib/types";
+import PositionCellGrid from "@/lib/components/position/PositionCellGrid";
 import { TEXT_COLOR_WHITE_BACKGROUND } from "@/lib/constants";
+import type { Storm } from "@/lib/types";
 import { getPositionTitle } from "@/lib/utils/position";
 import { getIntensityFromNumber } from "@/lib/utils/storm/aggregate";
-import PositionCellGrid from "@/lib/components/position/PositionCellGrid";
 
 interface AverageGridProps {
   stormsData: Storm[];

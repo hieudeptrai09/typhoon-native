@@ -1,12 +1,12 @@
+import LegendShell from "@/lib/components/common/LegendShell";
 import {
+  BACKGROUND_BADGE,
   INTENSITY_LABEL,
   INTENSITY_RANK,
   SORTING_RANK,
-  BACKGROUND_BADGE,
   TEXT_COLOR_BADGE,
 } from "@/lib/constants";
-import type { IntensityType } from "@/lib/types";
-import LegendShell from "@/lib/components/common/LegendShell";
+import type { IntensityType } from "@/lib/types";
 
 export default function IntensityLegend() {
   return (

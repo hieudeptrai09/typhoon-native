@@ -1,7 +1,7 @@
+import PositionCellGrid from "@/lib/components/position/PositionCellGrid";
 import type { Storm } from "@/lib/types";
 import { sortNamesByFirstYear } from "@/lib/utils/storm/aggregate";
 import { useMemo, type ReactNode } from "react";
-import PositionCellGrid from "@/lib/components/position/PositionCellGrid";
 
 interface NamesGridProps {
   stormsData: Storm[];

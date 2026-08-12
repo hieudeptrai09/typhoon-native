@@ -1,12 +1,13 @@
-import { toOpts } from "@/lib/utils/name/selectOptions";
 import DefModal from "@/lib/components/common/DefModal";
+import PositionSelect from "@/lib/components/name/widgets/PositionSelect";
 import {
   type BaseModalProps,
+  type PositionValue,
   type RetiredFilterParams,
   type RetirementReason,
-  type PositionValue,
 } from "@/lib/types";
-import { toArr, toStr } from "@/lib/utils/params";
+import { toOpts } from "@/lib/utils/name/selectOptions";
+import { toArr, toStr } from "@/lib/utils/params";
 import {
   getPositionTitle,
   isPartialPosition,
@@ -14,9 +15,7 @@ import {
   positionToValue,
 } from "@/lib/utils/position";
 import { Button, DatePicker, Form, Input, Select } from "antd";
-import dayjs from "dayjs";
-import type { Dayjs } from "dayjs";
-import PositionSelect from "@/lib/components/name/widgets/PositionSelect";
+import dayjs, { type Dayjs } from "dayjs";
 
 interface RetiredFilterModalProps extends BaseModalProps {
   onApply: (filters: RetiredFilterParams) => void;

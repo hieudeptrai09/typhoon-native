@@ -1,7 +1,7 @@
 import DefModal from "@/lib/components/common/DefModal";
 import IntensityBadge from "@/lib/components/storm/IntensityBadge";
-import type { BaseModalProps, Storm } from "@/lib/types";
 import { TEXT_COLOR_WHITE_BACKGROUND } from "@/lib/constants";
+import type { BaseModalProps, Storm } from "@/lib/types";
 
 export interface StormDetailModalProps extends BaseModalProps {
   title: string;

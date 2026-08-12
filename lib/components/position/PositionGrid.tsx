@@ -1,8 +1,8 @@
 "use client";
 
-import type { ReactNode } from "react";
 import CountryFlag, { COUNTRY_NAMES } from "@/lib/components/common/CountryFlag";
 import ScrollEndFade from "@/lib/components/common/ScrollEndFade";
+import type { ReactNode } from "react";
 
 const ROWS = 10;
 const COLS = 14;

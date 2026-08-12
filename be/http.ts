@@ -93,7 +93,11 @@ export function requiredString(url: URL, key: string): string {
     throw new HttpError(400, "missing_param", `"${key}" is required.`);
   }
   if (raw.length > MAX_QUERY_LENGTH) {
-    throw new HttpError(400, "invalid_param", `"${key}" must be ${MAX_QUERY_LENGTH} characters or fewer.`);
+    throw new HttpError(
+      400,
+      "invalid_param",
+      `"${key}" must be ${MAX_QUERY_LENGTH} characters or fewer.`,
+    );
   }
   return raw;
 }

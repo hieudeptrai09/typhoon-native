@@ -1,15 +1,19 @@
 import CountryFlag from "@/lib/components/common/CountryFlag";
 import DefTable from "@/lib/components/common/DefTable";
-import type { DashboardParams, Storm } from "@/lib/types";
-import { clickableRowProps } from "@/lib/utils/a11y";
-import { TEXT_COLOR_WHITE_BACKGROUND } from "@/lib/constants";
-import { getPositionTitle } from "@/lib/utils/position";
-import { calculateAverage, getGroupedStorms, getIntensityFromNumber } from "@/lib/utils/storm/aggregate";
-import type { ColumnsType } from "antd/es/table";
 import NamesGrid from "@/lib/components/dashboard/grids/NamesGrid";
 import StormsGrid from "@/lib/components/dashboard/grids/StormsGrid";
 import SpecialButtons from "@/lib/components/dashboard/widgets/SpecialButtons";
 import SpecialNamesListDiv from "@/lib/components/dashboard/widgets/SpecialNamesListDiv";
+import { TEXT_COLOR_WHITE_BACKGROUND } from "@/lib/constants";
+import type { DashboardParams, Storm } from "@/lib/types";
+import { clickableRowProps } from "@/lib/utils/a11y";
+import { getPositionTitle } from "@/lib/utils/position";
+import {
+  calculateAverage,
+  getGroupedStorms,
+  getIntensityFromNumber,
+} from "@/lib/utils/storm/aggregate";
+import type { ColumnsType } from "antd/es/table";
 
 interface StormsViewProps {
   params: DashboardParams;

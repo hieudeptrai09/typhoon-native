@@ -1,6 +1,5 @@
 import { getStorms } from "@/be/api/getStorms";
-import type { Metadata } from "next";
-import { notFound, redirect } from "next/navigation";
+import DashboardPageContent from "@/lib/components/dashboard/DashboardPageContent";
 import { getDashboardDescription, getDashboardTitle } from "@/lib/utils/storm/metadata";
 import {
   getCanonicalStormsSlugs,
@@ -9,7 +8,8 @@ import {
   slugToParams,
   slugToPath,
 } from "@/lib/utils/storm/routing";
-import DashboardPageContent from "@/lib/components/dashboard/DashboardPageContent";
+import type { Metadata } from "next";
+import { notFound, redirect } from "next/navigation";
 
 type PageProps = {
   params: Promise<{ slug: string[] }>;

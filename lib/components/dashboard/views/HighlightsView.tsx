@@ -1,13 +1,13 @@
 import CountryFlag from "@/lib/components/common/CountryFlag";
 import DefTable from "@/lib/components/common/DefTable";
+import HighlightsGrid from "@/lib/components/dashboard/grids/HighlightsGrid";
 import IntensityBadge from "@/lib/components/storm/IntensityBadge";
 import { SORTING_RANK } from "@/lib/constants";
 import type { DashboardParams, IntensityType, Storm } from "@/lib/types";
 import { parseStormDate } from "@/lib/utils/date";
 import { getPositionTitle } from "@/lib/utils/position";
-import type { ColumnsType } from "antd/es/table";
-import HighlightsGrid from "@/lib/components/dashboard/grids/HighlightsGrid";
 import { getHighlights } from "@/lib/utils/storm/highlights";
+import type { ColumnsType } from "antd/es/table";
 
 interface HighlightsViewProps {
   params: DashboardParams;

@@ -1,7 +1,7 @@
-import type { DashboardParams, Storm } from "@/lib/types";
 import AverageListTable from "@/lib/components/dashboard/views/AverageListTable";
 import AverageNameGrid from "@/lib/components/dashboard/views/AverageNameGrid";
 import AveragePositionGrid from "@/lib/components/dashboard/views/AveragePositionGrid";
+import type { DashboardParams, Storm } from "@/lib/types";
 
 interface AverageViewProps {
   params: DashboardParams;

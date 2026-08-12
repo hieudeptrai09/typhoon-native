@@ -1,19 +1,19 @@
 import LetterNavigation from "@/lib/components/common/LetterNavigation";
-import { defaultTyphoonName } from "@/lib/constants";
-import type { FilterParams, StormHistoryEntry, TyphoonName } from "@/lib/types";
-import { toArr } from "@/lib/utils/params";
-import { Badge, Button, Segmented } from "antd";
-import { CaseUpper, Filter, LayoutGrid, List, Tag } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useMemo, useState } from "react";
+import SlashToggleButton from "@/lib/components/common/SlashToggleButton";
 import HistoryModal from "@/lib/components/name/modals/HistoryModal";
 import ListFilterModal from "@/lib/components/name/modals/ListFilterModal";
 import NameDetailsModal from "@/lib/components/name/modals/NameDetailsModal";
 import FilteredNamesTable from "@/lib/components/name/tables/FilteredNamesTable";
 import PositionNameGrid from "@/lib/components/name/widgets/PositionNameGrid";
-import SlashToggleButton from "@/lib/components/common/SlashToggleButton";
-import { type NamesDisplayPrefs, writeDisplayPrefs } from "@/lib/utils/name/displayPrefs";
+import { defaultTyphoonName } from "@/lib/constants";
+import type { FilterParams, StormHistoryEntry, TyphoonName } from "@/lib/types";
+import { writeDisplayPrefs, type NamesDisplayPrefs } from "@/lib/utils/name/displayPrefs";
 import { paramsToPath } from "@/lib/utils/name/routing";
+import { toArr } from "@/lib/utils/params";
+import { Badge, Button, Segmented } from "antd";
+import { CaseUpper, Filter, LayoutGrid, List, Tag } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useMemo, useState } from "react";
 
 const LAYOUT_OPTIONS = [
   {

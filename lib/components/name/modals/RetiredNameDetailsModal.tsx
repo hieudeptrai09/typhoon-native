@@ -1,10 +1,10 @@
 import DefModal from "@/lib/components/common/DefModal";
-import NameDetailsContent from "@/lib/components/name/NameDetailsContent";
 import Tabs, { type Tab } from "@/lib/components/common/Tabs";
+import NameDetailsContent from "@/lib/components/name/NameDetailsContent";
+import SuggestionCard from "@/lib/components/name/widgets/SuggestionCard";
 import type { BaseModalProps, RetiredName, Suggestion } from "@/lib/types";
 import { getRetiredReasonColorClass } from "@/lib/utils/colors";
 import { useState } from "react";
-import SuggestionCard from "@/lib/components/name/widgets/SuggestionCard";
 
 export interface RetiredNameDetailsModalProps extends BaseModalProps {
   selectedName: RetiredName;

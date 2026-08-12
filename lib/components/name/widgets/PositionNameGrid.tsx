@@ -18,7 +18,7 @@ import {
   User,
   Wind,
   type LucideIcon,
-} from "lucide-react";
+} from "lucide-react";
 
 const TAG_ICONS: Record<string, LucideIcon> = {
   Animal: PawPrint,

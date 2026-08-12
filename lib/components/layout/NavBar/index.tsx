@@ -1,13 +1,13 @@
 "use client";
 
-import SearchBar from "@/lib/components/search/SearchBar";
-import { Home } from "lucide-react";
-import { usePathname } from "next/navigation";
-import { useState } from "react";
 import DesktopNav from "@/lib/components/layout/NavBar/DesktopNav";
 import MenuToggle from "@/lib/components/layout/NavBar/MenuToggle";
 import MobileNav from "@/lib/components/layout/NavBar/MobileNav";
 import NavLink from "@/lib/components/layout/NavBar/NavLink";
+import SearchBar from "@/lib/components/search/SearchBar";
+import { Home } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { useState } from "react";
 
 const Navbar = ({ allNames }: { allNames: string[] }) => {
   const pathName = usePathname();

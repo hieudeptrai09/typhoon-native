@@ -1,6 +1,6 @@
+import PositionCellGrid from "@/lib/components/position/PositionCellGrid";
 import type { Storm } from "@/lib/types";
 import { getDistanceColor } from "@/lib/utils/colors";
-import PositionCellGrid from "@/lib/components/position/PositionCellGrid";
 
 interface DistanceGridProps {
   stormsData: Storm[];

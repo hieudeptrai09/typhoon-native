@@ -1,4 +1,8 @@
 import LetterNavigation from "@/lib/components/common/LetterNavigation";
+import SlashToggleButton from "@/lib/components/common/SlashToggleButton";
+import RetiredFilterModal from "@/lib/components/name/modals/RetiredFilterModal";
+import RetiredNameDetailsModal from "@/lib/components/name/modals/RetiredNameDetailsModal";
+import RetiredNamesTable from "@/lib/components/name/tables/RetiredNamesTable";
 import { defaultRetiredName } from "@/lib/constants";
 import type {
   RetiredFilterParams,
@@ -6,17 +10,13 @@ import type {
   RetirementReason,
   SuggestionWithNameId,
 } from "@/lib/types";
+import { writeDisplayPrefs, type NamesDisplayPrefs } from "@/lib/utils/name/displayPrefs";
+import { paramsToPath } from "@/lib/utils/name/routing";
 import { toArr } from "@/lib/utils/params";
 import { Badge, Button } from "antd";
 import { CaseUpper, Filter } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
-import RetiredFilterModal from "@/lib/components/name/modals/RetiredFilterModal";
-import RetiredNameDetailsModal from "@/lib/components/name/modals/RetiredNameDetailsModal";
-import RetiredNamesTable from "@/lib/components/name/tables/RetiredNamesTable";
-import SlashToggleButton from "@/lib/components/common/SlashToggleButton";
-import { type NamesDisplayPrefs, writeDisplayPrefs } from "@/lib/utils/name/displayPrefs";
-import { paramsToPath } from "@/lib/utils/name/routing";
 
 interface RetiredViewProps {
   retiredNames: RetiredName[];

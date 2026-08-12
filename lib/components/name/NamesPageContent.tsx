@@ -2,16 +2,15 @@
 
 import FrownError from "@/lib/components/common/FrownError";
 import PageHeader from "@/lib/components/common/PageHeader";
-import type { RetiredName, StormHistoryEntry, SuggestionWithNameId } from "@/lib/types";
-import { useParams } from "next/navigation";
-import { useMemo } from "react";
 import NamesView from "@/lib/components/name/views/NamesView";
 import RetiredView from "@/lib/components/name/views/RetiredView";
-import type { NamesScope } from "@/lib/components/name/widgets/NamesScopeTabs";
-import NamesScopeTabs from "@/lib/components/name/widgets/NamesScopeTabs";
+import NamesScopeTabs, { type NamesScope } from "@/lib/components/name/widgets/NamesScopeTabs";
+import type { RetiredName, StormHistoryEntry, SuggestionWithNameId } from "@/lib/types";
 import type { NamesDisplayPrefs } from "@/lib/utils/name/displayPrefs";
 import { getNamesTitle } from "@/lib/utils/name/metadata";
 import { paramsToPath, slugToParams } from "@/lib/utils/name/routing";
+import { useParams } from "next/navigation";
+import { useMemo } from "react";
 
 interface NamesPageContentProps {
   allNames: RetiredName[] | null;

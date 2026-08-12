@@ -1,6 +1,6 @@
-import { getHighlightCellClass } from "@/lib/utils/colors";
-import { HIGHLIGHT_EMPTY_CELL_CLASS } from "@/lib/constants";
 import LegendShell, { LegendItem } from "@/lib/components/common/LegendShell";
+import { HIGHLIGHT_EMPTY_CELL_CLASS } from "@/lib/constants";
+import { getHighlightCellClass } from "@/lib/utils/colors";
 
 const HIGHLIGHT_LABEL: Record<string, string> = {
   strongest: "Strongest storm at this position",

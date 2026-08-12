@@ -1,5 +1,8 @@
 import CountryFlag from "@/lib/components/common/CountryFlag";
 import DefTable from "@/lib/components/common/DefTable";
+import DistanceGrid from "@/lib/components/dashboard/grids/DistanceGrid";
+import DistanceNameGrid from "@/lib/components/dashboard/views/DistanceNameGrid";
+import SpecialButtons from "@/lib/components/dashboard/widgets/SpecialButtons";
 import type { DashboardParams, Storm } from "@/lib/types";
 import { clickableRowProps } from "@/lib/utils/a11y";
 import { getDistanceColor } from "@/lib/utils/colors";
@@ -7,9 +10,6 @@ import { getPositionTitle } from "@/lib/utils/position";
 import { calculateDistances, formatDistance, getGroupedStorms } from "@/lib/utils/storm/aggregate";
 import type { ColumnsType } from "antd/es/table";
 import { useMemo } from "react";
-import DistanceGrid from "@/lib/components/dashboard/grids/DistanceGrid";
-import SpecialButtons from "@/lib/components/dashboard/widgets/SpecialButtons";
-import DistanceNameGrid from "@/lib/components/dashboard/views/DistanceNameGrid";
 
 interface DistanceViewProps {
   params: DashboardParams;

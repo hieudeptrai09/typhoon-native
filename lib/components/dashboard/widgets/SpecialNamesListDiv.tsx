@@ -1,5 +1,5 @@
-import type { Storm } from "@/lib/types";
 import { SPECIAL_POSITIONS } from "@/lib/constants";
+import type { Storm } from "@/lib/types";
 import { sortNamesByFirstYear } from "@/lib/utils/storm/aggregate";
 import { Button } from "antd";
 import type { ReactNode } from "react";

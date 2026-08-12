@@ -1,5 +1,5 @@
-import { BookText, CloudLightning } from "lucide-react";
 import NavLink from "@/lib/components/layout/NavBar/NavLink";
+import { BookText, CloudLightning } from "lucide-react";
 
 interface DesktopNavProps {
   currentPath: string;

@@ -1,6 +1,6 @@
 "use client";
 
-import { type ComponentPropsWithoutRef, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ComponentPropsWithoutRef } from "react";
 
 const ScrollEndFade = ({ children, className, ...rest }: ComponentPropsWithoutRef<"div">) => {
   const wrapperRef = useRef<HTMLDivElement>(null);

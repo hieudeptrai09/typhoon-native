@@ -3,18 +3,18 @@ import { INTENSITY_LABEL, TEXT_COLOR_WHITE_BACKGROUND } from "@/lib/constants";
 import type { Storm } from "@/lib/types";
 import { getAvgDateColor, getDistanceColor } from "@/lib/utils/colors";
 import {
+  calculateAverage,
+  calculateGapAverage,
+  formatDistance,
+  getIntensityFromNumber,
+} from "@/lib/utils/storm/aggregate";
+import {
   calculateAvgDates,
   calculateAvgDuration,
   formatDayOfYear,
   formatDuration,
   getDoyMonth,
 } from "@/lib/utils/storm/dates";
-import {
-  calculateAverage,
-  calculateGapAverage,
-  formatDistance,
-  getIntensityFromNumber,
-} from "@/lib/utils/storm/aggregate";
 
 const DatePart = ({ doy }: { doy: number }) => (
   <span style={{ color: getAvgDateColor(getDoyMonth(doy)) }}>{formatDayOfYear(doy)}</span>

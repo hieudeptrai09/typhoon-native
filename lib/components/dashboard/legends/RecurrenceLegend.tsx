@@ -1,10 +1,10 @@
+import LegendShell, { LegendItem } from "@/lib/components/common/LegendShell";
 import {
   DISTANCE_LONG_COLOR,
   DISTANCE_NA_COLOR,
   DISTANCE_SHORT_COLOR,
   DISTANCE_STANDARD_COLOR,
 } from "@/lib/constants";
-import LegendShell, { LegendItem } from "@/lib/components/common/LegendShell";
 
 const RECURRENCE_LEGEND: { color: string; label: string }[] = [
   { color: DISTANCE_SHORT_COLOR, label: "Under 6 years" },

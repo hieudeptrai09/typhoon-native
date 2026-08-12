@@ -1,7 +1,7 @@
 import ImageWithLoader from "@/lib/components/common/ImageWithLoader";
 import StormHighlightBadges, { hasHighlight } from "@/lib/components/storm/StormHighlightBadges";
-import { INTENSITY_LABEL, BACKGROUND_BADGE, TEXT_COLOR_BADGE } from "@/lib/constants";
-import type { Storm } from "@/lib/types";
+import { BACKGROUND_BADGE, INTENSITY_LABEL, TEXT_COLOR_BADGE } from "@/lib/constants";
+import type { Storm } from "@/lib/types";
 import { formatStormDateRange } from "@/lib/utils/date";
 import { getZoomEarthUrl } from "@/lib/utils/format";
 import { Calendar, ExternalLink, Hash, ImageOff } from "lucide-react";

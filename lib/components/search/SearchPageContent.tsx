@@ -2,12 +2,12 @@
 
 import CountryFlag from "@/lib/components/common/CountryFlag";
 import DefTable from "@/lib/components/common/DefTable";
-import DidYouMean from "@/lib/components/search/DidYouMean";
 import EmptyResults from "@/lib/components/common/EmptyResults";
 import FrownError from "@/lib/components/common/FrownError";
 import HighlightedName from "@/lib/components/common/HighlightedName";
-import NameStatusIcon from "@/lib/components/name/NameStatusIcon";
 import PageHeader from "@/lib/components/common/PageHeader";
+import NameStatusIcon from "@/lib/components/name/NameStatusIcon";
+import DidYouMean from "@/lib/components/search/DidYouMean";
 import type { SearchResult } from "@/lib/types";
 import { clickableRowProps } from "@/lib/utils/a11y";
 import { Empty } from "antd";

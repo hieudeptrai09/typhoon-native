@@ -1,14 +1,13 @@
 import CountryFlag from "@/lib/components/common/CountryFlag";
 import DefTable from "@/lib/components/common/DefTable";
+import AvgDateGrid from "@/lib/components/dashboard/grids/AvgDateGrid";
+import AvgDateNameGrid from "@/lib/components/dashboard/views/AvgDateNameGrid";
+import SpecialButtons from "@/lib/components/dashboard/widgets/SpecialButtons";
 import type { DashboardParams, Storm } from "@/lib/types";
 import { clickableRowProps } from "@/lib/utils/a11y";
 import { getAvgDateColor } from "@/lib/utils/colors";
 import { getPositionTitle } from "@/lib/utils/position";
 import { getGroupedStorms } from "@/lib/utils/storm/aggregate";
-import type { ColumnsType } from "antd/es/table";
-import { useMemo } from "react";
-import AvgDateGrid from "@/lib/components/dashboard/grids/AvgDateGrid";
-import SpecialButtons from "@/lib/components/dashboard/widgets/SpecialButtons";
 import {
   calculateAvgDatesByGroup,
   calculateAvgDuration,
@@ -17,7 +16,8 @@ import {
   getDoyMonth,
   type AvgDates,
 } from "@/lib/utils/storm/dates";
-import AvgDateNameGrid from "@/lib/components/dashboard/views/AvgDateNameGrid";
+import type { ColumnsType } from "antd/es/table";
+import { useMemo } from "react";
 
 interface AvgDateViewProps {
   params: DashboardParams;

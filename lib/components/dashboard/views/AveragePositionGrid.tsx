@@ -1,6 +1,6 @@
-import type { Storm } from "@/lib/types";
 import AverageGrid from "@/lib/components/dashboard/grids/AverageGrid";
 import SpecialButtons from "@/lib/components/dashboard/widgets/SpecialButtons";
+import type { Storm } from "@/lib/types";
 
 interface AveragePositionGridProps {
   stormsData: Storm[];

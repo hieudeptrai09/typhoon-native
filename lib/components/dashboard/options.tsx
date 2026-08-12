@@ -16,7 +16,7 @@ import {
   Tag,
   Zap,
   type LucideIcon,
-} from "lucide-react";
+} from "lucide-react";
 
 export const DASHBOARD_ICON_MAP: Record<string, Record<string, LucideIcon>> = {
   view: {

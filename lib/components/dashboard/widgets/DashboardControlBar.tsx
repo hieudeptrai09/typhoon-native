@@ -1,7 +1,9 @@
+import {
+  DASHBOARD_ICON_MAP,
+  FILTER_OPTIONS,
+  MODE_OPTIONS,
+} from "@/lib/components/dashboard/options";
 import type { DashboardParams } from "@/lib/types";
-import { Segmented } from "antd";
-import Link from "next/link";
-import { DASHBOARD_ICON_MAP, FILTER_OPTIONS, MODE_OPTIONS } from "@/lib/components/dashboard/options";
 import {
   isGridOnly,
   isListOnly,
@@ -9,6 +11,8 @@ import {
   paramsForView,
   paramsToPath,
 } from "@/lib/utils/storm/routing";
+import { Segmented } from "antd";
+import Link from "next/link";
 
 const VIEW_TABS: { key: string; label: string }[] = [
   { key: "all", label: "Storms" },

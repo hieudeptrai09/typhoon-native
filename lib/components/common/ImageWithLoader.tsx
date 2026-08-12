@@ -1,9 +1,9 @@
 "use client";
 
+import TyphoonSpinner from "@/lib/components/common/TyphoonSpinner";
 import { ImageOff } from "lucide-react";
 import Image from "next/image";
-import { useState, type ComponentProps } from "react";
-import TyphoonSpinner from "@/lib/components/common/TyphoonSpinner";
+import { useState, type ComponentProps } from "react";
 
 type ImageWithLoaderProps = ComponentProps<typeof Image>;
 

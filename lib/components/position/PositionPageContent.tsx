@@ -5,8 +5,8 @@ import ImageCredit from "@/lib/components/common/ImageCredit";
 import ImageWithLoader from "@/lib/components/common/ImageWithLoader";
 import StormCard from "@/lib/components/storm/StormCard";
 import StormStats from "@/lib/components/storm/StormStats";
-import type { PositionDetail, RetiredName, Storm, TyphoonName } from "@/lib/types";
 import { BACKGROUND_BADGE, TEXT_COLOR_WHITE_BACKGROUND } from "@/lib/constants";
+import type { PositionDetail, RetiredName, Storm, TyphoonName } from "@/lib/types";
 import { getDistanceColor, getNameStatusColor, getNameStatusColorClass } from "@/lib/utils/colors";
 import { getPositionSlug, getPositionTitle } from "@/lib/utils/position";
 import {

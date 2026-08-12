@@ -1,7 +1,7 @@
+import PositionCellGrid from "@/lib/components/position/PositionCellGrid";
+import { HIGHLIGHT_EMPTY_CELL_CLASS } from "@/lib/constants";
 import type { Storm } from "@/lib/types";
 import { getHighlightCellClass } from "@/lib/utils/colors";
-import { HIGHLIGHT_EMPTY_CELL_CLASS } from "@/lib/constants";
-import PositionCellGrid from "@/lib/components/position/PositionCellGrid";
 
 interface HighlightsGridProps {
   stormsData: Storm[];

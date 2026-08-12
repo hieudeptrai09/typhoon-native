@@ -1,8 +1,8 @@
 import { getPositionDetails } from "@/be/api/getPositionDetails";
+import PositionPageContent from "@/lib/components/position/PositionPageContent";
 import { getPositionFromSlug, getPositionSlug, getPositionTitle } from "@/lib/utils/position";
 import type { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
-import PositionPageContent from "@/lib/components/position/PositionPageContent";
 
 interface PositionPageProps {
   params: Promise<{ position: string }>;

@@ -1,9 +1,13 @@
-import type { Storm } from "@/lib/types";
-import { TEXT_COLOR_WHITE_BACKGROUND } from "@/lib/constants";
-import { calculateAverage, getGroupedStorms, getIntensityFromNumber } from "@/lib/utils/storm/aggregate";
-import { useMemo } from "react";
 import NamesGrid from "@/lib/components/dashboard/grids/NamesGrid";
 import SpecialNamesListDiv from "@/lib/components/dashboard/widgets/SpecialNamesListDiv";
+import { TEXT_COLOR_WHITE_BACKGROUND } from "@/lib/constants";
+import type { Storm } from "@/lib/types";
+import {
+  calculateAverage,
+  getGroupedStorms,
+  getIntensityFromNumber,
+} from "@/lib/utils/storm/aggregate";
+import { useMemo } from "react";
 
 interface AverageNameGridProps {
   stormsData: Storm[];

@@ -1,8 +1,8 @@
 "use client";
 
 import { COUNTRY_NAMES } from "@/lib/components/common/CountryFlag";
-import { type PositionValue } from "@/lib/types";
 import { GRID_ROWS } from "@/lib/constants";
+import { type PositionValue } from "@/lib/types";
 import { positionColumnLetter } from "@/lib/utils/position";
 import { Select, Space } from "antd";
 

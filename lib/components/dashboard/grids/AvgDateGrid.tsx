@@ -1,7 +1,7 @@
+import PositionCellGrid from "@/lib/components/position/PositionCellGrid";
 import type { Storm } from "@/lib/types";
 import { getAvgDateColor } from "@/lib/utils/colors";
 import { formatDayOfYear, getDoyMonth, type AvgDates } from "@/lib/utils/storm/dates";
-import PositionCellGrid from "@/lib/components/position/PositionCellGrid";
 
 interface AvgDateGridProps {
   stormsData: Storm[];

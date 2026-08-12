@@ -1,14 +1,14 @@
 "use client";
 
+import { fetchActiveOnThisDay } from "@/be/actions/home";
+import type { ActiveOnThisDayStorm } from "@/be/api/getActiveOnThisDay";
 import TyphoonSpinner from "@/lib/components/common/TyphoonSpinner";
 import { INTENSITY_LABEL, TEXT_COLOR_WHITE_BACKGROUND } from "@/lib/constants";
-import type { ActiveOnThisDayStorm } from "@/be/api/getActiveOnThisDay";
 import { formatStormDateRange } from "@/lib/utils/date";
 import { App, Button } from "antd";
 import { Waves } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
-import { fetchActiveOnThisDay } from "@/be/actions/home";
 
 type ActiveStorm = ActiveOnThisDayStorm;
 

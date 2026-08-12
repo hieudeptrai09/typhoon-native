@@ -1,12 +1,12 @@
 "use client";
 
+import ActiveStorms from "@/lib/components/home/ActiveStorms";
+import FunFacts from "@/lib/components/home/FunFacts";
+import OnThisDay from "@/lib/components/home/OnThisDay";
 import SearchBar from "@/lib/components/search/SearchBar";
 import { Button, Popover } from "antd";
 import { Sparkles, X } from "lucide-react";
 import { useState } from "react";
-import ActiveStorms from "@/lib/components/home/ActiveStorms";
-import FunFacts from "@/lib/components/home/FunFacts";
-import OnThisDay from "@/lib/components/home/OnThisDay";
 
 const QuickActionsMenu = ({ allNames }: { allNames: string[] }) => {
   const [isOpen, setIsOpen] = useState(false);

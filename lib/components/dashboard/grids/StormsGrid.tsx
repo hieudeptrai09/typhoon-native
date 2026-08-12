@@ -1,6 +1,6 @@
+import PositionCellGrid from "@/lib/components/position/PositionCellGrid";
 import type { Storm } from "@/lib/types";
 import { getPositionTitle } from "@/lib/utils/position";
-import PositionCellGrid from "@/lib/components/position/PositionCellGrid";
 
 interface StormsGridProps {
   stormsData: Storm[];

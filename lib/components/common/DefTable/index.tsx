@@ -1,9 +1,5 @@
 "use client";
 
-import { type TableProps, Table } from "antd";
-import type { ColumnsType, ColumnType } from "antd/es/table";
-import type { SorterResult } from "antd/es/table/interface";
-import { useMemo, useRef, useState } from "react";
 import ScrollEndFade from "@/lib/components/common/ScrollEndFade";
 import {
   nextCriteria,
@@ -12,6 +8,10 @@ import {
   type SortDirection,
   type SortKey,
 } from "@/lib/utils/table";
+import { Table, type TableProps } from "antd";
+import type { ColumnsType, ColumnType } from "antd/es/table";
+import type { SorterResult } from "antd/es/table/interface";
+import { useMemo, useRef, useState } from "react";
 import "./styles.css";
 
 interface DefTableProps<T> {

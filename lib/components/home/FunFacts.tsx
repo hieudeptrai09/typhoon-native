@@ -1,10 +1,10 @@
 "use client";
 
+import { fetchRandomFact } from "@/be/actions/home";
 import TyphoonSpinner from "@/lib/components/common/TyphoonSpinner";
 import { App, Button } from "antd";
 import { Lightbulb } from "lucide-react";
 import { useState } from "react";
-import { fetchRandomFact } from "@/be/actions/home";
 
 const FunFacts = () => {
   const [loading, setLoading] = useState(false);

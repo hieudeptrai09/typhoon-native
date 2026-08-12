@@ -1,12 +1,12 @@
 import DefModal from "@/lib/components/common/DefModal";
 import {
+  BACKGROUND_BADGE,
   INTENSITY_LABEL,
   INTENSITY_RANK,
   SORTING_RANK,
-  BACKGROUND_BADGE,
   TEXT_COLOR_WHITE_BACKGROUND,
 } from "@/lib/constants";
-import type { BaseModalProps, IntensityType, Storm } from "@/lib/types";
+import type { BaseModalProps, IntensityType, Storm } from "@/lib/types";
 import { getGroupedStorms, getIntensityFromNumber } from "@/lib/utils/storm/aggregate";
 import { Popover } from "antd";
 import { Info } from "lucide-react";

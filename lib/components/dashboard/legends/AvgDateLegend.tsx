@@ -1,5 +1,5 @@
-import { AVG_DATE_FALLBACK_COLOR, AVG_DATE_MONTH_COLOR } from "@/lib/constants";
 import LegendShell, { LegendItem } from "@/lib/components/common/LegendShell";
+import { AVG_DATE_FALLBACK_COLOR, AVG_DATE_MONTH_COLOR } from "@/lib/constants";
 
 const AVG_DATE_LEGEND: { color: string; label: string }[] = [
   { color: AVG_DATE_MONTH_COLOR[6], label: "June" },

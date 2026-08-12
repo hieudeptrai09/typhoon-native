@@ -1,4 +1,3 @@
-import { storm } from "@/lib/utils/storm/testFixtures";
 import type { Storm } from "@/lib/types";
 import {
   calculateAverage,
@@ -9,6 +8,7 @@ import {
   getIntensityFromNumber,
   sortNamesByFirstYear,
 } from "@/lib/utils/storm/aggregate";
+import { storm } from "@/lib/utils/storm/testFixtures";
 
 describe("getIntensityFromNumber", () => {
   it("rounds an averaged rank onto a real intensity", () => {

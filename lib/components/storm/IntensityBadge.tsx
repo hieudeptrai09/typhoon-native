@@ -1,5 +1,5 @@
-import type { IntensityType } from "@/lib/types";
 import { BACKGROUND_BADGE, TEXT_COLOR_BADGE } from "@/lib/constants";
+import type { IntensityType } from "@/lib/types";
 
 interface IntensityBadgeProps {
   intensity: IntensityType;

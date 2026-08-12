@@ -2,14 +2,10 @@
 
 import FrownError from "@/lib/components/common/FrownError";
 import PageHeader from "@/lib/components/common/PageHeader";
-import { MONTH_NAMES } from "@/lib/constants";
-import type { DashboardParams, Storm } from "@/lib/types";
-import { getPositionTitle } from "@/lib/utils/position";
-import { calculateAverage, calculateGapAverage, getGroupedStorms } from "@/lib/utils/storm/aggregate";
-import { useParams, useRouter } from "next/navigation";
-import { useState } from "react";
 import DashboardLegend from "@/lib/components/dashboard/legends/DashboardLegend";
-import AverageModal, { type AverageModalCriteria } from "@/lib/components/dashboard/modals/AverageModal";
+import AverageModal, {
+  type AverageModalCriteria,
+} from "@/lib/components/dashboard/modals/AverageModal";
 import AvgDateModal from "@/lib/components/dashboard/modals/AvgDateModal";
 import DistanceModal from "@/lib/components/dashboard/modals/DistanceModal";
 import NameListModal from "@/lib/components/dashboard/modals/NameListModal";
@@ -20,9 +16,19 @@ import DistanceView from "@/lib/components/dashboard/views/DistanceView";
 import HighlightsView from "@/lib/components/dashboard/views/HighlightsView";
 import StormsView from "@/lib/components/dashboard/views/StormsView";
 import DashboardControlBar from "@/lib/components/dashboard/widgets/DashboardControlBar";
+import { MONTH_NAMES } from "@/lib/constants";
+import type { DashboardParams, Storm } from "@/lib/types";
+import { getPositionTitle } from "@/lib/utils/position";
+import {
+  calculateAverage,
+  calculateGapAverage,
+  getGroupedStorms,
+} from "@/lib/utils/storm/aggregate";
+import { getEffectiveMonth } from "@/lib/utils/storm/highlights";
 import { getDashboardTitle } from "@/lib/utils/storm/metadata";
 import { paramsToPath, slugToParams } from "@/lib/utils/storm/routing";
-import { getEffectiveMonth } from "@/lib/utils/storm/highlights";
+import { useParams, useRouter } from "next/navigation";
+import { useState } from "react";
 
 interface SelectedData {
   title?: string;

@@ -1,7 +1,7 @@
 import DefModal from "@/lib/components/common/DefModal";
 import StormListContent from "@/lib/components/storm/StormListContent";
-import type { BaseModalProps, Storm } from "@/lib/types";
 import { TEXT_COLOR_WHITE_BACKGROUND } from "@/lib/constants";
+import type { BaseModalProps, Storm } from "@/lib/types";
 import { getIntensityFromNumber } from "@/lib/utils/storm/aggregate";
 import type { CSSProperties } from "react";
 

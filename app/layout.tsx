@@ -1,5 +1,5 @@
-import { TITLE_COMMON } from "@/lib/constants";
 import AntdProvider from "@/lib/components/layout/AntdProvider";
+import { TITLE_COMMON } from "@/lib/constants";
 import { AntdRegistry } from "@ant-design/nextjs-registry";
 import type { Metadata, Viewport } from "next";
 import { Open_Sans } from "next/font/google";

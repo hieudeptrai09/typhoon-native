@@ -1,7 +1,7 @@
 import { getSimilarNames } from "@/be/api/getSimilarNames";
 import { search } from "@/be/api/search";
-import type { Metadata } from "next";
 import SearchPageContent from "@/lib/components/search/SearchPageContent";
+import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Search Typhoon Names",

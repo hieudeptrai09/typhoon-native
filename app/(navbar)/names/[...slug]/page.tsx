@@ -1,9 +1,7 @@
 import { getAllStormHistory } from "@/be/api/getStormHistory";
 import { getAllSuggestedNames } from "@/be/api/getSuggestedNames";
 import { getTyphoonNames } from "@/be/api/getTyphoonNames";
-import type { Metadata } from "next";
-import { cookies } from "next/headers";
-import { notFound, redirect } from "next/navigation";
+import NamesPageContent from "@/lib/components/name/NamesPageContent";
 import { NAMES_DISPLAY_COOKIE, parseDisplayPrefs } from "@/lib/utils/name/displayPrefs";
 import { getNamesDescription, getNamesTitle } from "@/lib/utils/name/metadata";
 import {
@@ -13,7 +11,9 @@ import {
   slugToParams,
   slugToPath,
 } from "@/lib/utils/name/routing";
-import NamesPageContent from "@/lib/components/name/NamesPageContent";
+import type { Metadata } from "next";
+import { cookies } from "next/headers";
+import { notFound, redirect } from "next/navigation";
 
 type PageProps = {
   params: Promise<{ slug: string[] }>;

@@ -3,10 +3,10 @@
 import DefModal from "@/lib/components/common/DefModal";
 import EmptyResults from "@/lib/components/common/EmptyResults";
 import FrownError from "@/lib/components/common/FrownError";
+import Tabs, { type Tab } from "@/lib/components/common/Tabs";
 import NameDetailsContent from "@/lib/components/name/NameDetailsContent";
 import NameStatusIcon from "@/lib/components/name/NameStatusIcon";
 import StormListContent from "@/lib/components/storm/StormListContent";
-import Tabs, { type Tab } from "@/lib/components/common/Tabs";
 import type { SearchDetail } from "@/lib/types";
 import { getNameStatusColor } from "@/lib/utils/colors";
 import { isExternalPosition } from "@/lib/utils/position";

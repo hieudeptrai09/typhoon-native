@@ -2,12 +2,16 @@ import CountryFlag from "@/lib/components/common/CountryFlag";
 import DefTable from "@/lib/components/common/DefTable";
 import { MONTH_NAMES, TEXT_COLOR_WHITE_BACKGROUND } from "@/lib/constants";
 import type { Storm } from "@/lib/types";
-import { clickableRowProps } from "@/lib/utils/a11y";
+import { clickableRowProps } from "@/lib/utils/a11y";
 import { getPositionTitle } from "@/lib/utils/position";
-import { calculateAverage, getGroupedStorms, getIntensityFromNumber } from "@/lib/utils/storm/aggregate";
+import {
+  calculateAverage,
+  getGroupedStorms,
+  getIntensityFromNumber,
+} from "@/lib/utils/storm/aggregate";
+import { getEffectiveMonth } from "@/lib/utils/storm/highlights";
 import type { ColumnsType } from "antd/es/table";
 import { useMemo } from "react";
-import { getEffectiveMonth } from "@/lib/utils/storm/highlights";
 
 interface AverageListTableProps {
   filter: string;

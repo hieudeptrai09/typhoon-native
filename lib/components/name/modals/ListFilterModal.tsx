@@ -1,7 +1,8 @@
-import { toOpts } from "@/lib/utils/name/selectOptions";
 import DefModal from "@/lib/components/common/DefModal";
+import PositionSelect from "@/lib/components/name/widgets/PositionSelect";
 import { type BaseModalProps, type FilterParams, type PositionValue } from "@/lib/types";
-import { toArr, toStr } from "@/lib/utils/params";
+import { toOpts } from "@/lib/utils/name/selectOptions";
+import { toArr, toStr } from "@/lib/utils/params";
 import {
   getPositionTitle,
   isPartialPosition,
@@ -9,7 +10,6 @@ import {
   positionToValue,
 } from "@/lib/utils/position";
 import { Button, Form, Input, Radio, Select } from "antd";
-import PositionSelect from "@/lib/components/name/widgets/PositionSelect";
 
 export interface ListFilterModalProps extends BaseModalProps {
   onApply: (filters: FilterParams) => void;
