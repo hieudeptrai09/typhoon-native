@@ -7,6 +7,10 @@ import {
 } from "@/lib/utils/storm/dates";
 import { storm } from "@/lib/utils/storm/testFixtures";
 
+afterEach(() => {
+  jest.useRealTimers();
+});
+
 describe("average storm dates", () => {
   it("round-trips a single storm's dates through the day-of-year math", () => {
     const { startDoy, endDoy } = calculateAvgDates([
@@ -45,7 +49,6 @@ describe("average storm dates", () => {
     jest.useFakeTimers().setSystemTime(new Date(2024, 8, 9)); // 9/9/2024, local time
     const { endDoy } = calculateAvgDates([storm({ dateStart: "2024-08-31" })]);
     expect(formatDayOfYear(endDoy)).toBe("9/9");
-    jest.useRealTimers();
   });
 
   it("reports -1 for an empty group", () => {
@@ -87,7 +90,6 @@ describe("calculateAvgDuration", () => {
         storm({ dateStart: "2024-09-04" }), // ongoing, 5 days so far
       ]),
     ).toBe(7);
-    jest.useRealTimers();
   });
 
   it("returns -1 for an empty group", () => {

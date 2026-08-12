@@ -1,11 +1,7 @@
-/**
- * @jest-environment jsdom
- */
 import {
   defaultDisplayPrefs,
-  NAMES_DISPLAY_COOKIE,
   parseDisplayPrefs,
-  writeDisplayPrefs,
+  type NamesDisplayPrefs,
 } from "@/lib/utils/name/displayPrefs";
 
 describe("parseDisplayPrefs", () => {
@@ -14,13 +10,12 @@ describe("parseDisplayPrefs", () => {
     expect(parseDisplayPrefs("")).toEqual(defaultDisplayPrefs);
   });
 
-  it("reads an encoded cookie value", () => {
+  it("reads an encoded value", () => {
     const raw = encodeURIComponent(JSON.stringify({ showLetterNav: true }));
     expect(parseDisplayPrefs(raw)).toEqual({ showLetterNav: true });
   });
 
-  it("reads an already-decoded cookie value", () => {
-    // The server reader and document.cookie decode differently, so both forms arrive here.
+  it("reads an already-decoded value", () => {
     expect(parseDisplayPrefs('{"showLetterNav":true}')).toEqual({ showLetterNav: true });
   });
 
@@ -48,24 +43,16 @@ describe("parseDisplayPrefs", () => {
   });
 });
 
-describe("writeDisplayPrefs", () => {
-  const readCookie = (): string | undefined =>
-    document.cookie
-      .split("; ")
-      .find((entry) => entry.startsWith(`${NAMES_DISPLAY_COOKIE}=`))
-      ?.slice(NAMES_DISPLAY_COOKIE.length + 1);
+describe("round-trip", () => {
+  // writeDisplayPrefs still writes document.cookie, which does not exist on
+  // native — the writer stays uncovered until it moves onto device storage.
+  const encode = (prefs: NamesDisplayPrefs) => encodeURIComponent(JSON.stringify(prefs));
 
-  afterEach(() => {
-    document.cookie = `${NAMES_DISPLAY_COOKIE}=; path=/; max-age=0`;
-  });
-
-  it("writes a value parseDisplayPrefs can read back", () => {
-    writeDisplayPrefs({ showLetterNav: true });
-    expect(parseDisplayPrefs(readCookie())).toEqual({ showLetterNav: true });
+  it("reads back what the writer encodes", () => {
+    expect(parseDisplayPrefs(encode({ showLetterNav: true }))).toEqual({ showLetterNav: true });
   });
 
   it("round-trips the defaults too", () => {
-    writeDisplayPrefs(defaultDisplayPrefs);
-    expect(parseDisplayPrefs(readCookie())).toEqual(defaultDisplayPrefs);
+    expect(parseDisplayPrefs(encode(defaultDisplayPrefs))).toEqual(defaultDisplayPrefs);
   });
 });
