@@ -1,15 +1,10 @@
-import {
-  imageCreditColumns,
-  imageCreditJoin,
-  toImageCredit,
-  type ImageCreditRow,
-} from "@/lib/db/module/imageCredit";
+import { toImageCredit, type ImageCreditRow } from "@/lib/db/module/imageCredit";
 import type { RetiredName, RetirementReason } from "@/lib/types";
 
-// Shape of a full typhoon-name projection.
-// Field types are what postgres.js hands back for the underlying column types, not what the domain type wants — see toRetiredName for the gap.
+// Mirrors the v_typhoon_names view in db/functions.sql: field types are what the columns emit, not
+// what the domain type wants — toRetiredName closes the gap.
 export interface TyphoonNameRow extends ImageCreditRow {
-  // bigint: postgres.js returns int8 as a string to avoid silent precision loss.
+  // bigint, cast to text in the view: JSON numbers would lose precision silently.
   id: string;
   name: string;
   meaning: string;
@@ -30,31 +25,6 @@ export interface TyphoonNameRow extends ImageCreditRow {
   description: string | null;
   tag: string;
 }
-
-export const typhoonNameColumns = (nameAlias = "tn", positionAlias = "p") =>
-  `${nameAlias}.id,
-      ${nameAlias}.name,
-      ${nameAlias}.meaning,
-      ${nameAlias}.position,
-      ${positionAlias}.country,
-      ${nameAlias}.isretired AS "isRetired",
-      ${nameAlias}.isreplaced AS "isReplaced",
-      ${nameAlias}.retirementreason AS "retirementReason",
-      ${nameAlias}.replacementname AS "replacementName",
-      ${nameAlias}.note,
-      ${nameAlias}.language,
-      ${nameAlias}.originaltext AS "originalText",
-      ${nameAlias}.ipa,
-      ${nameAlias}.pronunciationfile AS "pronunciationFile",
-      ${nameAlias}.lastyear AS "lastYear",
-      ${nameAlias}.image,
-      ${imageCreditColumns(`${nameAlias}.`)},
-      ${nameAlias}.description,
-      ${nameAlias}.tag`;
-
-export const typhoonNameJoin = (nameAlias = "tn", positionAlias = "p") =>
-  `INNER JOIN positions ${positionAlias} ON ${nameAlias}.position = ${positionAlias}.id
-    ${imageCreditJoin(`${nameAlias}.`)}`;
 
 export const toRetiredName = (row: TyphoonNameRow): RetiredName => ({
   // Load-bearing: id arrives as a string because the column is bigint.

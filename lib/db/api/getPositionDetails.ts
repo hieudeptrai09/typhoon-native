@@ -1,58 +1,34 @@
-import sql, { type ApiResponse } from "@/lib/db";
-import { stormColumns, stormJoin, toStorm, type StormRow } from "@/lib/db/module/storm";
-import {
-  toRetiredName,
-  typhoonNameColumns,
-  typhoonNameJoin,
-  type TyphoonNameRow,
-} from "@/lib/db/module/typhoonName";
+import rpc, { type ApiResponse } from "@/lib/db";
+import { cached } from "@/lib/db/cache";
+import { toStorm, type StormRow } from "@/lib/db/module/storm";
+import { toRetiredName, type TyphoonNameRow } from "@/lib/db/module/typhoonName";
 import type { PositionDetail } from "@/lib/types";
-import { unstable_cache } from "next/cache";
 
-interface PositionRow {
+interface PositionPayload {
   country: string;
+  names: TyphoonNameRow[];
+  storms: StormRow[];
 }
 
 async function queryPositionDetails(position: number): Promise<ApiResponse<PositionDetail | null>> {
-  const posRows = await sql.query<PositionRow[]>(
-    "SELECT country FROM positions WHERE id = $1 LIMIT 1",
-    [position],
-  );
+  // Null for an unknown position, which the route turns into a 404.
+  const payload = await rpc.call<PositionPayload | null>("get_position_details", {
+    p_position: position,
+  });
 
-  const posRow = posRows[0];
-  if (!posRow) {
+  if (!payload) {
     return { data: null };
   }
 
-  const nameRows = await sql.query<TyphoonNameRow[]>(
-    `SELECT
-      ${typhoonNameColumns()}
-    FROM typhoonnames tn
-    ${typhoonNameJoin()}
-    WHERE tn.position = $1
-    ORDER BY tn.lastyear ASC, tn.name ASC`,
-    [position],
-  );
-
-  const stormRows = await sql.query<StormRow[]>(
-    `SELECT
-      ${stormColumns()}
-    FROM storms s
-    ${stormJoin()}
-    WHERE s.position = $1
-    ORDER BY s.year ASC`,
-    [position],
-  );
-
   return {
     data: {
-      country: posRow.country,
-      names: nameRows.map(toRetiredName),
-      storms: stormRows.map(toStorm),
+      country: payload.country,
+      names: payload.names.map(toRetiredName),
+      storms: payload.storms.map(toStorm),
     },
   };
 }
 
-export const getPositionDetails = unstable_cache(queryPositionDetails, ["getPositionDetails"], {
+export const getPositionDetails = cached(queryPositionDetails, ["getPositionDetails"], {
   revalidate: 3600,
 });

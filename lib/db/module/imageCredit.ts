@@ -7,15 +7,6 @@ export interface ImageCreditRow {
   imageSourceUrl: string | null;
 }
 
-export const imageCreditColumns = (prefix = "", licenseAlias = "il") =>
-  `${prefix}imageauthor AS "imageAuthor",
-      ${licenseAlias}.name AS "imageLicense",
-      ${licenseAlias}.url AS "imageLicenseUrl",
-      ${prefix}imagesourceurl AS "imageSourceUrl"`;
-
-export const imageCreditJoin = (prefix = "", licenseAlias = "il") =>
-  `LEFT JOIN imagelicenses ${licenseAlias} ON ${prefix}imagelicenseid = ${licenseAlias}.id`;
-
 // Public-domain works need no attribution, so their credit line stays hidden.
 const isPublicDomain = (license: string | null): boolean =>
   !!license && /public domain|\bpdm\b|\bcc0\b/i.test(license);

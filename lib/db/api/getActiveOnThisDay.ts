@@ -1,6 +1,6 @@
-import sql from "@/lib/db";
+import rpc from "@/lib/db";
+import { cached } from "@/lib/db/cache";
 import type { IntensityType } from "@/lib/types";
-import { unstable_cache } from "next/cache";
 
 export interface ActiveOnThisDayStorm {
   name: string;
@@ -24,25 +24,10 @@ async function queryActiveOnThisDay(
   day: number,
   month: number,
 ): Promise<{ count: number; data: ActiveOnThisDayStorm[] }> {
-  const query = `SELECT
-      s.position,
-      s.name,
-      s.intensity,
-      s.year,
-      s.startdate::text AS "dateStart",
-      s.enddate::text AS "dateEnd"
-    FROM storms s
-    WHERE (s.enddate IS NULL AND s.startdate <= CURRENT_DATE)
-      OR (s.enddate IS NOT NULL
-        AND CASE WHEN EXTRACT(YEAR FROM s.enddate) = EXTRACT(YEAR FROM s.startdate)
-          THEN to_char(s.startdate, 'MMDD')::int <= $1::int * 100 + $2::int
-           AND to_char(s.enddate, 'MMDD')::int >= $1::int * 100 + $2::int
-          ELSE to_char(s.startdate, 'MMDD')::int <= $1::int * 100 + $2::int
-            OR to_char(s.enddate, 'MMDD')::int >= $1::int * 100 + $2::int
-        END)
-    ORDER BY s.year ASC`;
-
-  const rows = await sql.query<ActiveOnThisDayRow[]>(query, [month, day]);
+  const rows = await rpc.call<ActiveOnThisDayRow[]>("get_active_on_this_day", {
+    p_day: day,
+    p_month: month,
+  });
 
   const data: ActiveOnThisDayStorm[] = rows.map((row) => ({
     name: row.name,
@@ -56,6 +41,6 @@ async function queryActiveOnThisDay(
   return { count: data.length, data };
 }
 
-export const getActiveOnThisDay = unstable_cache(queryActiveOnThisDay, ["getActiveOnThisDay"], {
+export const getActiveOnThisDay = cached(queryActiveOnThisDay, ["getActiveOnThisDay"], {
   revalidate: 3600,
 });

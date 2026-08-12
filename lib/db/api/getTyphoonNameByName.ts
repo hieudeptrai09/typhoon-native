@@ -1,51 +1,31 @@
-import sql, { type ApiResponse } from "@/lib/db";
-import { stormColumns, stormJoin, toStorm, type StormRow } from "@/lib/db/module/storm";
-import {
-  toRetiredName,
-  typhoonNameColumns,
-  typhoonNameJoin,
-  type TyphoonNameRow,
-} from "@/lib/db/module/typhoonName";
+import rpc, { type ApiResponse } from "@/lib/db";
+import { cached } from "@/lib/db/cache";
+import { toStorm, type StormRow } from "@/lib/db/module/storm";
+import { toRetiredName, type TyphoonNameRow } from "@/lib/db/module/typhoonName";
 import type { SearchDetail } from "@/lib/types";
-import { unstable_cache } from "next/cache";
+
+interface NameDetailPayload {
+  // Null when no name row matched; the storm list may still have entries.
+  name: TyphoonNameRow | null;
+  storms: StormRow[];
+}
 
 async function queryTyphoonNameByName(name: string): Promise<ApiResponse<SearchDetail>> {
-  const nameRows = await sql.query<TyphoonNameRow[]>(
-    `SELECT
-      ${typhoonNameColumns()}
-    FROM typhoonnames tn
-    ${typhoonNameJoin()}
-    WHERE LOWER(tn.name) = LOWER($1)
-    LIMIT 1`,
-    [name],
-  );
+  const payload = await rpc.call<NameDetailPayload>("get_typhoon_name_by_name", { p_name: name });
 
-  const nameRow = nameRows[0];
-  const nameDetail = nameRow ? toRetiredName(nameRow) : null;
-
-  const stormRows = await sql.query<StormRow[]>(
-    `SELECT
-      ${stormColumns()}
-    FROM storms s
-    ${stormJoin()}
-    WHERE LOWER(s.name) = LOWER($1)
-    ORDER BY s.year ASC, s.position`,
-    [name],
-  );
+  const nameDetail = payload.name ? toRetiredName(payload.name) : null;
 
   return {
     data: {
       name: nameDetail as SearchDetail["name"],
-      storms: stormRows.map(toStorm),
+      storms: payload.storms.map(toStorm),
     },
   };
 }
 
-export const getTyphoonNameByName = unstable_cache(
-  queryTyphoonNameByName,
-  ["getTyphoonNameByName"],
-  { revalidate: 3600 },
-);
+export const getTyphoonNameByName = cached(queryTyphoonNameByName, ["getTyphoonNameByName"], {
+  revalidate: 3600,
+});
 
 // The name exists nowhere: not in rotation, and never used by a storm.
 export const isNameNotFound = (result: ApiResponse<SearchDetail> | null) =>

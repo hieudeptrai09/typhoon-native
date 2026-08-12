@@ -1,15 +1,10 @@
-import sql, { type ApiListResponse } from "@/lib/db";
-import {
-  imageCreditColumns,
-  imageCreditJoin,
-  toImageCredit,
-  type ImageCreditRow,
-} from "@/lib/db/module/imageCredit";
+import rpc, { type ApiListResponse } from "@/lib/db";
+import { cached } from "@/lib/db/cache";
+import { toImageCredit, type ImageCreditRow } from "@/lib/db/module/imageCredit";
 import type { SuggestionWithNameId } from "@/lib/types";
-import { unstable_cache } from "next/cache";
 
 interface SuggestedNameRow extends ImageCreditRow {
-  // bigint: postgres.js returns int8 as a string to avoid silent precision loss.
+  // bigint, cast to text in SQL to avoid precision loss.
   nameId: string;
   replacementName: string;
   replacementMeaning: string | null;
@@ -18,21 +13,9 @@ interface SuggestedNameRow extends ImageCreditRow {
 }
 
 async function queryAllSuggestedNames(): Promise<ApiListResponse<SuggestionWithNameId[]>> {
-  const rows = await sql.query<SuggestedNameRow[]>(
-    `SELECT
-      sn.nameid AS "nameId",
-      sn.replacementname AS "replacementName",
-      sn.meaning as "replacementMeaning",
-      sn.ischosen AS "isChosen",
-      sn.image,
-      ${imageCreditColumns("sn.")}
-    FROM suggestednames sn
-    ${imageCreditJoin("sn.")}
-    ORDER BY sn.id ASC, sn.nameid DESC, sn.ischosen DESC`,
-  );
+  const rows = await rpc.call<SuggestedNameRow[]>("get_suggested_names");
 
   const data: SuggestionWithNameId[] = rows.map((row) => ({
-    // Load-bearing: nameId arrives as a string because the column is bigint.
     nameId: Number(row.nameId),
     replacementName: row.replacementName,
     replacementMeaning: row.replacementMeaning ?? "",
@@ -44,8 +27,6 @@ async function queryAllSuggestedNames(): Promise<ApiListResponse<SuggestionWithN
   return { data, count: data.length };
 }
 
-export const getAllSuggestedNames = unstable_cache(
-  queryAllSuggestedNames,
-  ["getAllSuggestedNames"],
-  { revalidate: 3600 },
-);
+export const getAllSuggestedNames = cached(queryAllSuggestedNames, ["getAllSuggestedNames"], {
+  revalidate: 3600,
+});

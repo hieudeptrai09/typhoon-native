@@ -1,6 +1,6 @@
-import sql from "@/lib/db";
+import rpc from "@/lib/db";
+import { cached } from "@/lib/db/cache";
 import type { IntensityType } from "@/lib/types";
-import { unstable_cache } from "next/cache";
 
 export interface OnThisDayStorm {
   name: string;
@@ -25,19 +25,7 @@ async function queryOnThisDay(
   day: number,
   month: number,
 ): Promise<{ count: number; data: OnThisDayStorm[] }> {
-  const query = `SELECT
-      s.name,
-      s.intensity,
-      s.position,
-      s.year,
-      s.startdate::text AS "dateStart",
-      s.enddate::text AS "dateEnd"
-    FROM storms s
-    WHERE (EXTRACT(MONTH FROM s.startdate) = $1 AND EXTRACT(DAY FROM s.startdate) = $2)
-       OR (EXTRACT(MONTH FROM s.enddate) = $1 AND EXTRACT(DAY FROM s.enddate) = $2)
-    ORDER BY s.year ASC`;
-
-  const rows = await sql.query<OnThisDayRow[]>(query, [month, day]);
+  const rows = await rpc.call<OnThisDayRow[]>("get_on_this_day", { p_day: day, p_month: month });
 
   // "MM-DD" suffix of a "YYYY-MM-DD" date, for comparing against today.
   const monthDay = `${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
@@ -62,6 +50,6 @@ async function queryOnThisDay(
   return { count: data.length, data };
 }
 
-export const getOnThisDay = unstable_cache(queryOnThisDay, ["getOnThisDay"], {
+export const getOnThisDay = cached(queryOnThisDay, ["getOnThisDay"], {
   revalidate: 3600,
 });

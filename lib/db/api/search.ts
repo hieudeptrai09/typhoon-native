@@ -1,9 +1,9 @@
-import sql, { type ApiListResponse } from "@/lib/db";
+import rpc, { type ApiListResponse } from "@/lib/db";
+import { cached } from "@/lib/db/cache";
 import type { RetirementReason, SearchResult } from "@/lib/types";
-import { unstable_cache } from "next/cache";
 
 interface SearchRow {
-  // id is bigint and stormCount is a COUNT(): postgres.js returns both as strings.
+  // id is bigint and stormCount is a COUNT(); both are cast to text in SQL to avoid precision loss.
   id: string | null;
   name: string;
   position: number;
@@ -16,47 +16,7 @@ interface SearchRow {
 }
 
 async function querySearch(query: string): Promise<ApiListResponse<SearchResult[]>> {
-  const q = `%${query}%`;
-
-  const rows = await sql.query<SearchRow[]>(
-    `SELECT
-        tn.id,
-        tn.name,
-        tn.position,
-        p.country,
-        tn.isretired AS "isRetired",
-        tn.retirementreason AS "retirementReason",
-        tn.note,
-        tn.replacementname AS "replacementName",
-        COUNT(s.id) as "stormCount"
-    FROM typhoonnames tn
-    INNER JOIN positions p ON tn.position = p.id
-    LEFT JOIN storms s ON s.name = tn.name
-    WHERE tn.name ILIKE $1
-    GROUP BY tn.id, tn.name, tn.position, p.country, tn.isretired, tn.retirementreason, tn.note, tn.replacementname
-
-    UNION
-
-    SELECT
-        NULL as id,
-        s.name,
-        s.position,
-        p.country,
-        false as "isRetired",
-        -- Storms with no matching name row were never in rotation, so they have no reason.
-        NULL::typhoonnames_retirementreason as "retirementReason",
-        NULL as note,
-        NULL as "replacementName",
-        COUNT(s.id) as "stormCount"
-    FROM storms s
-    INNER JOIN positions p ON s.position = p.id
-    WHERE s.name ILIKE $2
-      AND s.name NOT IN (SELECT tn2.name FROM typhoonnames tn2)
-    GROUP BY s.name, s.position, p.country
-
-    ORDER BY name ASC`,
-    [q, q],
-  );
+  const rows = await rpc.call<SearchRow[]>("search_names", { p_query: query });
 
   const data: SearchResult[] = rows.map((row) => ({
     id: row.id !== null ? Number(row.id) : null,
@@ -73,4 +33,4 @@ async function querySearch(query: string): Promise<ApiListResponse<SearchResult[
   return { data, count: data.length };
 }
 
-export const search = unstable_cache(querySearch, ["search"], { revalidate: 3600 });
+export const search = cached(querySearch, ["search"], { revalidate: 3600 });

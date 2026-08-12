@@ -1,7 +1,7 @@
 import type { Storm } from "@/lib/types";
 
-// Shape of a full storm projection.
-// Field types are what postgres.js hands back for the underlying column types, not what the domain type wants — see toStorm for the gap.
+// Mirrors the v_storms view in db/functions.sql: field types are what the columns emit, not what
+// the domain type wants — toStorm closes the gap.
 export interface StormRow {
   position: number;
   country: string;
@@ -17,24 +17,6 @@ export interface StormRow {
   isFirst: boolean;
   isLast: boolean;
 }
-
-export const stormColumns = (stormAlias = "s", positionAlias = "p") =>
-  `${stormAlias}.position,
-      ${positionAlias}.country,
-      ${stormAlias}.name,
-      ${stormAlias}.intensity,
-      ${stormAlias}.map,
-      ${stormAlias}.correctspelling AS "correctSpelling",
-      ${stormAlias}.year,
-      ${stormAlias}.isstrongest AS "isStrongest",
-      ${stormAlias}.startdate::text AS "dateStart",
-      ${stormAlias}.enddate::text AS "dateEnd",
-      LPAD(${stormAlias}.jtwcnumber::text, 2, '0') || ${positionAlias}.suffix::text AS "jtwcDesignation",
-      ${stormAlias}.isfirst AS "isFirst",
-      ${stormAlias}.islast AS "isLast"`;
-
-export const stormJoin = (stormAlias = "s", positionAlias = "p") =>
-  `INNER JOIN positions ${positionAlias} ON ${stormAlias}.position = ${positionAlias}.id`;
 
 export const toStorm = (row: StormRow): Storm => ({
   position: row.position,
