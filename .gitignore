@@ -41,3 +41,6 @@ app-example
 # generated native folders
 /ios
 /android
+
+# the source needing to convert
+/nextjs_model/typhoons
