@@ -1,5 +1,4 @@
 import NavLink from "@/lib/components/layout/NavBar/NavLink";
-import { BookText, CloudLightning } from "lucide-react";
 
 interface DesktopNavProps {
   currentPath: string;
@@ -10,13 +9,13 @@ const DesktopNav = ({ currentPath }: DesktopNavProps) => {
     <div className="hidden space-x-4 md:flex" role="navigation" aria-label="Desktop navigation">
       <NavLink
         href="/storms/all/name/"
-        icon={CloudLightning}
+        icon="thunderstorm-outline"
         label="Storms"
         isActive={currentPath.startsWith("/storms")}
       />
       <NavLink
         href="/names/current/"
-        icon={BookText}
+        icon="book-outline"
         label="Names"
         isActive={currentPath.startsWith("/names")}
       />

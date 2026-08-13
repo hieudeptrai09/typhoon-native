@@ -1,5 +1,5 @@
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { Button } from "antd";
-import { Menu, X } from "lucide-react";
 
 interface MenuToggleProps {
   isOpen: boolean;
@@ -12,7 +12,7 @@ const MenuToggle = ({ isOpen, onToggle }: MenuToggleProps) => {
       type="text"
       onClick={onToggle}
       aria-label="Toggle menu"
-      icon={isOpen ? <X size={24} /> : <Menu size={24} />}
+      icon={<Ionicons name={isOpen ? "close" : "menu"} size={24} color="#ffffff" />}
       className="z-50! text-white! hover:bg-white/20! md:hidden!"
     />
   );

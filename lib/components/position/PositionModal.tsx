@@ -22,8 +22,8 @@ import {
   getIntensityFromNumber,
   sortNamesByFirstYear,
 } from "@/lib/utils/storm/aggregate";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { Carousel as AntCarousel } from "antd";
-import { Calendar, ExternalLink, ImageOff, SearchX } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, type ReactNode } from "react";
 
@@ -95,7 +95,7 @@ function StormGridCard({ storm }: { storm: Storm }) {
         </div>
       ) : (
         <div className="flex h-20 items-center justify-center gap-1.5 rounded bg-slate-100 text-xs text-slate-400">
-          <ImageOff size={14} />
+          <Ionicons name="image-outline" size={14} color="#94a3b8" />
         </div>
       )}
       <div className="mt-2 space-y-1">
@@ -103,7 +103,7 @@ function StormGridCard({ storm }: { storm: Storm }) {
           {label} {storm.name}
         </div>
         <div className="flex items-center gap-1.5 text-xs text-foreground">
-          <Calendar size={12} className="shrink-0" />
+          <Ionicons name="calendar-outline" size={12} color="#334155" />
           {dateRange}
         </div>
         <a
@@ -114,7 +114,7 @@ function StormGridCard({ storm }: { storm: Storm }) {
           className="inline-flex items-center gap-1 text-xs font-semibold text-sky-700 hover:underline"
         >
           Zoom Earth
-          <ExternalLink size={12} />
+          <Ionicons name="open-outline" size={12} color="#0369a1" />
         </a>
       </div>
     </div>
@@ -223,7 +223,9 @@ export default function PositionModal({ detail, position, isError = false }: Pos
   if (isError) {
     content = <FrownError />;
   } else if (isEmpty) {
-    content = <EmptyResults icon={SearchX} description="No data recorded for this position yet." />;
+    content = (
+      <EmptyResults icon="search-outline" description="No data recorded for this position yet." />
+    );
   } else {
     const tabs: Tab<TabType>[] = [
       {

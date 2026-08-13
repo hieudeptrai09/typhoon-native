@@ -10,8 +10,8 @@ import type { FilterParams, StormHistoryEntry, TyphoonName } from "@/lib/types";
 import { writeDisplayPrefs, type NamesDisplayPrefs } from "@/lib/utils/name/displayPrefs";
 import { paramsToPath } from "@/lib/utils/name/routing";
 import { toArr } from "@/lib/utils/params";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { Badge, Button, Segmented } from "antd";
-import { CaseUpper, Filter, LayoutGrid, List, Tag } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
 
@@ -19,7 +19,7 @@ const LAYOUT_OPTIONS = [
   {
     label: (
       <span className="flex items-center justify-center gap-1.5">
-        <LayoutGrid size={13} />
+        <Ionicons name="grid-outline" size={13} color="#334155" />
         Grid
       </span>
     ),
@@ -28,7 +28,7 @@ const LAYOUT_OPTIONS = [
   {
     label: (
       <span className="flex items-center justify-center gap-1.5">
-        <List size={13} />
+        <Ionicons name="list-outline" size={13} color="#334155" />
         List
       </span>
     ),
@@ -338,7 +338,7 @@ const NamesView = ({
             onClick={handleToggleLetterNav}
             title={showLetterNav ? "Letter navigation is on" : "Letter navigation is off"}
           >
-            <CaseUpper size={26} />
+            <Ionicons name="text-outline" size={26} color="#334155" />
           </SlashToggleButton>
           {displayMode === "grid" && (
             <SlashToggleButton
@@ -346,7 +346,7 @@ const NamesView = ({
               onClick={handleToggleTagIcons}
               title={!showName ? "Category icons are on" : "Category icons are off"}
             >
-              <Tag size={26} />
+              <Ionicons name="pricetag-outline" size={26} color="#334155" />
             </SlashToggleButton>
           )}
           <Badge count={activeFilterCount} color="#ef4444" offset={[-4, 4]}>
@@ -355,7 +355,7 @@ const NamesView = ({
               onClick={() => setIsFilterModalOpen(true)}
               title="Filters"
               aria-label={`Open filters${activeFilterCount > 0 ? `, ${activeFilterCount} active` : ""}`}
-              icon={<Filter size={30} />}
+              icon={<Ionicons name="funnel-outline" size={30} color="#334155" />}
               className="h-auto! w-auto! p-1! text-foreground! hover:bg-transparent! hover:text-highlight!"
             />
           </Badge>

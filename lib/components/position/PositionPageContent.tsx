@@ -17,7 +17,7 @@ import {
   getIntensityFromNumber,
   sortNamesByFirstYear,
 } from "@/lib/utils/storm/aggregate";
-import { ChevronLeft, ChevronRight, SearchX } from "lucide-react";
+import Ionicons from "@expo/vector-icons/Ionicons";
 
 interface PositionPageContentProps {
   detail: PositionDetail | null;
@@ -46,7 +46,7 @@ function PositionPagination({ position }: { position: number }) {
       aria-label="Position pagination"
     >
       <a href={`/positions/${getPositionSlug(prevPosition)}`} className={linkClass(isFirst)}>
-        <ChevronLeft className="h-4 w-4" />
+        <Ionicons name="chevron-back" size={16} color="#ffffff" />
         {getPositionTitle(prevPosition)}
       </a>
       <span className="text-sm text-foreground">
@@ -54,7 +54,7 @@ function PositionPagination({ position }: { position: number }) {
       </span>
       <a href={`/positions/${getPositionSlug(nextPosition)}`} className={linkClass(isLast)}>
         {getPositionTitle(nextPosition)}
-        <ChevronRight className="h-4 w-4" />
+        <Ionicons name="chevron-forward" size={16} color="#ffffff" />
       </a>
     </nav>
   );
@@ -255,7 +255,9 @@ export default function PositionPageContent({
     return <FrownError />;
   }
   if (!detail || (detail.names.length === 0 && detail.storms.length === 0)) {
-    return <EmptyResults icon={SearchX} description="No data recorded for this position yet." />;
+    return (
+      <EmptyResults icon="search-outline" description="No data recorded for this position yet." />
+    );
   }
 
   const { country, names, storms } = detail;

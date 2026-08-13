@@ -1,7 +1,7 @@
 import type { RetirementReason } from "@/lib/types";
-import { getNameStatusColorClass } from "@/lib/utils/colors";
+import { getNameStatusColor } from "@/lib/utils/colors";
 import { isExternalPosition } from "@/lib/utils/position";
-import { CircleHelp, Flame, Skull, SpellCheck2 } from "lucide-react";
+import Ionicons from "@expo/vector-icons/Ionicons";
 
 interface Props {
   isRetired: boolean;
@@ -17,15 +17,15 @@ export default function NameStatusIcon({
   position,
 }: Props) {
   const isExternal = isExternalPosition(position);
-  const colorClass = getNameStatusColorClass({ isRetired, retirementReason, isExternal });
+  const color = getNameStatusColor({ isRetired, retirementReason, isExternal });
   if (isExternal) {
-    return <CircleHelp className={colorClass} size={size} />;
+    return <Ionicons name="help-circle-outline" color={color} size={size} />;
   }
   if (retirementReason === "misspell") {
-    return <SpellCheck2 className={colorClass} size={size} />;
+    return <Ionicons name="text-outline" color={color} size={size} />;
   }
   if (isRetired) {
-    return <Skull className={colorClass} size={size} />;
+    return <Ionicons name="skull-outline" color={color} size={size} />;
   }
-  return <Flame className={colorClass} size={size} />;
+  return <Ionicons name="flame-outline" color={color} size={size} />;
 }

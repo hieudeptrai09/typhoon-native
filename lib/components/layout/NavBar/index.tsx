@@ -5,7 +5,6 @@ import MenuToggle from "@/lib/components/layout/NavBar/MenuToggle";
 import MobileNav from "@/lib/components/layout/NavBar/MobileNav";
 import NavLink from "@/lib/components/layout/NavBar/NavLink";
 import SearchBar from "@/lib/components/search/SearchBar";
-import { Home } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 
@@ -25,7 +24,7 @@ const Navbar = ({ allNames }: { allNames: string[] }) => {
     <nav className="sticky top-0 z-50 bg-blue-600" aria-label="Main navigation">
       <div className="mx-auto max-w-7xl px-2 py-2">
         <div className="relative flex items-center justify-between">
-          <NavLink href="/" icon={Home} label="Home" isActive={pathName === "/"} />
+          <NavLink href="/" icon="home" label="Home" isActive={pathName === "/"} />
 
           <div className="mx-2 min-w-0 flex-1 md:mx-4 md:max-w-md">
             <SearchBar variant="navbar" allNames={allNames} />

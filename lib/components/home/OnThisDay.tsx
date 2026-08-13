@@ -4,35 +4,34 @@ import { fetchOnThisDay } from "@/be/actions/home";
 import type { OnThisDayStorm } from "@/be/api/getOnThisDay";
 import TyphoonSpinner from "@/lib/components/common/TyphoonSpinner";
 import { INTENSITY_LABEL, MONTH_NAMES, TEXT_COLOR_WHITE_BACKGROUND } from "@/lib/constants";
+import type { IconName } from "@/lib/types";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { App, Button } from "antd";
-import { Calendar, LogIn, LogOut, Play, RefreshCw, Square } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
 const EXTERNAL_POSITIONS = [141, 142, 143];
 
-const getReasonIcon = (
-  storm: OnThisDayStorm,
-): { Icon: typeof Play; color: string; label: string } => {
+const getReasonIcon = (storm: OnThisDayStorm): { icon: IconName; color: string; label: string } => {
   const isExternal = EXTERNAL_POSITIONS.includes(storm.position);
   if (isExternal) {
     if (storm.reason === "both") {
       return {
-        Icon: RefreshCw,
+        icon: "refresh",
         color: "#d97706",
         label: "Entered and exited the West Pacific basin",
       };
     }
     return storm.reason === "started"
-      ? { Icon: LogIn, color: "#16a34a", label: "Entered the West Pacific basin" }
-      : { Icon: LogOut, color: "#dc2626", label: "Exited the West Pacific basin" };
+      ? { icon: "log-in-outline", color: "#16a34a", label: "Entered the West Pacific basin" }
+      : { icon: "log-out-outline", color: "#dc2626", label: "Exited the West Pacific basin" };
   }
   if (storm.reason === "both") {
-    return { Icon: RefreshCw, color: "#d97706", label: "Formed and dissipated" };
+    return { icon: "refresh", color: "#d97706", label: "Formed and dissipated" };
   }
   return storm.reason === "started"
-    ? { Icon: Play, color: "#16a34a", label: "Formed" }
-    : { Icon: Square, color: "#dc2626", label: "Dissipated" };
+    ? { icon: "play", color: "#16a34a", label: "Formed" }
+    : { icon: "stop", color: "#dc2626", label: "Dissipated" };
 };
 
 const getVerb = (storm: OnThisDayStorm) => {
@@ -93,21 +92,23 @@ const OnThisDay = () => {
                 const label = INTENSITY_LABEL[storm.intensity];
                 const color = TEXT_COLOR_WHITE_BACKGROUND[storm.intensity];
                 const verb = getVerb(storm);
-                const { Icon, color: reasonColor, label: reasonLabel } = getReasonIcon(storm);
+                const {
+                  icon: reasonIcon,
+                  color: reasonColor,
+                  label: reasonLabel,
+                } = getReasonIcon(storm);
 
                 return (
                   <li
                     key={i}
                     className="flex items-baseline gap-1.5 text-sm leading-relaxed text-foreground"
                   >
-                    <Icon
+                    <Ionicons
+                      name={reasonIcon}
                       size={14}
-                      className="shrink-0"
-                      style={{ color: reasonColor }}
+                      color={reasonColor}
                       aria-label={reasonLabel}
-                    >
-                      <title>{reasonLabel}</title>
-                    </Icon>
+                    />
                     <span>
                       {eventYear}: {label}{" "}
                       <Link
@@ -146,7 +147,7 @@ const OnThisDay = () => {
         loading ? (
           <TyphoonSpinner colorClass="text-amber-700" size="small" />
         ) : (
-          <Calendar size={16} />
+          <Ionicons name="calendar-outline" size={16} color="#b45309" />
         )
       }
       onClick={fetchStorms}

@@ -1,84 +1,67 @@
-import {
-  Activity,
-  ArrowDownToLine,
-  CalendarRange,
-  CloudLightning,
-  EyeOff,
-  Globe,
-  Grid3x3,
-  List,
-  MapPin,
-  Medal,
-  Moon,
-  Repeat,
-  Star,
-  Sun,
-  Tag,
-  Zap,
-  type LucideIcon,
-} from "lucide-react";
+import type { IconName } from "@/lib/types";
+import Ionicons from "@expo/vector-icons/Ionicons";
 
-export const DASHBOARD_ICON_MAP: Record<string, Record<string, LucideIcon>> = {
+export const DASHBOARD_ICON_MAP: Record<string, Record<string, IconName>> = {
   view: {
-    all: CloudLightning,
-    highlights: Star,
-    average: Activity,
-    recurrence: Repeat,
-    avgdate: CalendarRange,
+    all: "thunderstorm-outline",
+    highlights: "star-outline",
+    average: "pulse-outline",
+    recurrence: "repeat-outline",
+    avgdate: "calendar-number-outline",
   },
   filter: {
-    strongest: Zap,
-    first: Medal,
-    last: ArrowDownToLine,
-    untracked: EyeOff,
-    position: MapPin,
-    name: Tag,
-    country: Globe,
-    year: Sun,
-    month: Moon,
+    strongest: "flash-outline",
+    first: "medal-outline",
+    last: "download-outline",
+    untracked: "eye-off-outline",
+    position: "location-outline",
+    name: "pricetag-outline",
+    country: "globe-outline",
+    year: "sunny-outline",
+    month: "moon-outline",
   },
   mode: {
-    table: Grid3x3,
-    list: List,
+    table: "grid-outline",
+    list: "list-outline",
   },
 };
 
-const icon = (Icon: LucideIcon, label: string) => (
+const icon = (name: IconName, label: string) => (
   <span className="flex items-center justify-center gap-1.5">
-    <Icon size={13} />
+    <Ionicons name={name} size={13} color="#334155" />
     {label}
   </span>
 );
 
 export const MODE_OPTIONS = [
-  { label: icon(Grid3x3, "Grid"), value: "table" },
-  { label: icon(List, "List"), value: "list" },
+  { label: icon(DASHBOARD_ICON_MAP.mode.table, "Grid"), value: "table" },
+  { label: icon(DASHBOARD_ICON_MAP.mode.list, "List"), value: "list" },
 ];
 
 export const FILTER_OPTIONS: Record<string, { label: React.ReactNode; value: string }[]> = {
   all: [
-    { label: icon(MapPin, "Position"), value: "position" },
-    { label: icon(Tag, "Name"), value: "name" },
+    { label: icon(DASHBOARD_ICON_MAP.filter.position, "Position"), value: "position" },
+    { label: icon(DASHBOARD_ICON_MAP.filter.name, "Name"), value: "name" },
   ],
   highlights: [
-    { label: icon(Zap, "Strongest"), value: "strongest" },
-    { label: icon(Medal, "First"), value: "first" },
-    { label: icon(ArrowDownToLine, "Last"), value: "last" },
-    { label: icon(EyeOff, "Untracked"), value: "untracked" },
+    { label: icon(DASHBOARD_ICON_MAP.filter.strongest, "Strongest"), value: "strongest" },
+    { label: icon(DASHBOARD_ICON_MAP.filter.first, "First"), value: "first" },
+    { label: icon(DASHBOARD_ICON_MAP.filter.last, "Last"), value: "last" },
+    { label: icon(DASHBOARD_ICON_MAP.filter.untracked, "Untracked"), value: "untracked" },
   ],
   average: [
-    { label: icon(MapPin, "Position"), value: "position" },
-    { label: icon(Tag, "Name"), value: "name" },
-    { label: icon(Globe, "Country"), value: "country" },
-    { label: icon(Sun, "Year"), value: "year" },
-    { label: icon(Moon, "Month"), value: "month" },
+    { label: icon(DASHBOARD_ICON_MAP.filter.position, "Position"), value: "position" },
+    { label: icon(DASHBOARD_ICON_MAP.filter.name, "Name"), value: "name" },
+    { label: icon(DASHBOARD_ICON_MAP.filter.country, "Country"), value: "country" },
+    { label: icon(DASHBOARD_ICON_MAP.filter.year, "Year"), value: "year" },
+    { label: icon(DASHBOARD_ICON_MAP.filter.month, "Month"), value: "month" },
   ],
   recurrence: [
-    { label: icon(MapPin, "Position"), value: "position" },
-    { label: icon(Tag, "Name"), value: "name" },
+    { label: icon(DASHBOARD_ICON_MAP.filter.position, "Position"), value: "position" },
+    { label: icon(DASHBOARD_ICON_MAP.filter.name, "Name"), value: "name" },
   ],
   avgdate: [
-    { label: icon(MapPin, "Position"), value: "position" },
-    { label: icon(Tag, "Name"), value: "name" },
+    { label: icon(DASHBOARD_ICON_MAP.filter.position, "Position"), value: "position" },
+    { label: icon(DASHBOARD_ICON_MAP.filter.name, "Name"), value: "name" },
   ],
 };

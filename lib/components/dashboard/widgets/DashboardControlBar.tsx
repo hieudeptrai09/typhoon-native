@@ -11,6 +11,7 @@ import {
   paramsForView,
   paramsToPath,
 } from "@/lib/utils/storm/routing";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { Segmented } from "antd";
 import Link from "next/link";
 
@@ -38,7 +39,7 @@ const DashboardControlBar = ({ params, onChange }: DashboardControlBarProps) => 
         className="mx-auto grid w-full max-w-2xl grid-cols-5 border-b border-gray-200"
       >
         {VIEW_TABS.map(({ key, label }) => {
-          const Icon = DASHBOARD_ICON_MAP.view[key];
+          const iconName = DASHBOARD_ICON_MAP.view[key];
           const isActive = view === key;
           return (
             <Link
@@ -51,7 +52,7 @@ const DashboardControlBar = ({ params, onChange }: DashboardControlBarProps) => 
                   : "text-foreground hover:text-highlight"
               }`}
             >
-              <Icon size={15} className="shrink-0" />
+              <Ionicons name={iconName} size={15} color={isActive ? "#0369a1" : "#334155"} />
               <span className="sm:whitespace-nowrap">{label}</span>
             </Link>
           );

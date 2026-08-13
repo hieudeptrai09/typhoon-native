@@ -1,4 +1,5 @@
 import { TITLE_COMMON } from "@/lib/constants";
+import { IconName } from "@/lib/types";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import * as WebBrowser from "expo-web-browser";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
@@ -29,7 +30,7 @@ const sources = [
 ];
 
 interface SectionHeadingProps {
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: IconName;
   title: string;
 }
 

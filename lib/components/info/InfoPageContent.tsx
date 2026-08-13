@@ -7,7 +7,7 @@ import StormStats from "@/lib/components/storm/StormStats";
 import type { RetiredName, RetirementReason, SearchDetail, Storm, TyphoonName } from "@/lib/types";
 import { getNameStatusBgClass, getNameStatusColorClass } from "@/lib/utils/colors";
 import { isExternalPosition } from "@/lib/utils/position";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import Ionicons from "@expo/vector-icons/Ionicons";
 
 interface InfoPageContentProps {
   detail: SearchDetail | null;
@@ -75,13 +75,13 @@ function InfoPagination({ names, currentIndex }: { names: string[]; currentIndex
       aria-label="Name pagination"
     >
       <a href={`/info/${prevName.toLowerCase()}`} className={linkClass}>
-        <ChevronLeft className="h-4 w-4" />
+        <Ionicons name="chevron-back" size={16} color="#ffffff" />
         <span className="capitalize">{prevName.toLowerCase()}</span>
       </a>
       <span className="text-sm text-foreground">{names[currentIndex]}</span>
       <a href={`/info/${nextName.toLowerCase()}`} className={linkClass}>
         <span className="capitalize">{nextName.toLowerCase()}</span>
-        <ChevronRight className="h-4 w-4" />
+        <Ionicons name="chevron-forward" size={16} color="#ffffff" />
       </a>
     </nav>
   );

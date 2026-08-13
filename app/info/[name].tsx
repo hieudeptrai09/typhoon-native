@@ -7,7 +7,6 @@ import EmptyResults from "@/lib/components/common/EmptyResults";
 import PageHeader from "@/lib/components/common/PageHeader";
 import InfoPageContent from "@/lib/components/info/InfoPageContent";
 import DidYouMean from "@/lib/components/search/DidYouMean";
-import { SearchX } from "lucide-react";
 import type { Metadata } from "next";
 
 interface InfoPageProps {
@@ -58,7 +57,7 @@ export default async function InfoPage({ params }: InfoPageProps) {
     return (
       <PageHeader title="Name not found">
         <EmptyResults
-          icon={SearchX}
+          icon="search-outline"
           description={`No typhoon name matches "${decodedName}".`}
           action={<DidYouMean names={similar?.data ?? []} />}
         />

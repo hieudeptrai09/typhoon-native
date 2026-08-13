@@ -2,10 +2,12 @@ import CountryFlag from "@/lib/components/common/CountryFlag";
 import EmptyResults from "@/lib/components/common/EmptyResults";
 import ImageCredit from "@/lib/components/common/ImageCredit";
 import ImageWithLoader from "@/lib/components/common/ImageWithLoader";
-import type { RetiredName, TyphoonName } from "@/lib/types";
+import type { IconName, RetiredName, TyphoonName } from "@/lib/types";
 import { capitalize } from "@/lib/utils/format";
-import { History, Inbox, Languages, Replace, SpellCheck, Volume2 } from "lucide-react";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import type { ReactNode } from "react";
+
+const ROW_ICON_COLOR = "#64748b";
 
 export interface NameDetailsContentProps {
   name: TyphoonName | RetiredName | null;
@@ -32,7 +34,10 @@ const NameDetailsContent = ({
 }: NameDetailsContentProps) => {
   if (!name) {
     return (
-      <EmptyResults icon={Inbox} description="No name details available for this external name." />
+      <EmptyResults
+        icon="file-tray-outline"
+        description="No name details available for this external name."
+      />
     );
   }
 
@@ -40,10 +45,10 @@ const NameDetailsContent = ({
     !hideReplacedBy && "replacementName" in name ? name.replacementName : undefined;
   const lastYear = "lastYear" in name ? name.lastYear : undefined;
   const pronunciationFile = name.pronunciationFile?.trim();
-  const crossRef = correctSpelling
-    ? { icon: SpellCheck, label: "Correct spelling", value: correctSpelling }
+  const crossRef: { icon: IconName; label: string; value: string } | undefined = correctSpelling
+    ? { icon: "text-outline", label: "Correct spelling", value: correctSpelling }
     : replacementName
-      ? { icon: Replace, label: "Replaced by", value: replacementName }
+      ? { icon: "swap-horizontal-outline", label: "Replaced by", value: replacementName }
       : undefined;
 
   return (
@@ -77,7 +82,7 @@ const NameDetailsContent = ({
             </InfoRow>
 
             {(name.originalText || name.ipa || pronunciationFile) && (
-              <InfoRow icon={<Languages className="h-4 w-4" />}>
+              <InfoRow icon={<Ionicons name="language-outline" size={16} color={ROW_ICON_COLOR} />}>
                 {name.originalText && <span className="font-medium">{name.originalText}</span>}
                 {name.ipa && <span aria-label="Pronunciation">{name.ipa}</span>}
                 {pronunciationFile && (
@@ -89,18 +94,20 @@ const NameDetailsContent = ({
                     title={`Listen to the pronunciation of ${capitalize(name.name.toLowerCase())}`}
                     aria-label={`Listen to the pronunciation of ${capitalize(name.name.toLowerCase())}`}
                   >
-                    <Volume2 className="h-4 w-4 shrink-0 text-foreground" aria-hidden="true" />
+                    <Ionicons name="volume-high-outline" size={16} color="#334155" aria-hidden />
                   </a>
                 )}
               </InfoRow>
             )}
 
             {lastYear !== undefined && lastYear !== 0 && (
-              <InfoRow icon={<History className="h-4 w-4" />}>Last used {lastYear}</InfoRow>
+              <InfoRow icon={<Ionicons name="time-outline" size={16} color={ROW_ICON_COLOR} />}>
+                Last used {lastYear}
+              </InfoRow>
             )}
 
             {crossRef && (
-              <InfoRow icon={<crossRef.icon className="h-4 w-4" />}>
+              <InfoRow icon={<Ionicons name={crossRef.icon} size={16} color={ROW_ICON_COLOR} />}>
                 {crossRef.label}{" "}
                 <span className="font-semibold text-teal-600">{crossRef.value}</span>
               </InfoRow>

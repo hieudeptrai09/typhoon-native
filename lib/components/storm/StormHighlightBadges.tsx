@@ -1,5 +1,5 @@
 import type { Storm } from "@/lib/types";
-import { ArrowDownToLine, Medal, Zap } from "lucide-react";
+import Ionicons from "@expo/vector-icons/Ionicons";
 
 export const hasHighlight = (storm: Storm): boolean =>
   storm.isStrongest === true || storm.isFirst === true || storm.isLast === true;
@@ -14,17 +14,17 @@ const StormHighlightBadges = ({ storm }: { storm: Storm }) => {
     <div className="flex flex-wrap items-center gap-1">
       {storm.isStrongest && (
         <span className={`${BADGE_CLASS} bg-rose-200 text-rose-700`}>
-          <Zap size={10} /> Strongest
+          <Ionicons name="flash-outline" size={10} color="#be123c" /> Strongest
         </span>
       )}
       {storm.isFirst && (
         <span className={`${BADGE_CLASS} bg-blue-200 text-blue-700`}>
-          <Medal size={10} /> First
+          <Ionicons name="medal-outline" size={10} color="#1d4ed8" /> First
         </span>
       )}
       {storm.isLast && (
         <span className={`${BADGE_CLASS} bg-orange-200 text-orange-700`}>
-          <ArrowDownToLine size={10} /> Last
+          <Ionicons name="download-outline" size={10} color="#c2410c" /> Last
         </span>
       )}
     </div>

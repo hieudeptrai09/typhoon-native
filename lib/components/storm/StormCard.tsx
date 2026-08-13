@@ -4,7 +4,7 @@ import { BACKGROUND_BADGE, INTENSITY_LABEL, TEXT_COLOR_BADGE } from "@/lib/const
 import type { Storm } from "@/lib/types";
 import { formatStormDateRange } from "@/lib/utils/date";
 import { getZoomEarthUrl } from "@/lib/utils/format";
-import { Calendar, ExternalLink, Hash, ImageOff } from "lucide-react";
+import Ionicons from "@expo/vector-icons/Ionicons";
 
 const StormCard = ({ storm }: { storm: Storm }) => {
   const bgColor = BACKGROUND_BADGE[storm.intensity];
@@ -26,14 +26,14 @@ const StormCard = ({ storm }: { storm: Storm }) => {
         </span>
         {storm.jtwcDesignation && (
           <div className="mt-1 flex items-center gap-1.5">
-            <Hash size={12} style={{ color: textColor }} />
+            <Ionicons name="pricetag-outline" size={12} color={textColor} />
             <span className="text-xs font-semibold" style={{ color: textColor }}>
               {storm.jtwcDesignation}
             </span>
           </div>
         )}
         <div className="mt-1 flex items-center gap-1.5">
-          <Calendar size={12} style={{ color: textColor }} />
+          <Ionicons name="calendar-outline" size={12} color={textColor} />
           <span className="text-xs font-semibold" style={{ color: textColor }}>
             {dateRange}
           </span>
@@ -54,7 +54,7 @@ const StormCard = ({ storm }: { storm: Storm }) => {
             aria-label="No image available"
             className="@container flex h-full w-full flex-col items-center justify-center gap-1.5 p-2 text-center text-gray-400"
           >
-            <ImageOff className="h-1/4 w-1/4 min-h-6 min-w-6" strokeWidth={1.5} aria-hidden />
+            <Ionicons name="image-outline" size={32} color="#9ca3af" aria-hidden />
             <span aria-hidden className="hidden text-xs font-medium @[7rem]:block">
               No track map
             </span>
@@ -70,7 +70,7 @@ const StormCard = ({ storm }: { storm: Storm }) => {
           className="inline-flex items-center gap-1 text-xs font-semibold text-sky-700 hover:underline"
         >
           Zoom Earth
-          <ExternalLink size={12} />
+          <Ionicons name="open-outline" size={12} color="#0369a1" />
         </a>
       </div>
     </div>

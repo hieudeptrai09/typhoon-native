@@ -4,8 +4,8 @@ import ActiveStorms from "@/lib/components/home/ActiveStorms";
 import FunFacts from "@/lib/components/home/FunFacts";
 import OnThisDay from "@/lib/components/home/OnThisDay";
 import SearchBar from "@/lib/components/search/SearchBar";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { Button, Popover } from "antd";
-import { Sparkles, X } from "lucide-react";
 import { useState } from "react";
 
 const QuickActionsMenu = ({ allNames }: { allNames: string[] }) => {
@@ -43,7 +43,7 @@ const QuickActionsMenu = ({ allNames }: { allNames: string[] }) => {
           aria-label={
             isOpen ? "Close discover menu" : "Discover: on this day, active storms, fun facts"
           }
-          icon={isOpen ? <X size={20} /> : <Sparkles size={20} />}
+          icon={<Ionicons name={isOpen ? "close" : "sparkles-outline"} size={20} color="#b45309" />}
           className="h-11! w-11! shrink-0! rounded-lg! border! border-amber-600/70! text-amber-700! hover:bg-amber-50!"
         />
       </Popover>

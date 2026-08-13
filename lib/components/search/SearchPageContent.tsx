@@ -10,9 +10,9 @@ import NameStatusIcon from "@/lib/components/name/NameStatusIcon";
 import DidYouMean from "@/lib/components/search/DidYouMean";
 import type { SearchResult } from "@/lib/types";
 import { clickableRowProps } from "@/lib/utils/a11y";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { Empty } from "antd";
 import type { ColumnsType } from "antd/es/table";
-import { Search, SearchX } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo } from "react";
 
@@ -112,14 +112,14 @@ export default function SearchPageContent({
         {!query.trim() ? (
           <div className="p-8">
             <Empty
-              image={<Search size={64} strokeWidth={1.5} className="text-gray-400" />}
+              image={<Ionicons name="search-outline" size={64} color="#9ca3af" />}
               imageStyle={{ height: 64, display: "flex", justifyContent: "center" }}
               description={<span className="text-foreground">Type a name to search</span>}
             />
           </div>
         ) : count === 0 ? (
           <EmptyResults
-            icon={SearchX}
+            icon="search-outline"
             description={`No typhoon names match "${query}". Check the spelling or try a shorter name.`}
             action={<DidYouMean names={similarNames} />}
           />

@@ -1,5 +1,5 @@
 import type { ImageCredit as ImageCreditType } from "@/lib/types";
-import { Copyright } from "lucide-react";
+import Ionicons from "@expo/vector-icons/Ionicons";
 
 interface ImageCreditProps {
   credit?: ImageCreditType;
@@ -22,7 +22,7 @@ const ImageCredit = ({ credit, position = "bottom", align = "start" }: ImageCred
         className={`flex items-center gap-1 text-[11px] leading-relaxed text-gray-400 @md:w-48 ${alignClass[align]} ${spacing} `}
         title={`${author}${license ? `, ${license}` : ""}`}
       >
-        <Copyright className="h-3 w-3 shrink-0" aria-hidden="true" />
+        <Ionicons name="camera-outline" size={12} color="#9ca3af" aria-hidden />
         <span className="truncate">
           {sourceUrl ? (
             <a

@@ -10,8 +10,8 @@ import type { Storm } from "@/lib/types";
 import { formatStormDateRange } from "@/lib/utils/date";
 import { getZoomEarthUrl } from "@/lib/utils/format";
 import { isExternalPosition } from "@/lib/utils/position";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { Switch } from "antd";
-import { ExternalLink, Inbox } from "lucide-react";
 import { useState } from "react";
 
 export interface StormListContentProps {
@@ -60,7 +60,7 @@ function StormRow({ storm, showMap }: { storm: Storm; showMap: boolean }) {
           className="inline-flex items-center gap-1 text-xs font-semibold text-sky-700 hover:underline"
         >
           Zoom Earth
-          <ExternalLink size={12} />
+          <Ionicons name="open-outline" size={12} color="#0369a1" />
         </a>
       </div>
     </div>
@@ -71,7 +71,7 @@ const StormListContent = ({ storms }: StormListContentProps) => {
   const [showMap, setShowMap] = useState(false);
 
   if (storms.length === 0) {
-    return <EmptyResults icon={Inbox} description="No storms found for this name." />;
+    return <EmptyResults icon="file-tray-outline" description="No storms found for this name." />;
   }
 
   const isInternal = !isExternalPosition(storms[0].position);

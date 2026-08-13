@@ -1,7 +1,7 @@
 "use client";
 
 import TyphoonSpinner from "@/lib/components/common/TyphoonSpinner";
-import { ImageOff } from "lucide-react";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import Image from "next/image";
 import { useState, type ComponentProps } from "react";
 
@@ -25,7 +25,7 @@ const ImageWithLoader = ({ className, ...props }: ImageWithLoaderProps) => {
           aria-label="No image available"
           className="@container flex h-full w-full flex-col items-center justify-center gap-1.5 p-2 text-center text-gray-400"
         >
-          <ImageOff className="h-1/4 w-1/4 min-h-6 min-w-6" strokeWidth={1.5} aria-hidden />
+          <Ionicons name="image-outline" size={32} color="#9ca3af" aria-hidden />
           <span aria-hidden className="hidden text-xs font-medium @[7rem]:block">
             No image available
           </span>

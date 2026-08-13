@@ -10,7 +10,6 @@ import StormListContent from "@/lib/components/storm/StormListContent";
 import type { SearchDetail } from "@/lib/types";
 import { getNameStatusColor } from "@/lib/utils/colors";
 import { isExternalPosition } from "@/lib/utils/position";
-import { SearchX } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, type ReactNode } from "react";
 
@@ -40,7 +39,9 @@ export default function InfoModal({ detail, name, isError = false }: InfoModalPr
   if (isError) {
     content = <FrownError />;
   } else if (notFound) {
-    content = <EmptyResults icon={SearchX} description="No typhoon with that name was found." />;
+    content = (
+      <EmptyResults icon="search-outline" description="No typhoon with that name was found." />
+    );
   } else {
     const nameStatusColor = getNameStatusColor({
       isRetired,

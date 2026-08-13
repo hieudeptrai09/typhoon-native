@@ -2,8 +2,8 @@
 
 import HighlightedName from "@/lib/components/common/HighlightedName";
 import { topSuggestions } from "@/lib/utils/fuzzy";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { AutoComplete, Input, type AutoCompleteProps } from "antd";
-import { Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import styles from "./SearchBar.module.css";
@@ -17,19 +17,19 @@ const VARIANT_CONFIG: Record<
   SearchBarVariant,
   {
     size?: "large";
-    prefixClassName: string;
+    prefixColor: string;
     prefixSize: number;
     inputClassName: string;
   }
 > = {
   home: {
     size: "large",
-    prefixClassName: "text-gray-500",
+    prefixColor: "#6b7280",
     prefixSize: 18,
     inputClassName: styles.homeInput,
   },
   navbar: {
-    prefixClassName: "text-white",
+    prefixColor: "#ffffff",
     prefixSize: 16,
     inputClassName: `${styles.navbarInput} w-full`,
   },
@@ -135,7 +135,7 @@ const SearchBar = ({ variant, allNames }: SearchBarProps) => {
         size={config.size}
         placeholder={PLACEHOLDER}
         aria-label="Search typhoon names"
-        prefix={<Search size={config.prefixSize} className={config.prefixClassName} />}
+        prefix={<Ionicons name="search" size={config.prefixSize} color={config.prefixColor} />}
         allowClear
         onKeyDown={handleKeyDown}
         className={config.inputClassName}

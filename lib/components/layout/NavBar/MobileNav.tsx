@@ -1,5 +1,4 @@
 import NavLink from "@/lib/components/layout/NavBar/NavLink";
-import { BookText, CloudLightning } from "lucide-react";
 
 interface MobileNavProps {
   currentPath: string;
@@ -19,14 +18,14 @@ const MobileNav = ({ currentPath, isOpen, onClose }: MobileNavProps) => {
       <div className="space-y-2 px-4 py-2">
         <NavLink
           href="/storms/all/name/"
-          icon={CloudLightning}
+          icon="thunderstorm-outline"
           label="Storms"
           isActive={currentPath.startsWith("/storms")}
           onClick={onClose}
         />
         <NavLink
           href="/names/current/"
-          icon={BookText}
+          icon="book-outline"
           label="Names"
           isActive={currentPath.startsWith("/names")}
           onClick={onClose}

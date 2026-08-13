@@ -1,5 +1,5 @@
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { Empty } from "antd";
-import { Frown, RotateCw } from "lucide-react";
 
 /* Solid gray-600 fill rather than an Ant Button: Ant lightens a solid button on
    hover, which walks the label back toward the fill. */
@@ -16,7 +16,7 @@ const FrownError = ({
   return (
     <div className="mx-auto max-w-4xl p-8">
       <Empty
-        image={<Frown size={64} strokeWidth={1.5} className="text-gray-400" />}
+        image={<Ionicons name="sad-outline" size={64} color="#9ca3af" />}
         imageStyle={{ height: 64, display: "flex", justifyContent: "center" }}
         description={<span className="text-foreground">{description}</span>}
       >
@@ -24,7 +24,7 @@ const FrownError = ({
           // Retry is the only action here on purpose: the navbar already carries
           // the escape routes, so repeating them would just compete with it.
           <button type="button" onClick={onRetry} className={`${RETRY_CLASS} mx-auto`}>
-            <RotateCw className="h-4 w-4" aria-hidden />
+            <Ionicons name="refresh" size={16} color="#ffffff" aria-hidden />
             Try again
           </button>
         )}

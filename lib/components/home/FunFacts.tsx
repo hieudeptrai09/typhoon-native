@@ -2,8 +2,8 @@
 
 import { fetchRandomFact } from "@/be/actions/home";
 import TyphoonSpinner from "@/lib/components/common/TyphoonSpinner";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { App, Button } from "antd";
-import { Lightbulb } from "lucide-react";
 import { useState } from "react";
 
 const FunFacts = () => {
@@ -42,7 +42,7 @@ const FunFacts = () => {
         loading ? (
           <TyphoonSpinner size="small" colorClass="text-amber-700" />
         ) : (
-          <Lightbulb size={16} />
+          <Ionicons name="bulb-outline" size={16} color="#b45309" />
         )
       }
       onClick={showFact}

@@ -1,58 +1,46 @@
 "use client";
 
 import PositionGrid from "@/lib/components/position/PositionGrid";
-import type { TyphoonName } from "@/lib/types";
+import type { IconName, TyphoonName } from "@/lib/types";
 import { onEnterKeyDown } from "@/lib/utils/a11y";
-import { getNameStatusColorClass } from "@/lib/utils/colors";
-import {
-  Gem,
-  Ham,
-  Hammer,
-  Leaf,
-  LibraryBig,
-  MapPin,
-  Moon,
-  PawPrint,
-  Swords,
-  Tag,
-  User,
-  Wind,
-  type LucideIcon,
-} from "lucide-react";
+import { getNameStatusColor } from "@/lib/utils/colors";
+import Ionicons from "@expo/vector-icons/Ionicons";
 
-const TAG_ICONS: Record<string, LucideIcon> = {
-  Animal: PawPrint,
-  "Celestial body": Moon,
-  Concept: LibraryBig,
-  Deity: Swords,
-  Descriptive: Tag,
-  "Food and beverage": Ham,
-  Mineral: Gem,
-  Nature: Wind,
-  "People's name": User,
-  Place: MapPin,
-  Plant: Leaf,
-  Thing: Hammer,
+const DEFAULT_COLOR = "#334155";
+
+const TAG_ICONS: Record<string, IconName> = {
+  Animal: "paw-outline",
+  "Celestial body": "moon-outline",
+  Concept: "library-outline",
+  Deity: "flash-outline",
+  Descriptive: "pricetag-outline",
+  "Food and beverage": "fast-food-outline",
+  Mineral: "diamond-outline",
+  Nature: "cloudy-outline",
+  "People's name": "person-outline",
+  Place: "location-outline",
+  Plant: "leaf-outline",
+  Thing: "hammer-outline",
 };
 
 const TAG_COLORS: Record<string, string> = {
-  Animal: "text-emerald-700",
-  "Celestial body": "text-indigo-800",
-  Concept: "text-violet-700",
-  Deity: "text-amber-700",
-  Descriptive: "text-rose-700",
-  "Food and beverage": "text-red-500",
-  Mineral: "text-slate-500",
-  Nature: "text-cyan-600",
-  "People's name": "text-pink-600",
-  Place: "text-blue-600",
-  Plant: "text-green-600",
-  Thing: "text-amber-800",
+  Animal: "#047857",
+  "Celestial body": "#3730a3",
+  Concept: "#6d28d9",
+  Deity: "#b45309",
+  Descriptive: "#be123c",
+  "Food and beverage": "#ef4444",
+  Mineral: "#64748b",
+  Nature: "#0891b2",
+  "People's name": "#db2777",
+  Place: "#2563eb",
+  Plant: "#16a34a",
+  Thing: "#92400e",
 };
 
-const HISTORY_COUNT_COLORS = ["", "text-green-600", "text-blue-600", "text-amber-600"];
+const HISTORY_COUNT_COLORS = ["", "#16a34a", "#2563eb", "#d97706"];
 const getHistoryCountColor = (count: number) =>
-  count >= 4 ? "text-red-600" : HISTORY_COUNT_COLORS[count] || "text-foreground";
+  count >= 4 ? "#dc2626" : HISTORY_COUNT_COLORS[count] || DEFAULT_COLOR;
 
 const TagIcon = ({
   tag,
@@ -63,10 +51,11 @@ const TagIcon = ({
   size?: number;
   colorOverride?: string;
 }) => {
-  const Icon = TAG_ICONS[tag];
-  const colorClass = colorOverride || TAG_COLORS[tag] || "text-foreground";
-  if (!Icon) return null;
-  return <Icon size={size} className={colorClass} />;
+  const icon = TAG_ICONS[tag];
+  if (!icon) return null;
+  return (
+    <Ionicons name={icon} size={size} color={colorOverride || TAG_COLORS[tag] || DEFAULT_COLOR} />
+  );
 };
 
 const sortByOldest = (names: TyphoonName[]) => [...names].sort((a, b) => a.id - b.id);
@@ -100,8 +89,8 @@ const NameButton = ({
   >
     {showName ? (
       <span
-        className={`leading-tight font-semibold ${colorOverride || getNameStatusColorClass(name)} hover:underline`}
-        style={{ fontSize: size.name }}
+        className="leading-tight font-semibold hover:underline"
+        style={{ fontSize: size.name, color: colorOverride || getNameStatusColor(name) }}
       >
         {name.name}
       </span>

@@ -13,8 +13,8 @@ import type {
 import { writeDisplayPrefs, type NamesDisplayPrefs } from "@/lib/utils/name/displayPrefs";
 import { paramsToPath } from "@/lib/utils/name/routing";
 import { toArr } from "@/lib/utils/params";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { Badge, Button } from "antd";
-import { CaseUpper, Filter } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
 
@@ -217,7 +217,7 @@ const RetiredView = ({ retiredNames, suggestedNames, displayPrefs }: RetiredView
             onClick={handleToggleLetterNav}
             title={showLetterNav ? "Letter navigation is on" : "Letter navigation is off"}
           >
-            <CaseUpper size={26} />
+            <Ionicons name="text-outline" size={26} color="#334155" />
           </SlashToggleButton>
           <Badge count={activeFilterCount} color="#3b82f6" offset={[-4, 4]}>
             <Button
@@ -225,7 +225,7 @@ const RetiredView = ({ retiredNames, suggestedNames, displayPrefs }: RetiredView
               onClick={() => setIsFilterModalOpen(true)}
               title="Filters"
               aria-label={`Open filters${activeFilterCount > 0 ? `, ${activeFilterCount} active` : ""}`}
-              icon={<Filter size={30} />}
+              icon={<Ionicons name="funnel-outline" size={30} color="#334155" />}
               className="h-auto! w-auto! p-1! text-foreground! hover:bg-transparent! hover:text-highlight!"
             />
           </Badge>
