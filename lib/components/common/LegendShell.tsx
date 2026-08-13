@@ -1,35 +1,72 @@
 import type { ReactNode } from "react";
+import { StyleSheet, Text, View } from "react-native";
 
 interface LegendShellProps {
   label: string;
-  ariaLabel: string;
+  accessibilityLabel: string;
   children: ReactNode;
 }
 
-export default function LegendShell({ label, ariaLabel, children }: LegendShellProps) {
+export default function LegendShell({ label, accessibilityLabel, children }: LegendShellProps) {
   return (
-    <section className="mt-6 border-t border-slate-200 pt-6" aria-label={ariaLabel}>
-      <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5 sm:justify-start">
-        <span className="text-xs font-semibold text-foreground">{label}</span>
+    <View style={styles.root} accessibilityLabel={accessibilityLabel}>
+      <View style={styles.items}>
+        <Text style={styles.label}>{label}</Text>
         {children}
-      </div>
-    </section>
+      </View>
+    </View>
   );
 }
 
 interface LegendItemProps {
   label: ReactNode;
   color?: string;
-  colorClass?: string;
 }
 
-export const LegendItem = ({ label, color, colorClass }: LegendItemProps) => (
-  <span className="flex items-center gap-1.5">
-    <span
-      className={`inline-block h-3 w-3 shrink-0 rounded-sm ${colorClass ? `${colorClass} border border-slate-300` : ""}`}
-      style={color ? { backgroundColor: color } : undefined}
-      aria-hidden="true"
-    />
-    <span className="text-xs text-foreground">{label}</span>
-  </span>
+export const LegendItem = ({ label, color }: LegendItemProps) => (
+  <View style={styles.item}>
+    <View style={[styles.swatch, color ? { backgroundColor: color } : styles.swatchEmpty]} />
+    {typeof label === "string" ? <Text style={styles.itemLabel}>{label}</Text> : label}
+  </View>
 );
+
+const styles = StyleSheet.create({
+  root: {
+    marginTop: 20,
+    paddingTop: 16,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: "#cbd5e1",
+  },
+  items: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    alignItems: "center",
+    columnGap: 12,
+    rowGap: 6,
+  },
+  label: {
+    fontFamily: "OpenSans_600SemiBold",
+    fontSize: 12,
+    color: "#475569",
+  },
+  item: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  swatch: {
+    width: 12,
+    height: 12,
+    borderRadius: 3,
+  },
+  swatchEmpty: {
+    backgroundColor: "#f1f5f9",
+    borderWidth: 1,
+    borderColor: "#cbd5e1",
+  },
+  itemLabel: {
+    fontFamily: "OpenSans_400Regular",
+    fontSize: 12,
+    color: "#475569",
+  },
+});

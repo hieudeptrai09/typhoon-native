@@ -7,29 +7,49 @@ import {
   TEXT_COLOR_BADGE,
 } from "@/lib/constants";
 import type { IntensityType } from "@/lib/types";
+import { StyleSheet, Text, View } from "react-native";
 
 export default function IntensityLegend() {
   return (
-    <LegendShell label="Intensity Scale:" ariaLabel="Intensity scale legend">
+    <LegendShell label="Intensity Scale:" accessibilityLabel="Intensity scale legend">
       {(Object.keys(INTENSITY_LABEL) as IntensityType[])
         .sort((a, b) => SORTING_RANK[a] - SORTING_RANK[b])
         .map((intensity) => (
-          <span key={intensity} className="flex items-center gap-1.5">
-            <span
-              className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-sm text-[10px] font-bold"
-              style={{
-                backgroundColor: BACKGROUND_BADGE[intensity],
-                color: TEXT_COLOR_BADGE[intensity],
-              }}
-            >
-              {intensity}
-            </span>
-            <span className="text-xs text-foreground">
-              {INTENSITY_LABEL[intensity]}{" "}
-              <span className="text-foreground">({INTENSITY_RANK[intensity]})</span>
-            </span>
-          </span>
+          <View key={intensity} style={styles.item}>
+            <View style={[styles.badge, { backgroundColor: BACKGROUND_BADGE[intensity] }]}>
+              <Text style={[styles.badgeText, { color: TEXT_COLOR_BADGE[intensity] }]}>
+                {intensity}
+              </Text>
+            </View>
+            <Text style={styles.label}>
+              {INTENSITY_LABEL[intensity]} ({INTENSITY_RANK[intensity]})
+            </Text>
+          </View>
         ))}
     </LegendShell>
   );
 }
+
+const styles = StyleSheet.create({
+  item: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  badge: {
+    width: 20,
+    height: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 4,
+  },
+  badgeText: {
+    fontFamily: "OpenSans_700Bold",
+    fontSize: 10,
+  },
+  label: {
+    fontFamily: "OpenSans_400Regular",
+    fontSize: 12,
+    color: "#475569",
+  },
+});

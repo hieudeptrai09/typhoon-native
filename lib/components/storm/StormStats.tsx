@@ -15,9 +15,10 @@ import {
   formatDuration,
   getDoyMonth,
 } from "@/lib/utils/storm/dates";
+import { StyleSheet, Text, View } from "react-native";
 
 const DatePart = ({ doy }: { doy: number }) => (
-  <span style={{ color: getAvgDateColor(getDoyMonth(doy)) }}>{formatDayOfYear(doy)}</span>
+  <Text style={{ color: getAvgDateColor(getDoyMonth(doy)) }}>{formatDayOfYear(doy)}</Text>
 );
 
 const StormStats = ({ storms }: { storms: Storm[] }) => {
@@ -30,38 +31,69 @@ const StormStats = ({ storms }: { storms: Storm[] }) => {
   const duration = calculateAvgDuration(storms);
 
   return (
-    <div className="@container">
-      <div className="grid grid-cols-2 gap-2 @3xl:grid-cols-4">
-        <StatTile label="Avg. intensity" title={`${INTENSITY_LABEL[intensity]} on a −2 to 5 scale`}>
-          <span style={{ color: TEXT_COLOR_WHITE_BACKGROUND[intensity] }}>
+    // Two columns: four tiles across is unreadable at phone widths, and these values are short.
+    <View style={styles.grid}>
+      <View style={styles.cell}>
+        <StatTile label="Avg. intensity" hint={`${INTENSITY_LABEL[intensity]} on a −2 to 5 scale`}>
+          <Text style={{ color: TEXT_COLOR_WHITE_BACKGROUND[intensity] }}>
             {average.toFixed(2)}
-          </span>
+          </Text>
         </StatTile>
+      </View>
 
+      <View style={styles.cell}>
         <StatTile
           label="Recurrence"
-          title={
+          hint={
             recurrence < 0
               ? "Only one storm, so no recurrence can be measured"
               : "Average years between appearances"
           }
         >
-          <span style={{ color: getDistanceColor(recurrence) }}>{formatDistance(recurrence)}</span>
-          {recurrence >= 0 && <span className="ml-1 text-xs text-foreground">yrs</span>}
+          <Text style={{ color: getDistanceColor(recurrence) }}>{formatDistance(recurrence)}</Text>
+          {recurrence >= 0 && <Text style={styles.unit}> yrs</Text>}
         </StatTile>
+      </View>
 
-        <StatTile label="Avg. date" title="Average start and end date">
+      <View style={styles.cell}>
+        <StatTile label="Avg. date" hint="Average start and end date">
           <DatePart doy={startDoy} />
-          <span className="text-gray-400"> – </span>
+          <Text style={styles.separator}> – </Text>
           <DatePart doy={endDoy} />
         </StatTile>
+      </View>
 
-        <StatTile label="Avg. duration" title="Average days from start to end">
-          <span className="text-slate-700">{formatDuration(duration)}</span>
+      <View style={styles.cell}>
+        <StatTile label="Avg. duration" hint="Average days from start to end">
+          <Text style={styles.plain}>{formatDuration(duration)}</Text>
         </StatTile>
-      </div>
-    </div>
+      </View>
+    </View>
   );
 };
+
+const styles = StyleSheet.create({
+  grid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  cell: {
+    // Half the row minus the gap, so two tiles sit side by side and the rest wrap under them.
+    flexBasis: "48%",
+    flexGrow: 1,
+  },
+  unit: {
+    fontFamily: "OpenSans_400Regular",
+    fontSize: 12,
+    color: "#64748b",
+  },
+  separator: {
+    color: "#9ca3af",
+  },
+  plain: {
+    color: "#334155",
+  },
+});
 
 export default StormStats;

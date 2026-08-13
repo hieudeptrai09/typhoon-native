@@ -1,16 +1,14 @@
-"use client";
-
-import { fetchActiveOnThisDay } from "@/be/actions/home";
-import type { ActiveOnThisDayStorm } from "@/be/api/getActiveOnThisDay";
+import { useApiQuery } from "@/lib/api/client";
+import DefModal from "@/lib/components/common/DefModal";
+import FrownError from "@/lib/components/common/FrownError";
 import TyphoonSpinner from "@/lib/components/common/TyphoonSpinner";
+import QuickActionButton from "@/lib/components/home/QuickActionButton";
 import { INTENSITY_LABEL, TEXT_COLOR_WHITE_BACKGROUND } from "@/lib/constants";
+import type { ActiveOnThisDayStorm } from "@/lib/types";
 import { formatStormDateRange } from "@/lib/utils/date";
-import Ionicons from "@expo/vector-icons/Ionicons";
-import { App, Button } from "antd";
-import Link from "next/link";
+import { useRouter } from "expo-router";
 import { useState } from "react";
-
-type ActiveStorm = ActiveOnThisDayStorm;
+import { StyleSheet, Text, View } from "react-native";
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
@@ -20,8 +18,8 @@ const parseLocalDate = (date: string): Date => {
   return new Date(year, month - 1, day);
 };
 
-const groupBySeasonYear = (storms: ActiveStorm[]): [number, ActiveStorm[]][] => {
-  const groups = new Map<number, ActiveStorm[]>();
+const groupBySeasonYear = (storms: ActiveOnThisDayStorm[]): [number, ActiveOnThisDayStorm[]][] => {
+  const groups = new Map<number, ActiveOnThisDayStorm[]>();
 
   for (const storm of storms) {
     const group = groups.get(storm.year);
@@ -32,7 +30,7 @@ const groupBySeasonYear = (storms: ActiveStorm[]): [number, ActiveStorm[]][] => 
   return [...groups.entries()].sort(([a], [b]) => a - b);
 };
 
-const getDayProgress = (storm: ActiveStorm) => {
+const getDayProgress = (storm: ActiveOnThisDayStorm) => {
   const startDate = parseLocalDate(storm.dateStart);
   const today = new Date();
 
@@ -54,115 +52,153 @@ const getDayProgress = (storm: ActiveStorm) => {
 };
 
 const ActiveStorms = () => {
-  const [loading, setLoading] = useState(false);
-  const { modal } = App.useApp();
+  const router = useRouter();
+  const [isOpen, setIsOpen] = useState(false);
 
-  const fetchStorms = async () => {
-    setLoading(true);
-    try {
-      const today = new Date();
-      const storms = await fetchActiveOnThisDay(today.getDate(), today.getMonth() + 1);
+  const today = new Date();
+  const { data, isLoading, isError, refetch } = useApiQuery<ActiveOnThisDayStorm[]>(
+    isOpen
+      ? `/api/v1/on-this-day-active?day=${today.getDate()}&month=${today.getMonth() + 1}`
+      : null,
+  );
 
-      if (storms.length === 0) {
-        modal.info({
-          title: "Active on this day",
-          icon: null,
-          centered: true,
-          okText: "Got it",
-          content: (
-            <p className="text-foreground">No storms were active on this date in past years.</p>
-          ),
-        });
-        return;
-      }
-
-      modal.info({
-        title: "Active on this day",
-        icon: null,
-        centered: true,
-        okText: "Got it",
-        content: (
-          <div className="max-h-[70vh] overflow-y-auto">
-            <p className="mb-3 text-sm font-semibold text-foreground">
-              Storms that were in progress on this date in past years
-            </p>
-            <div className="space-y-3">
-              {groupBySeasonYear(storms).map(([year, yearStorms]) => (
-                <div key={year}>
-                  <p className="m-0 mb-1 text-sm font-bold text-foreground">{year}</p>
-                  <ol className="m-0 list-decimal list-outside space-y-1.5 pl-8">
-                    {yearStorms.map((storm, i) => {
-                      const label = INTENSITY_LABEL[storm.intensity];
-                      const color = TEXT_COLOR_WHITE_BACKGROUND[storm.intensity];
-                      const range = formatStormDateRange(
-                        storm.dateStart,
-                        storm.dateEnd ?? undefined,
-                      );
-                      const { dayOfStorm, totalDays } = getDayProgress(storm);
-
-                      return (
-                        <li key={i} className="text-sm leading-relaxed text-foreground">
-                          {label}{" "}
-                          <Link
-                            href={`/info/${encodeURIComponent(storm.name.toLowerCase())}`}
-                            className="font-bold"
-                            style={{ color }}
-                          >
-                            {storm.name}
-                          </Link>
-                          <span className="text-foreground"> ({range})</span>
-                          <br />
-                          <span className="text-sm text-foreground">
-                            Day{" "}
-                            {totalDays !== null ? (
-                              <>
-                                <span className="font-semibold">{dayOfStorm}</span>/
-                                <span className="font-semibold">{totalDays}</span>
-                              </>
-                            ) : (
-                              <span className="font-semibold">{dayOfStorm}</span>
-                            )}
-                          </span>
-                        </li>
-                      );
-                    })}
-                  </ol>
-                </div>
-              ))}
-            </div>
-          </div>
-        ),
-      });
-    } catch {
-      modal.info({
-        title: "Oops!",
-        icon: null,
-        centered: true,
-        okText: "Close",
-        content: <p className="text-foreground">Could not load active storms.</p>,
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+  const storms = data ?? [];
 
   return (
-    <Button
-      type="text"
-      icon={
-        loading ? (
-          <TyphoonSpinner colorClass="text-amber-700" size="small" />
+    <>
+      <QuickActionButton
+        icon="water-outline"
+        label="Active on this day"
+        onPress={() => setIsOpen(true)}
+      />
+
+      <DefModal open={isOpen} onClose={() => setIsOpen(false)} title="Active on this day">
+        {isLoading ? (
+          <View style={styles.center}>
+            <TyphoonSpinner />
+          </View>
+        ) : isError ? (
+          <FrownError onRetry={refetch} />
+        ) : storms.length === 0 ? (
+          <Text style={styles.empty}>No storms were active on this date in past years.</Text>
         ) : (
-          <Ionicons name="water-outline" size={16} color="#b45309" />
-        )
-      }
-      onClick={fetchStorms}
-      disabled={loading}
-      className="w-full! justify-start! text-sm! font-semibold! text-amber-700! hover:text-amber-800!"
-    >
-      Active on this day
-    </Button>
+          <View style={styles.years}>
+            <Text style={styles.caption}>
+              Storms that were in progress on this date in past years
+            </Text>
+
+            {groupBySeasonYear(storms).map(([year, yearStorms]) => (
+              <View key={year} style={styles.year}>
+                <Text style={styles.yearLabel}>{year}</Text>
+
+                {yearStorms.map((storm, index) => {
+                  const { dayOfStorm, totalDays } = getDayProgress(storm);
+
+                  return (
+                    <View key={index} style={styles.item}>
+                      <Text style={styles.ordinal}>{index + 1}.</Text>
+
+                      <View style={styles.itemBody}>
+                        <Text style={styles.text}>
+                          {INTENSITY_LABEL[storm.intensity]}{" "}
+                          <Text
+                            style={[
+                              styles.name,
+                              { color: TEXT_COLOR_WHITE_BACKGROUND[storm.intensity] },
+                            ]}
+                            onPress={() => {
+                              setIsOpen(false);
+                              router.push(`/info/${storm.name.toLowerCase()}`);
+                            }}
+                          >
+                            {storm.name}
+                          </Text>{" "}
+                          ({formatStormDateRange(storm.dateStart, storm.dateEnd ?? undefined)})
+                        </Text>
+
+                        <Text style={styles.progress}>
+                          Day <Text style={styles.progressValue}>{dayOfStorm}</Text>
+                          {totalDays !== null ? (
+                            <>
+                              /<Text style={styles.progressValue}>{totalDays}</Text>
+                            </>
+                          ) : null}
+                        </Text>
+                      </View>
+                    </View>
+                  );
+                })}
+              </View>
+            ))}
+          </View>
+        )}
+      </DefModal>
+    </>
   );
 };
+
+const styles = StyleSheet.create({
+  center: {
+    alignItems: "center",
+    paddingVertical: 32,
+  },
+  empty: {
+    fontFamily: "OpenSans_400Regular",
+    fontSize: 14,
+    color: "#475569",
+    paddingVertical: 12,
+  },
+  caption: {
+    fontFamily: "OpenSans_600SemiBold",
+    fontSize: 14,
+    color: "#334155",
+  },
+  years: {
+    gap: 16,
+  },
+  year: {
+    gap: 8,
+  },
+  yearLabel: {
+    fontFamily: "OpenSans_700Bold",
+    fontSize: 14,
+    color: "#334155",
+    fontVariant: ["tabular-nums"],
+  },
+  item: {
+    flexDirection: "row",
+    gap: 8,
+    paddingLeft: 4,
+  },
+  ordinal: {
+    fontFamily: "OpenSans_400Regular",
+    fontSize: 14,
+    color: "#94a3b8",
+    fontVariant: ["tabular-nums"],
+  },
+  itemBody: {
+    flex: 1,
+    gap: 2,
+  },
+  text: {
+    fontFamily: "OpenSans_400Regular",
+    fontSize: 14,
+    lineHeight: 21,
+    color: "#475569",
+  },
+  name: {
+    fontFamily: "OpenSans_700Bold",
+  },
+  progress: {
+    fontFamily: "OpenSans_400Regular",
+    fontSize: 13,
+    color: "#64748b",
+  },
+  progressValue: {
+    fontFamily: "OpenSans_600SemiBold",
+    color: "#334155",
+    fontVariant: ["tabular-nums"],
+  },
+});
 
 export default ActiveStorms;

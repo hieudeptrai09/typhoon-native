@@ -11,7 +11,10 @@ import {
   formatDuration,
   getDoyMonth,
 } from "@/lib/utils/storm/dates";
-import { Popover } from "antd";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import * as Haptics from "expo-haptics";
+import { useState } from "react";
+import { LayoutAnimation, Pressable, StyleSheet, Text, View } from "react-native";
 
 interface AvgDateModalProps extends BaseModalProps {
   title: string;
@@ -44,95 +47,204 @@ const groupByStartMonth = (storms: Storm[]): MonthGroup[] => {
 };
 
 const AvgDateModal = ({ isOpen, onClose, title, storms }: AvgDateModalProps) => {
+  // The month rows revealed their storms on hover on web; on touch they expand in place instead.
+  const [expanded, setExpanded] = useState<number | null>(null);
+
   const { startDoy, endDoy } = calculateAvgDates(storms);
   const avgDuration = calculateAvgDuration(storms);
   const monthGroups = groupByStartMonth(storms);
-  const maxCount = monthGroups.reduce((max, g) => Math.max(max, g.count), 0);
+  const maxCount = monthGroups.reduce((max, group) => Math.max(max, group.count), 0);
+
+  const toggle = (month: number) => {
+    Haptics.selectionAsync();
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setExpanded((current) => (current === month ? null : month));
+  };
 
   return (
     <DefModal
       open={isOpen}
       onClose={onClose}
-      width={448}
-      title={<span className="text-2xl font-bold text-sky-800">{title}</span>}
+      title={
+        <Text style={styles.title} numberOfLines={1}>
+          {title}
+        </Text>
+      }
     >
-      <div className="space-y-4 pt-3">
-        <div className="grid grid-cols-3 gap-2">
-          <StatTile label="Avg. Start" title="Average start date">
-            <span style={{ color: getAvgDateColor(getDoyMonth(startDoy)) }}>
+      <View style={styles.tiles}>
+        <View style={styles.tile}>
+          <StatTile label="Avg. Start" hint="Average start date">
+            <Text style={{ color: getAvgDateColor(getDoyMonth(startDoy)) }}>
               {formatDayOfYear(startDoy)}
-            </span>
+            </Text>
           </StatTile>
-          <StatTile label="Avg. End" title="Average end date">
-            <span style={{ color: getAvgDateColor(getDoyMonth(endDoy)) }}>
+        </View>
+        <View style={styles.tile}>
+          <StatTile label="Avg. End" hint="Average end date">
+            <Text style={{ color: getAvgDateColor(getDoyMonth(endDoy)) }}>
               {formatDayOfYear(endDoy)}
-            </span>
+            </Text>
           </StatTile>
-          <StatTile label="Avg. Duration" title="Average days from start to end">
-            <span className="text-slate-700">{formatDuration(avgDuration)}</span>
+        </View>
+        <View style={styles.tile}>
+          <StatTile label="Avg. Duration" hint="Average days from start to end">
+            <Text style={styles.duration}>{formatDuration(avgDuration)}</Text>
           </StatTile>
-        </div>
+        </View>
+      </View>
 
-        <div>
-          <div className="mb-2 text-foreground">Storms by start month:</div>
-          {monthGroups.length === 0 ? (
-            <div className="text-sm text-foreground">No storms to show.</div>
-          ) : (
-            <div className="space-y-2">
-              {monthGroups.map((group) => {
-                const monthColor = getAvgDateColor(group.month);
-                return (
-                  <Popover
-                    key={group.label}
-                    styles={{ container: { backgroundColor: "#f3f4f6" } }}
-                    content={
-                      <div className="flex flex-col gap-1.5">
-                        {group.storms.map((storm) => (
-                          <div
-                            key={`${storm.name}-${storm.year}`}
-                            className="text-sm text-foreground"
-                          >
-                            <span className="font-semibold text-sky-800">{storm.name}</span>{" "}
-                            {storm.year}
-                            <span className="text-xs text-gray-500">
-                              {" "}
-                              · {formatStormDateRange(storm.dateStart, storm.dateEnd)}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    }
-                    trigger={["hover", "click"]}
-                    placement="bottom"
-                  >
-                    <div
-                      className="flex cursor-pointer items-center justify-between rounded-md bg-white px-3 py-2 transition-colors hover:bg-gray-200"
-                      style={{ borderLeft: `4px solid ${monthColor}` }}
-                    >
-                      <span className="font-semibold text-foreground">{group.label}</span>
-                      <div className="flex items-center gap-2">
-                        <span
-                          className="h-2 rounded-full"
-                          style={{
-                            width: `${maxCount > 0 ? Math.max(8, (group.count / maxCount) * 96) : 8}px`,
-                            backgroundColor: monthColor,
-                          }}
-                          aria-hidden="true"
-                        />
-                        <span className="text-sm font-semibold text-foreground tabular-nums">
-                          {group.count}
-                        </span>
-                      </div>
-                    </div>
-                  </Popover>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      </div>
+      <Text style={styles.heading}>Storms by start month:</Text>
+
+      {monthGroups.length === 0 ? (
+        <Text style={styles.empty}>No storms to show.</Text>
+      ) : (
+        <View style={styles.groups}>
+          {monthGroups.map((group) => {
+            const monthColor = getAvgDateColor(group.month);
+            const isExpanded = expanded === group.month;
+
+            return (
+              <View key={group.label}>
+                <Pressable
+                  onPress={() => toggle(group.month)}
+                  style={({ pressed }) => [
+                    styles.group,
+                    { borderLeftColor: monthColor },
+                    pressed && styles.pressed,
+                  ]}
+                  accessibilityRole="button"
+                  accessibilityState={{ expanded: isExpanded }}
+                  accessibilityLabel={`${group.label}, ${group.count} storms`}
+                >
+                  <Text style={styles.groupLabel}>{group.label}</Text>
+
+                  <View style={styles.groupStats}>
+                    <View
+                      style={[
+                        styles.bar,
+                        {
+                          width: maxCount > 0 ? Math.max(8, (group.count / maxCount) * 96) : 8,
+                          backgroundColor: monthColor,
+                        },
+                      ]}
+                    />
+                    <Text style={styles.count}>{group.count}</Text>
+                    <Ionicons
+                      name={isExpanded ? "chevron-up" : "chevron-down"}
+                      size={14}
+                      color="#94a3b8"
+                    />
+                  </View>
+                </Pressable>
+
+                {isExpanded && (
+                  <View style={styles.stormList}>
+                    {group.storms.map((storm) => (
+                      <Text key={`${storm.name}-${storm.year}`} style={styles.storm}>
+                        <Text style={styles.stormName}>{storm.name}</Text> {storm.year}
+                        <Text style={styles.stormDates}>
+                          {" "}
+                          · {formatStormDateRange(storm.dateStart, storm.dateEnd)}
+                        </Text>
+                      </Text>
+                    ))}
+                  </View>
+                )}
+              </View>
+            );
+          })}
+        </View>
+      )}
     </DefModal>
   );
 };
+
+const styles = StyleSheet.create({
+  title: {
+    fontFamily: "OpenSans_700Bold",
+    fontSize: 22,
+    color: "#075985",
+  },
+  tiles: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  tile: {
+    flex: 1,
+  },
+  duration: {
+    color: "#334155",
+  },
+  heading: {
+    fontFamily: "OpenSans_400Regular",
+    fontSize: 14,
+    color: "#475569",
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  empty: {
+    fontFamily: "OpenSans_400Regular",
+    fontSize: 13,
+    color: "#64748b",
+  },
+  groups: {
+    gap: 8,
+  },
+  group: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 8,
+    minHeight: 48,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    borderLeftWidth: 4,
+    backgroundColor: "#f8fafc",
+  },
+  pressed: {
+    backgroundColor: "#e2e8f0",
+  },
+  groupLabel: {
+    flexShrink: 1,
+    fontFamily: "OpenSans_600SemiBold",
+    fontSize: 14,
+    color: "#334155",
+  },
+  groupStats: {
+    flexShrink: 0,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  bar: {
+    height: 8,
+    borderRadius: 4,
+  },
+  count: {
+    fontFamily: "OpenSans_600SemiBold",
+    fontSize: 13,
+    color: "#475569",
+    fontVariant: ["tabular-nums"],
+  },
+  stormList: {
+    gap: 4,
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 4,
+  },
+  storm: {
+    fontFamily: "OpenSans_400Regular",
+    fontSize: 13,
+    color: "#475569",
+  },
+  stormName: {
+    fontFamily: "OpenSans_600SemiBold",
+    color: "#075985",
+  },
+  stormDates: {
+    fontSize: 11,
+    color: "#6b7280",
+  },
+});
 
 export default AvgDateModal;

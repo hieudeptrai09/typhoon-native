@@ -1,5 +1,5 @@
 import NamesGrid from "@/lib/components/dashboard/grids/NamesGrid";
-import SpecialNamesListDiv from "@/lib/components/dashboard/widgets/SpecialNamesListDiv";
+import SpecialNamesList from "@/lib/components/dashboard/widgets/SpecialNamesList";
 import type { Storm } from "@/lib/types";
 import { getAvgDateColor } from "@/lib/utils/colors";
 import { calculateAvgDatesByGroup, formatDayOfYear, getDoyMonth } from "@/lib/utils/storm/dates";
@@ -36,7 +36,7 @@ const AvgDateNameGrid = ({ stormsData, onCellClick }: AvgDateNameGridProps) => {
   return (
     <View style={styles.root}>
       <NamesGrid stormsData={stormsData} onCellClick={onCellClick} nameSubtitles={nameSubtitles} />
-      <SpecialNamesListDiv
+      <SpecialNamesList
         stormsData={stormsData}
         nameSubtitles={nameSubtitles}
         onNameClick={(name) => onCellClick(name, "name")}

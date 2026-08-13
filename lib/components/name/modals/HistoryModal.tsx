@@ -4,10 +4,11 @@ import ImageWithLoader from "@/lib/components/common/ImageWithLoader";
 import type { BaseModalProps, StormHistoryEntry, TyphoonName } from "@/lib/types";
 import { getNameStatusColor } from "@/lib/utils/colors";
 import { getPositionTitle } from "@/lib/utils/position";
-import { Button } from "antd";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import * as Haptics from "expo-haptics";
 import { useState } from "react";
+import { LayoutAnimation, Pressable, StyleSheet, Text, View } from "react-native";
 
-// It's used to a part of modal @modal/(.)positions/[position], but the owner forced to divorce and go back to here.
 interface HistoryModalProps extends BaseModalProps {
   position: number;
   positionNames: TyphoonName[];
@@ -29,19 +30,19 @@ const HistoryModal = ({ isOpen, onClose, position, positionNames, storms }: Hist
     stormsByName[storm.name].push(storm);
   });
 
-  const positionTitle = getPositionTitle(position);
-
   const sortedNames = [...positionNames].sort((a, b) => {
     const aStorms = stormsByName[a.name] || [];
     const bStorms = stormsByName[b.name] || [];
-    const aFirst = aStorms.length > 0 ? Math.min(...aStorms.map((s) => s.year)) : Infinity;
-    const bFirst = bStorms.length > 0 ? Math.min(...bStorms.map((s) => s.year)) : Infinity;
+    const aFirst = aStorms.length > 0 ? Math.min(...aStorms.map((storm) => storm.year)) : Infinity;
+    const bFirst = bStorms.length > 0 ? Math.min(...bStorms.map((storm) => storm.year)) : Infinity;
     return aFirst - bFirst;
   });
 
-  const handleNameClick = (nameId: number) => {
-    setExpandedState((prev) =>
-      prev?.position === position && prev.nameId === nameId ? null : { position, nameId },
+  const handleNamePress = (nameId: number) => {
+    Haptics.selectionAsync();
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setExpandedState((previous) =>
+      previous?.position === position && previous.nameId === nameId ? null : { position, nameId },
     );
   };
 
@@ -52,97 +53,173 @@ const HistoryModal = ({ isOpen, onClose, position, positionNames, storms }: Hist
         setExpandedState(null);
         onClose();
       }}
-      width={480}
-      title={<span className="text-2xl font-bold text-foreground">{positionTitle}</span>}
+      title={getPositionTitle(position)}
     >
-      <div className="pt-4">
-        {positionNames.length === 0 ? (
-          <div className="py-4 text-center text-foreground">No names at this position.</div>
-        ) : (
-          <div className="space-y-1">
-            {sortedNames.map((name) => {
-              const nameStorms = stormsByName[name.name] || [];
-              const count = nameStorms.length;
-              const years = nameStorms.map((s) => s.year).join(", ");
-              const isExpanded = expandedNameId === name.id;
-              const hasExpandable = !!name.image;
+      {positionNames.length === 0 ? (
+        <Text style={styles.empty}>No names at this position.</Text>
+      ) : (
+        <View style={styles.list}>
+          {sortedNames.map((name) => {
+            const nameStorms = stormsByName[name.name] || [];
+            const count = nameStorms.length;
+            const years = nameStorms.map((storm) => storm.year).join(", ");
+            const isExpanded = expandedNameId === name.id;
+            const hasExpandable = Boolean(name.image);
 
-              return (
-                <div key={name.id} className="overflow-hidden rounded-lg">
-                  <Button
-                    type="text"
-                    block
-                    disabled={!hasExpandable}
-                    onClick={() => hasExpandable && handleNameClick(name.id)}
-                    aria-describedby={name.meaning ? `history-meaning-${name.id}` : undefined}
-                    aria-expanded={hasExpandable ? isExpanded : undefined}
-                    className={`h-auto! rounded-lg! px-3! py-2! text-left! ${
-                      isExpanded ? "rounded-b-none! bg-sky-50!" : ""
-                    } ${!hasExpandable ? "cursor-default!" : ""}`}
-                  >
-                    <div className="flex w-full items-baseline gap-2">
-                      <span className="min-w-8 shrink-0 text-sm font-bold text-foreground">
-                        {count > 0 ? `x${count}` : "x0"}
-                      </span>
-                      <div className="min-w-0 flex-1">
-                        <div className="whitespace-pre-line">
-                          <span
-                            className="font-semibold"
-                            style={{ color: getNameStatusColor(name) }}
-                          >
-                            {name.name}
-                          </span>
-                          {count > 0 && (
-                            <span className="ml-1 text-sm text-foreground">({years})</span>
-                          )}
-                          {name.language && (
-                            <span className="ml-1 text-xs text-foreground">· {name.language}</span>
-                          )}
-                        </div>
-                        {name.meaning && (
-                          <p
-                            id={`history-meaning-${name.id}`}
-                            className="mt-0.5 text-xs leading-relaxed whitespace-pre-line text-teal-700 italic"
-                          >
-                            {name.meaning}
-                          </p>
-                        )}
-                        {name.description && (
-                          <p className="mt-0.5 text-xs leading-relaxed whitespace-pre-line text-foreground">
-                            {name.description}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  </Button>
+            return (
+              <View key={name.id} style={styles.entry}>
+                <Pressable
+                  disabled={!hasExpandable}
+                  onPress={() => handleNamePress(name.id)}
+                  style={({ pressed }) => [
+                    styles.head,
+                    isExpanded && styles.headExpanded,
+                    pressed && hasExpandable && styles.pressed,
+                  ]}
+                  accessibilityRole={hasExpandable ? "button" : "text"}
+                  accessibilityState={hasExpandable ? { expanded: isExpanded } : undefined}
+                  accessibilityLabel={`${name.name}, used ${count} times`}
+                >
+                  <Text style={styles.count}>x{count}</Text>
 
-                  {isExpanded && name.image && (
-                    <div className="rounded-b-lg border-t border-sky-100 bg-sky-50 px-4 py-3">
-                      <div className="mx-auto" style={{ width: 160 }}>
-                        <div
-                          className="relative overflow-hidden rounded-lg border border-gray-200 bg-gray-50"
-                          style={{ aspectRatio: "4/3" }}
-                        >
-                          <ImageWithLoader
-                            src={name.image}
-                            alt={name.name}
-                            fill
-                            className="object-contain"
-                            unoptimized
-                          />
-                        </div>
-                      </div>
-                      <ImageCredit credit={name.imageCredit} align="center" />
-                    </div>
+                  <View style={styles.entryBody}>
+                    <Text style={styles.nameLine}>
+                      <Text style={[styles.name, { color: getNameStatusColor(name) }]}>
+                        {name.name}
+                      </Text>
+                      {count > 0 ? <Text style={styles.years}> ({years})</Text> : null}
+                      {name.language ? (
+                        <Text style={styles.language}> · {name.language}</Text>
+                      ) : null}
+                    </Text>
+
+                    {name.meaning ? <Text style={styles.meaning}>{name.meaning}</Text> : null}
+                    {name.description ? (
+                      <Text style={styles.description}>{name.description}</Text>
+                    ) : null}
+                  </View>
+
+                  {hasExpandable && (
+                    <Ionicons
+                      name={isExpanded ? "chevron-up" : "chevron-down"}
+                      size={14}
+                      color="#94a3b8"
+                    />
                   )}
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
+                </Pressable>
+
+                {isExpanded && name.image && (
+                  <View style={styles.imagePanel}>
+                    <View style={styles.imageBox}>
+                      <ImageWithLoader
+                        source={name.image}
+                        label={name.name}
+                        style={styles.image}
+                        spinnerSize="small"
+                      />
+                      <ImageCredit credit={name.imageCredit} align="center" />
+                    </View>
+                  </View>
+                )}
+              </View>
+            );
+          })}
+        </View>
+      )}
     </DefModal>
   );
 };
+
+const styles = StyleSheet.create({
+  empty: {
+    fontFamily: "OpenSans_400Regular",
+    fontSize: 14,
+    color: "#64748b",
+    textAlign: "center",
+    paddingVertical: 20,
+  },
+  list: {
+    gap: 4,
+  },
+  entry: {
+    overflow: "hidden",
+    borderRadius: 10,
+  },
+  head: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 8,
+    minHeight: 48,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 10,
+  },
+  headExpanded: {
+    backgroundColor: "#f0f9ff",
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
+  },
+  pressed: {
+    backgroundColor: "#f1f5f9",
+  },
+  count: {
+    minWidth: 30,
+    fontFamily: "OpenSans_700Bold",
+    fontSize: 13,
+    color: "#475569",
+    fontVariant: ["tabular-nums"],
+  },
+  entryBody: {
+    flex: 1,
+    gap: 2,
+  },
+  nameLine: {
+    fontFamily: "OpenSans_400Regular",
+    fontSize: 14,
+  },
+  name: {
+    fontFamily: "OpenSans_600SemiBold",
+    fontSize: 15,
+  },
+  years: {
+    fontSize: 13,
+    color: "#475569",
+  },
+  language: {
+    fontSize: 12,
+    color: "#64748b",
+  },
+  meaning: {
+    fontFamily: "OpenSans_400Regular_Italic",
+    fontSize: 12,
+    lineHeight: 18,
+    color: "#0f766e",
+  },
+  description: {
+    fontFamily: "OpenSans_400Regular",
+    fontSize: 12,
+    lineHeight: 18,
+    color: "#475569",
+  },
+  imagePanel: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: "#bae6fd",
+    backgroundColor: "#f0f9ff",
+  },
+  imageBox: {
+    alignSelf: "center",
+    width: 160,
+  },
+  image: {
+    width: "100%",
+    aspectRatio: 4 / 3,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    backgroundColor: "#f8fafc",
+  },
+});
 
 export default HistoryModal;

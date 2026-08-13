@@ -11,12 +11,11 @@ import type {
   SuggestionWithNameId,
 } from "@/lib/types";
 import { writeDisplayPrefs, type NamesDisplayPrefs } from "@/lib/utils/name/displayPrefs";
-import { paramsToPath } from "@/lib/utils/name/routing";
 import { toArr } from "@/lib/utils/params";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { Badge, Button } from "antd";
-import { useRouter, useSearchParams } from "next/navigation";
+import * as Haptics from "expo-haptics";
 import { useCallback, useMemo, useState } from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 interface RetiredViewProps {
   retiredNames: RetiredName[];
@@ -31,6 +30,15 @@ interface RetiredFilterValues {
   reason: RetirementReason[];
   position: string;
 }
+
+const EMPTY_FILTERS: RetiredFilterParams = {
+  name: "",
+  year: "",
+  country: "",
+  reason: "",
+  position: "",
+  letter: "",
+};
 
 const applyRetiredFilters = (names: RetiredName[], filters: RetiredFilterValues): RetiredName[] => {
   let filtered = [...names];
@@ -61,19 +69,11 @@ const getFirstAvailableLetter = (availableLettersMap: Record<string, boolean>) =
   return allLetters.find((letter) => availableLettersMap[letter]) ?? "A";
 };
 
+// Filters and the active letter were query params on web so the page could be linked; on native
+// they are plain state, and changing a letter no longer pushes a history entry.
 const RetiredView = ({ retiredNames, suggestedNames, displayPrefs }: RetiredViewProps) => {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-
-  const searchName = searchParams.get("name") || "";
-  const selectedYear = searchParams.get("year") || "";
-  const selectedCountry = searchParams.get("country") || "";
-  const selectedReason = searchParams.get("reason") || "";
-  const searchPosition = searchParams.get("position") || "";
-
-  const countryArr = toArr(selectedCountry);
-  const reasonArr = toArr(selectedReason) as RetirementReason[];
-
+  const [filters, setFilters] = useState<RetiredFilterParams>(EMPTY_FILTERS);
+  const [letter, setLetter] = useState<string | null>(null);
   const [prefs, setPrefs] = useState<NamesDisplayPrefs>(displayPrefs);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [selectedRetiredName, setSelectedRetiredName] = useState<RetiredName>(defaultRetiredName);
@@ -97,11 +97,11 @@ const RetiredView = ({ retiredNames, suggestedNames, displayPrefs }: RetiredView
   );
 
   const activeFilterCount = [
-    searchName,
-    selectedYear,
-    selectedCountry,
-    selectedReason,
-    searchPosition,
+    filters.name,
+    filters.year,
+    filters.country,
+    filters.reason,
+    filters.position,
   ].filter(Boolean).length;
 
   const hasActiveFilters = activeFilterCount > 0;
@@ -114,17 +114,16 @@ const RetiredView = ({ retiredNames, suggestedNames, displayPrefs }: RetiredView
     return map;
   }, [retiredNames]);
 
-  const currentLetter = searchParams.get("letter") || getFirstAvailableLetter(availableLettersMap);
-
+  const currentLetter = letter ?? getFirstAvailableLetter(availableLettersMap);
   const showLetterNav = !hasActiveFilters && prefs.showLetterNav;
 
   const displayedNames = useMemo(() => {
     const filtered = applyRetiredFilters(retiredNames, {
-      name: searchName,
-      year: selectedYear,
-      country: countryArr,
-      reason: reasonArr,
-      position: searchPosition,
+      name: filters.name,
+      year: filters.year,
+      country: toArr(filters.country),
+      reason: toArr(filters.reason) as RetirementReason[],
+      position: filters.position,
     });
 
     if (showLetterNav) {
@@ -132,127 +131,92 @@ const RetiredView = ({ retiredNames, suggestedNames, displayPrefs }: RetiredView
     }
 
     return filtered;
-  }, [
-    retiredNames,
-    searchName,
-    selectedYear,
-    countryArr,
-    reasonArr,
-    searchPosition,
-    currentLetter,
-    showLetterNav,
-  ]);
-
-  const buildQuery = useCallback((params: Record<string, string>) => {
-    const urlParams = new URLSearchParams();
-    Object.entries(params).forEach(([key, value]) => {
-      if (value) urlParams.set(key, value);
-    });
-    const qs = urlParams.toString();
-    return qs ? `?${qs}` : "";
-  }, []);
-
-  const handleNameClick = (name: RetiredName) => {
-    setSelectedRetiredName(name);
-    setIsRetiredNameModalOpen(true);
-  };
+  }, [retiredNames, filters, currentLetter, showLetterNav]);
 
   const countMatchingNames = useCallback(
-    (filters: RetiredFilterParams) =>
+    (pending: RetiredFilterParams) =>
       applyRetiredFilters(retiredNames, {
-        name: filters.name,
-        year: filters.year,
-        country: toArr(filters.country),
-        reason: toArr(filters.reason) as RetirementReason[],
-        position: filters.position,
+        name: pending.name,
+        year: pending.year,
+        country: toArr(pending.country),
+        reason: toArr(pending.reason) as RetirementReason[],
+        position: pending.position,
       }).length,
     [retiredNames],
   );
 
-  const handleApplyFilters = (filters: RetiredFilterParams) => {
-    setIsFilterModalOpen(false);
-    const hasFilters =
-      filters.name || filters.year || filters.country || filters.reason || filters.position;
-    const query = buildQuery({
-      name: filters.name,
-      year: filters.year,
-      country: filters.country,
-      reason: filters.reason,
-      position: filters.position,
-      ...(!hasFilters ? { letter: currentLetter } : {}),
-    });
-    router.push(`${paramsToPath({ view: "retired" })}${query}`);
-  };
-
-  const handleLetterChange = (letter: string) => {
-    router.push(`${paramsToPath({ view: "retired" })}${buildQuery({ letter })}`);
-  };
-
   const handleToggleLetterNav = () => {
-    const nextShowLetterNav = !showLetterNav;
-    const newPrefs: NamesDisplayPrefs = { ...prefs, showLetterNav: nextShowLetterNav };
-    setPrefs(newPrefs);
-    writeDisplayPrefs(newPrefs);
-    if (nextShowLetterNav && hasActiveFilters) {
-      router.push(`${paramsToPath({ view: "retired" })}${buildQuery({ letter: currentLetter })}`);
-    }
+    const next: NamesDisplayPrefs = { ...prefs, showLetterNav: !showLetterNav };
+    setPrefs(next);
+    writeDisplayPrefs(next);
+    // Letter nav and filters narrow the same list, so turning the nav on drops the filters.
+    if (next.showLetterNav && hasActiveFilters) setFilters(EMPTY_FILTERS);
   };
 
-  const getLetterConfig = (letter: string) => {
-    const isAvailable = availableLettersMap[letter];
-    const isActive = currentLetter === letter;
+  const getLetterConfig = (target: string) => {
+    const isAvailable = Boolean(availableLettersMap[target]);
+    const isActive = currentLetter === target;
     return {
       isAvailable,
-      color: !isAvailable ? "#9ca3af" : isActive ? "#991b1b" : "#dc2626",
-      isActive: !!isAvailable && isActive,
+      color: !isAvailable ? "#cbd5e1" : isActive ? "#991b1b" : "#dc2626",
+      isActive: isAvailable && isActive,
     };
   };
 
   return (
-    <>
-      <div className="mx-auto mb-4 max-w-4xl">
-        <div className="flex items-center justify-center gap-6">
-          <SlashToggleButton
-            active={showLetterNav}
-            onClick={handleToggleLetterNav}
-            title={showLetterNav ? "Letter navigation is on" : "Letter navigation is off"}
-          >
-            <Ionicons name="text-outline" size={26} color="#334155" />
-          </SlashToggleButton>
-          <Badge count={activeFilterCount} color="#3b82f6" offset={[-4, 4]}>
-            <Button
-              type="text"
-              onClick={() => setIsFilterModalOpen(true)}
-              title="Filters"
-              aria-label={`Open filters${activeFilterCount > 0 ? `, ${activeFilterCount} active` : ""}`}
-              icon={<Ionicons name="funnel-outline" size={30} color="#334155" />}
-              className="h-auto! w-auto! p-1! text-foreground! hover:bg-transparent! hover:text-highlight!"
-            />
-          </Badge>
-        </div>
-      </div>
+    <View style={styles.root}>
+      <View style={styles.toolbar}>
+        <SlashToggleButton
+          active={showLetterNav}
+          onPress={handleToggleLetterNav}
+          label={showLetterNav ? "Letter navigation is on" : "Letter navigation is off"}
+        >
+          <Ionicons name="text-outline" size={24} color="#334155" />
+        </SlashToggleButton>
+
+        <Pressable
+          onPress={() => {
+            Haptics.selectionAsync();
+            setIsFilterModalOpen(true);
+          }}
+          hitSlop={8}
+          style={({ pressed }) => [styles.filterButton, pressed && styles.pressed]}
+          accessibilityRole="button"
+          accessibilityLabel={`Open filters${activeFilterCount > 0 ? `, ${activeFilterCount} active` : ""}`}
+        >
+          <Ionicons name="funnel-outline" size={24} color="#334155" />
+          {activeFilterCount > 0 && (
+            <View style={styles.badge}>
+              <Text style={styles.badgeLabel}>{activeFilterCount}</Text>
+            </View>
+          )}
+        </Pressable>
+      </View>
 
       {showLetterNav && (
-        <LetterNavigation onLetterChange={handleLetterChange} getLetterConfig={getLetterConfig} />
+        <View style={styles.letters}>
+          <LetterNavigation onLetterChange={setLetter} getLetterConfig={getLetterConfig} />
+        </View>
       )}
 
-      <div className="mx-auto max-w-5xl">
-        <RetiredNamesTable paginatedData={displayedNames} onNameClick={handleNameClick} />
-      </div>
+      <RetiredNamesTable
+        paginatedData={displayedNames}
+        onNameClick={(name) => {
+          setSelectedRetiredName(name);
+          setIsRetiredNameModalOpen(true);
+        }}
+      />
 
       <RetiredFilterModal
         isOpen={isFilterModalOpen}
         onClose={() => setIsFilterModalOpen(false)}
-        onApply={handleApplyFilters}
+        onApply={(applied) => {
+          setIsFilterModalOpen(false);
+          setFilters(applied);
+        }}
         countries={countries}
         matchCount={countMatchingNames}
-        initialFilters={{
-          name: searchName,
-          year: selectedYear,
-          country: selectedCountry,
-          reason: selectedReason,
-          position: searchPosition,
-        }}
+        initialFilters={filters}
       />
 
       <RetiredNameDetailsModal
@@ -261,8 +225,48 @@ const RetiredView = ({ retiredNames, suggestedNames, displayPrefs }: RetiredView
         suggestions={suggestions}
         onClose={() => setIsRetiredNameModalOpen(false)}
       />
-    </>
+    </View>
   );
 };
+
+const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
+  toolbar: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 24,
+    paddingBottom: 8,
+  },
+  filterButton: {
+    padding: 4,
+  },
+  pressed: {
+    opacity: 0.6,
+  },
+  badge: {
+    position: "absolute",
+    top: -2,
+    right: -4,
+    minWidth: 16,
+    height: 16,
+    paddingHorizontal: 4,
+    borderRadius: 8,
+    backgroundColor: "#3b82f6",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  badgeLabel: {
+    fontFamily: "OpenSans_700Bold",
+    fontSize: 10,
+    color: "#ffffff",
+  },
+  letters: {
+    paddingHorizontal: 12,
+    paddingBottom: 8,
+  },
+});
 
 export default RetiredView;

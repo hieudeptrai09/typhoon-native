@@ -1,54 +1,54 @@
-"use client";
-
 import ActiveStorms from "@/lib/components/home/ActiveStorms";
 import FunFacts from "@/lib/components/home/FunFacts";
 import OnThisDay from "@/lib/components/home/OnThisDay";
-import SearchBar from "@/lib/components/search/SearchBar";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { Button, Popover } from "antd";
-import { useState } from "react";
+import { StyleSheet, Text, View } from "react-native";
 
-const QuickActionsMenu = ({ allNames }: { allNames: string[] }) => {
-  const [isOpen, setIsOpen] = useState(false);
+// Web hid these behind a popover next to the search box, because the header had no room. The
+// native home screen has the room, and each entry already opens its own sheet — nesting a popover
+// in front of that would only add a tap.
+const QuickActionsMenu = () => (
+  <View style={styles.root}>
+    <View style={styles.header}>
+      <Ionicons name="sparkles-outline" size={16} color="#b45309" />
+      <Text style={styles.title}>Discover</Text>
+    </View>
 
-  return (
-    <div className="relative mb-4 flex w-full max-w-sm items-center gap-2">
-      <div className="min-w-0 flex-1">
-        <SearchBar variant="home" allNames={allNames} />
-      </div>
+    <View style={styles.actions}>
+      <OnThisDay />
+      <ActiveStorms />
+      <FunFacts />
+    </View>
+  </View>
+);
 
-      <Popover
-        open={isOpen}
-        onOpenChange={setIsOpen}
-        trigger="click"
-        placement="bottomRight"
-        arrow={false}
-        content={
-          <div
-            id="home-quick-actions-panel"
-            role="menu"
-            className="flex w-52 flex-col items-stretch gap-1"
-          >
-            <OnThisDay />
-            <ActiveStorms />
-            <FunFacts />
-          </div>
-        }
-      >
-        <Button
-          type="text"
-          aria-haspopup="menu"
-          aria-expanded={isOpen}
-          aria-controls="home-quick-actions-panel"
-          aria-label={
-            isOpen ? "Close discover menu" : "Discover: on this day, active storms, fun facts"
-          }
-          icon={<Ionicons name={isOpen ? "close" : "sparkles-outline"} size={20} color="#b45309" />}
-          className="h-11! w-11! shrink-0! rounded-lg! border! border-amber-600/70! text-amber-700! hover:bg-amber-50!"
-        />
-      </Popover>
-    </div>
-  );
-};
+const styles = StyleSheet.create({
+  root: {
+    width: "100%",
+    gap: 4,
+    padding: 10,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "rgba(180, 83, 9, 0.35)",
+    backgroundColor: "rgba(255, 255, 255, 0.7)",
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingHorizontal: 12,
+    paddingTop: 4,
+  },
+  title: {
+    fontFamily: "OpenSans_700Bold",
+    fontSize: 12,
+    letterSpacing: 1,
+    textTransform: "uppercase",
+    color: "#b45309",
+  },
+  actions: {
+    gap: 2,
+  },
+});
 
 export default QuickActionsMenu;

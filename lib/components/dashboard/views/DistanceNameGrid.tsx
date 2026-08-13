@@ -1,5 +1,5 @@
 import NamesGrid from "@/lib/components/dashboard/grids/NamesGrid";
-import SpecialNamesListDiv from "@/lib/components/dashboard/widgets/SpecialNamesListDiv";
+import SpecialNamesList from "@/lib/components/dashboard/widgets/SpecialNamesList";
 import type { Storm } from "@/lib/types";
 import { getDistanceColor } from "@/lib/utils/colors";
 import { calculateDistances } from "@/lib/utils/storm/aggregate";
@@ -23,7 +23,7 @@ const DistanceNameGrid = ({ stormsData, onCellClick }: DistanceNameGridProps) =>
   return (
     <View style={styles.root}>
       <NamesGrid stormsData={stormsData} onCellClick={onCellClick} nameColors={nameColors} />
-      <SpecialNamesListDiv
+      <SpecialNamesList
         stormsData={stormsData}
         nameColors={nameColors}
         onNameClick={(name) => onCellClick(name, "name")}

@@ -1,62 +1,72 @@
 import type { ImageCredit as ImageCreditType } from "@/lib/types";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import * as WebBrowser from "expo-web-browser";
+import { StyleSheet, Text, View } from "react-native";
 
 interface ImageCreditProps {
   credit?: ImageCreditType;
-  position?: "top" | "bottom";
   align?: "start" | "center" | "end";
 }
 
-const alignClass = { start: "", center: "justify-center", end: "justify-end" } as const;
+const alignStyle = {
+  start: "flex-start",
+  center: "center",
+  end: "flex-end",
+} as const;
 
-const ImageCredit = ({ credit, position = "bottom", align = "start" }: ImageCreditProps) => {
+const ImageCredit = ({ credit, align = "start" }: ImageCreditProps) => {
   if (!credit?.author) return null;
 
   const { author, license, licenseUrl, sourceUrl } = credit;
-  const linkClass = "text-gray-400! hover:underline";
-  const spacing = position === "top" ? "mb-1.5" : "mt-1.5";
+  const open = (url: string) => WebBrowser.openBrowserAsync(url);
 
   return (
-    <div className="@container">
-      <p
-        className={`flex items-center gap-1 text-[11px] leading-relaxed text-gray-400 @md:w-48 ${alignClass[align]} ${spacing} `}
-        title={`${author}${license ? `, ${license}` : ""}`}
-      >
-        <Ionicons name="camera-outline" size={12} color="#9ca3af" aria-hidden />
-        <span className="truncate">
-          {sourceUrl ? (
-            <a
-              href={sourceUrl}
-              target="_blank"
-              rel="noopener noreferrer nofollow"
-              className={linkClass}
-            >
-              {author}
-            </a>
-          ) : (
-            author
-          )}
-          {license && (
-            <>
-              {", "}
-              {licenseUrl ? (
-                <a
-                  href={licenseUrl}
-                  target="_blank"
-                  rel="noopener noreferrer nofollow license"
-                  className={linkClass}
-                >
-                  {license}
-                </a>
-              ) : (
-                license
-              )}
-            </>
-          )}
-        </span>
-      </p>
-    </div>
+    <View style={[styles.root, { justifyContent: alignStyle[align] }]}>
+      <Ionicons name="camera-outline" size={12} color="#9ca3af" />
+      <Text style={styles.text} numberOfLines={1}>
+        {sourceUrl ? (
+          <Text style={styles.link} onPress={() => open(sourceUrl)}>
+            {author}
+          </Text>
+        ) : (
+          author
+        )}
+        {license ? (
+          <>
+            {", "}
+            {licenseUrl ? (
+              <Text style={styles.link} onPress={() => open(licenseUrl)}>
+                {license}
+              </Text>
+            ) : (
+              license
+            )}
+          </>
+        ) : null}
+      </Text>
+    </View>
   );
 };
+
+const styles = StyleSheet.create({
+  root: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    marginTop: 6,
+  },
+  text: {
+    flexShrink: 1,
+    fontFamily: "OpenSans_400Regular",
+    fontSize: 11,
+    lineHeight: 16,
+    color: "#9ca3af",
+  },
+  link: {
+    fontFamily: "OpenSans_600SemiBold",
+    color: "#94a3b8",
+    textDecorationLine: "underline",
+  },
+});
 
 export default ImageCredit;

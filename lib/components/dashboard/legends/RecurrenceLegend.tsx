@@ -15,7 +15,7 @@ const RECURRENCE_LEGEND: { color: string; label: string }[] = [
 
 export default function RecurrenceLegend() {
   return (
-    <LegendShell label="Average Recurrence:" ariaLabel="Average recurrence legend">
+    <LegendShell label="Average Recurrence:" accessibilityLabel="Average recurrence legend">
       {RECURRENCE_LEGEND.map(({ color, label }) => (
         <LegendItem key={label} color={color} label={label} />
       ))}

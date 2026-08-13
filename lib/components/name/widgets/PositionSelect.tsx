@@ -1,59 +1,87 @@
-"use client";
-
 import { COUNTRY_NAMES } from "@/lib/components/common/CountryFlag";
+import OptionPicker, { type PickerOption } from "@/lib/components/common/OptionPicker";
 import { GRID_ROWS } from "@/lib/constants";
 import { type PositionValue } from "@/lib/types";
 import { positionColumnLetter } from "@/lib/utils/position";
-import { Select, Space } from "antd";
+import { StyleSheet, Text, View } from "react-native";
 
-const ROW_OPTIONS = Array.from({ length: GRID_ROWS }, (_, idx) => ({
+const ROW_OPTIONS: PickerOption<number>[] = Array.from({ length: GRID_ROWS }, (_, idx) => ({
   value: idx + 1,
   label: `Row ${idx + 1}`,
 }));
 
-const COLUMN_OPTIONS = COUNTRY_NAMES.map((country, col) => ({
+const COLUMN_OPTIONS: PickerOption<number>[] = COUNTRY_NAMES.map((country, col) => ({
   value: col,
-  country,
-  label: (
-    <span className="flex items-center gap-2">
-      <span className="truncate">{country}</span>
-      <span className="ml-auto text-xs text-foreground/50">{positionColumnLetter(col)}</span>
-    </span>
-  ),
+  label: country,
+  hint: positionColumnLetter(col),
 }));
 
 interface PositionSelectProps {
-  id?: string;
   value?: PositionValue;
   onChange?: (value: PositionValue) => void;
+  help?: string;
+  error?: string;
 }
 
-const PositionSelect = ({ id, value = {}, onChange }: PositionSelectProps) => (
-  <Space.Compact className="w-full">
-    <Select
-      id={id}
-      className="w-2/5"
-      placeholder="Row"
-      allowClear
-      value={value.row}
-      onChange={(row?: number) => onChange?.({ ...value, row: row ?? undefined })}
-      options={ROW_OPTIONS}
-      aria-label="Grid row"
-    />
-    <Select
-      className="w-3/5"
-      placeholder="Country"
-      allowClear
-      showSearch
-      value={value.col}
-      onChange={(col?: number) => onChange?.({ ...value, col: col ?? undefined })}
-      options={COLUMN_OPTIONS}
-      filterOption={(input, option) =>
-        (option?.country ?? "").toLowerCase().includes(input.toLowerCase())
-      }
-      aria-label="Grid country column"
-    />
-  </Space.Compact>
+const PositionSelect = ({ value = {}, onChange, help, error }: PositionSelectProps) => (
+  <View style={styles.root}>
+    <View style={styles.pickers}>
+      <View style={styles.row}>
+        <OptionPicker
+          label="Row"
+          placeholder="Row"
+          options={ROW_OPTIONS}
+          value={value.row === undefined ? [] : [value.row]}
+          onChange={(next) => onChange?.({ ...value, row: next[0] })}
+        />
+      </View>
+
+      <View style={styles.column}>
+        <OptionPicker
+          label="Country"
+          placeholder="Country"
+          options={COLUMN_OPTIONS}
+          value={value.col === undefined ? [] : [value.col]}
+          onChange={(next) => onChange?.({ ...value, col: next[0] })}
+          searchable
+        />
+      </View>
+    </View>
+
+    {/* Kept out of the two-column row so it reads as one note about the pair, not about a column */}
+    {error ? (
+      <Text style={styles.error}>{error}</Text>
+    ) : help ? (
+      <Text style={styles.help}>{help}</Text>
+    ) : null}
+  </View>
 );
+
+const styles = StyleSheet.create({
+  root: {
+    gap: 6,
+  },
+  pickers: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  row: {
+    flex: 2,
+  },
+  column: {
+    flex: 3,
+  },
+  help: {
+    fontFamily: "OpenSans_400Regular",
+    fontSize: 12,
+    lineHeight: 17,
+    color: "#64748b",
+  },
+  error: {
+    fontFamily: "OpenSans_500Medium",
+    fontSize: 12,
+    color: "#dc2626",
+  },
+});
 
 export default PositionSelect;

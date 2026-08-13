@@ -51,16 +51,6 @@ export const AVG_DATE_MONTH_COLOR: Record<number, string> = {
 
 export const AVG_DATE_FALLBACK_COLOR = "#374151";
 
-export const HIGHLIGHT_CELL_CLASS: Record<string, string> = {
-  strongest: "bg-rose-300",
-  first: "bg-blue-300",
-  last: "bg-orange-300",
-  untracked: "bg-slate-300",
-};
-
-export const HIGHLIGHT_EMPTY_CELL_CLASS = "bg-gray-100";
-
-// Native paints cell fills directly, so the classes above need hex twins.
 export const HIGHLIGHT_CELL_COLOR: Record<string, string> = {
   strongest: "#fda4af",
   first: "#93c5fd",

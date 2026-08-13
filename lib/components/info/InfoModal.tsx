@@ -1,5 +1,3 @@
-"use client";
-
 import DefModal from "@/lib/components/common/DefModal";
 import EmptyResults from "@/lib/components/common/EmptyResults";
 import FrownError from "@/lib/components/common/FrownError";
@@ -7,13 +5,13 @@ import Tabs, { type Tab } from "@/lib/components/common/Tabs";
 import NameDetailsContent from "@/lib/components/name/NameDetailsContent";
 import NameStatusIcon from "@/lib/components/name/NameStatusIcon";
 import StormListContent from "@/lib/components/storm/StormListContent";
-import type { SearchDetail } from "@/lib/types";
+import type { BaseModalProps, SearchDetail } from "@/lib/types";
 import { getNameStatusColor } from "@/lib/utils/colors";
 import { isExternalPosition } from "@/lib/utils/position";
-import { useRouter } from "next/navigation";
 import { useState, type ReactNode } from "react";
+import { StyleSheet, Text, View } from "react-native";
 
-interface InfoModalProps {
+interface InfoModalProps extends BaseModalProps {
   detail: SearchDetail | null;
   name: string;
   isError?: boolean;
@@ -21,16 +19,21 @@ interface InfoModalProps {
 
 type TabType = "details" | "storms";
 
-export default function InfoModal({ detail, name, isError = false }: InfoModalProps) {
-  const router = useRouter();
+// On web this was an intercepted route that rendered over the list. Native has a real /info/[name]
+// screen, so this is the sheet variant: for opening a name without leaving the list you are in.
+export default function InfoModal({
+  isOpen,
+  onClose,
+  detail,
+  name,
+  isError = false,
+}: InfoModalProps) {
+  const [activeTab, setActiveTab] = useState<TabType>("details");
 
   const nameData = detail?.name ?? null;
   const storms = detail?.storms ?? [];
   const displayName = nameData?.name ?? name;
   const isRetired = nameData?.isRetired ?? false;
-
-  const [activeTab, setActiveTab] = useState<TabType>("details");
-
   const notFound = !nameData && storms.length === 0;
 
   let title: ReactNode;
@@ -65,35 +68,39 @@ export default function InfoModal({ detail, name, isError = false }: InfoModalPr
     ];
 
     title = (
-      <div className="flex items-center gap-2">
+      <View style={styles.title}>
         <NameStatusIcon
           isRetired={isRetired}
           retirementReason={nameData?.retirementReason}
           position={nameData?.position ?? 0}
-          size={24}
+          size={22}
         />
-        <span className="text-2xl font-bold capitalize" style={{ color: nameStatusColor }}>
+        <Text style={[styles.titleLabel, { color: nameStatusColor }]} numberOfLines={1}>
           {displayName.toLowerCase()}
-        </span>
-      </div>
+        </Text>
+      </View>
     );
 
-    content = (
-      <div className="pt-4">
-        <Tabs
-          tabs={tabs}
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-          ariaLabel="Name details tabs"
-          idPrefix="info-modal-tab"
-        />
-      </div>
-    );
+    content = <Tabs tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />;
   }
 
   return (
-    <DefModal onClose={() => router.back()} width={560} title={title}>
+    <DefModal open={isOpen} onClose={onClose} title={title}>
       {content}
     </DefModal>
   );
 }
+
+const styles = StyleSheet.create({
+  title: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  titleLabel: {
+    flexShrink: 1,
+    fontFamily: "OpenSans_700Bold",
+    fontSize: 22,
+    textTransform: "capitalize",
+  },
+});

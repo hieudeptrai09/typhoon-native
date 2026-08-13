@@ -3,7 +3,7 @@ import DataList, { DataCard } from "@/lib/components/common/DataList";
 import NamesGrid from "@/lib/components/dashboard/grids/NamesGrid";
 import StormsGrid from "@/lib/components/dashboard/grids/StormsGrid";
 import SpecialButtons from "@/lib/components/dashboard/widgets/SpecialButtons";
-import SpecialNamesListDiv from "@/lib/components/dashboard/widgets/SpecialNamesListDiv";
+import SpecialNamesList from "@/lib/components/dashboard/widgets/SpecialNamesList";
 import { TEXT_COLOR_WHITE_BACKGROUND } from "@/lib/constants";
 import type { DashboardParams, Storm } from "@/lib/types";
 import { getPositionTitle } from "@/lib/utils/position";
@@ -64,7 +64,7 @@ const StormsView = ({ params, stormsData, averageValues, onCellClick }: StormsVi
     return (
       <View style={styles.stack}>
         <NamesGrid stormsData={stormsData} onCellClick={onCellClick} />
-        <SpecialNamesListDiv
+        <SpecialNamesList
           stormsData={stormsData}
           onNameClick={(name) => onCellClick(name, "name")}
         />

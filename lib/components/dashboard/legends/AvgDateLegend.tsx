@@ -12,7 +12,7 @@ const AVG_DATE_LEGEND: { color: string; label: string }[] = [
 
 export default function AvgDateLegend() {
   return (
-    <LegendShell label="Average month:" ariaLabel="Average date month legend">
+    <LegendShell label="Average month:" accessibilityLabel="Average date month legend">
       {AVG_DATE_LEGEND.map(({ color, label }) => (
         <LegendItem key={label} color={color} label={label} />
       ))}

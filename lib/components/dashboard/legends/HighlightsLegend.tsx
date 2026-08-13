@@ -1,6 +1,6 @@
 import LegendShell, { LegendItem } from "@/lib/components/common/LegendShell";
-import { HIGHLIGHT_EMPTY_CELL_CLASS } from "@/lib/constants";
-import { getHighlightCellClass } from "@/lib/utils/colors";
+import { HIGHLIGHT_EMPTY_CELL_COLOR } from "@/lib/constants";
+import { getHighlightCellColor } from "@/lib/utils/colors";
 
 const HIGHLIGHT_LABEL: Record<string, string> = {
   strongest: "Strongest storm at this position",
@@ -15,12 +15,12 @@ interface HighlightsLegendProps {
 
 export default function HighlightsLegend({ filter }: HighlightsLegendProps) {
   return (
-    <LegendShell label="Grid key:" ariaLabel="Highlights grid legend">
+    <LegendShell label="Grid key:" accessibilityLabel="Highlights grid legend">
       <LegendItem
-        colorClass={getHighlightCellClass(filter)}
+        color={getHighlightCellColor(filter)}
         label={HIGHLIGHT_LABEL[filter] ?? "Highlighted storm"}
       />
-      <LegendItem colorClass={HIGHLIGHT_EMPTY_CELL_CLASS} label="No storm at this position" />
+      <LegendItem color={HIGHLIGHT_EMPTY_CELL_COLOR} label="No storm at this position" />
     </LegendShell>
   );
 }

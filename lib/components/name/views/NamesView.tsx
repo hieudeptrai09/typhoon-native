@@ -1,4 +1,5 @@
 import LetterNavigation from "@/lib/components/common/LetterNavigation";
+import SegmentedControl from "@/lib/components/common/SegmentedControl";
 import SlashToggleButton from "@/lib/components/common/SlashToggleButton";
 import HistoryModal from "@/lib/components/name/modals/HistoryModal";
 import ListFilterModal from "@/lib/components/name/modals/ListFilterModal";
@@ -8,33 +9,26 @@ import PositionNameGrid from "@/lib/components/name/widgets/PositionNameGrid";
 import { defaultTyphoonName } from "@/lib/constants";
 import type { FilterParams, StormHistoryEntry, TyphoonName } from "@/lib/types";
 import { writeDisplayPrefs, type NamesDisplayPrefs } from "@/lib/utils/name/displayPrefs";
-import { paramsToPath } from "@/lib/utils/name/routing";
 import { toArr } from "@/lib/utils/params";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { Badge, Button, Segmented } from "antd";
-import { useRouter, useSearchParams } from "next/navigation";
+import * as Haptics from "expo-haptics";
 import { useCallback, useMemo, useState } from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 const LAYOUT_OPTIONS = [
-  {
-    label: (
-      <span className="flex items-center justify-center gap-1.5">
-        <Ionicons name="grid-outline" size={13} color="#334155" />
-        Grid
-      </span>
-    ),
-    value: "grid",
-  },
-  {
-    label: (
-      <span className="flex items-center justify-center gap-1.5">
-        <Ionicons name="list-outline" size={13} color="#334155" />
-        List
-      </span>
-    ),
-    value: "list",
-  },
+  { value: "grid", label: "Grid", icon: "grid-outline" as const },
+  { value: "list", label: "List", icon: "list-outline" as const },
 ];
+
+const EMPTY_FILTERS: FilterParams = {
+  name: "",
+  country: "",
+  language: "",
+  tag: "",
+  position: "",
+  status: "",
+  letter: "",
+};
 
 interface NameFilterValues {
   name: string;
@@ -52,6 +46,8 @@ interface NamesViewProps {
   showName: boolean;
   showHistory: boolean;
   displayPrefs: NamesDisplayPrefs;
+  onLayoutChange: (layout: "grid" | "list") => void;
+  onShowNameChange: (showName: boolean) => void;
 }
 
 const applyNameFilters = (names: TyphoonName[], filters: NameFilterValues): TyphoonName[] => {
@@ -90,12 +86,11 @@ const categorizeLettersByStatus = (
 
   namesList.forEach((name) => {
     const letter = name.name.charAt(0).toUpperCase();
-    const isRetired = name.isRetired;
 
     if (!letterStatusMap[letter]) letterStatusMap[letter] = [false, false, false];
 
     letterStatusMap[letter][0] = true;
-    if (isRetired) letterStatusMap[letter][1] = true;
+    if (name.isRetired) letterStatusMap[letter][1] = true;
     else letterStatusMap[letter][2] = true;
   });
 
@@ -107,6 +102,9 @@ const getFirstAvailableLetter = (letterStatusMap: Record<string, [boolean, boole
   return allLetters.find((letter) => letterStatusMap[letter]?.[0]) ?? "A";
 };
 
+// The web build kept filters and the active letter in the query string so each combination was
+// linkable. A tab has no address bar, so they are state here — and the letter no longer needs a
+// navigation to change.
 const NamesView = ({
   allNames,
   stormHistory,
@@ -114,27 +112,13 @@ const NamesView = ({
   showName,
   showHistory,
   displayPrefs,
+  onLayoutChange,
+  onShowNameChange,
 }: NamesViewProps) => {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-
   const displayMode = viewMode === "list" ? ("list" as const) : ("grid" as const);
-  const currentPath = paramsToPath(
-    displayMode === "list"
-      ? { view: "list", showHistory }
-      : { view: "grid", showName, showHistory },
-  );
 
-  const searchName = searchParams.get("name") || "";
-  const selectedCountry = searchParams.get("country") || "";
-  const selectedLanguage = searchParams.get("language") || "";
-  const selectedTag = searchParams.get("tag") || "";
-  const searchPosition = searchParams.get("position") || "";
-
-  const countryArr = toArr(selectedCountry);
-  const languageArr = toArr(selectedLanguage);
-  const tagArr = toArr(selectedTag);
-
+  const [filters, setFilters] = useState<FilterParams>(EMPTY_FILTERS);
+  const [letter, setLetter] = useState<string | null>(null);
   const [prefs, setPrefs] = useState<NamesDisplayPrefs>(displayPrefs);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [selectedName, setSelectedName] = useState<TyphoonName>(defaultTyphoonName);
@@ -143,7 +127,7 @@ const NamesView = ({
   const [historyPositionNames, setHistoryPositionNames] = useState<TyphoonName[]>([]);
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
 
-  const selectedStatus = showHistory ? searchParams.get("status") || "" : "current";
+  const selectedStatus = showHistory ? filters.status : "current";
 
   const stormsByPosition = useMemo(
     () =>
@@ -166,26 +150,26 @@ const NamesView = ({
   );
 
   const activeFilterCount = [
-    searchName,
-    selectedCountry,
-    selectedLanguage,
-    searchPosition,
-    selectedTag,
-    showHistory ? selectedStatus : "",
+    filters.name,
+    filters.country,
+    filters.language,
+    filters.position,
+    filters.tag,
+    showHistory ? filters.status : "",
   ].filter(Boolean).length;
 
   const hasActiveFilters = activeFilterCount > 0;
 
   const filterValues = useMemo(
     () => ({
-      name: searchName,
-      country: countryArr,
-      language: languageArr,
-      tag: tagArr,
-      position: searchPosition,
+      name: filters.name,
+      country: toArr(filters.country),
+      language: toArr(filters.language),
+      tag: toArr(filters.tag),
+      position: filters.position,
       status: selectedStatus,
     }),
-    [searchName, countryArr, languageArr, tagArr, searchPosition, selectedStatus],
+    [filters, selectedStatus],
   );
 
   const statusFilteredNames = useMemo(
@@ -207,7 +191,7 @@ const NamesView = ({
     () => categorizeLettersByStatus(statusFilteredNames),
     [statusFilteredNames],
   );
-  const currentLetter = searchParams.get("letter") || getFirstAvailableLetter(letterStatusMap);
+  const currentLetter = letter ?? getFirstAvailableLetter(letterStatusMap);
 
   const filteredAllNames = useMemo(() => {
     if (hasActiveFilters) return applyNameFilters(statusFilteredNames, filterValues);
@@ -216,154 +200,123 @@ const NamesView = ({
   }, [statusFilteredNames, hasActiveFilters, filterValues, prefs.showLetterNav, currentLetter]);
 
   const showLetterNav = !hasActiveFilters && prefs.showLetterNav;
-  // Reuse-count coloring is the full-overview visualization: it applies automatically on the history grid whenever the view isn't narrowed by letter nav or filters.
+  // Reuse-count coloring is the full-overview visualization: it applies automatically on the
+  // history grid whenever the view isn't narrowed by letter nav or filters.
   const colorfulHistory = showHistory && !hasActiveFilters && !prefs.showLetterNav;
 
-  const buildQuery = useCallback((params: Record<string, string>) => {
-    const urlParams = new URLSearchParams();
-    Object.entries(params).forEach(([key, value]) => {
-      if (value) urlParams.set(key, value);
-    });
-    const qs = urlParams.toString();
-    return qs ? `?${qs}` : "";
-  }, []);
-
-  const handleLetterChange = (letter: string) => {
-    router.push(`${currentPath}${buildQuery({ letter })}`);
-  };
-
   const countMatchingNames = useCallback(
-    (filters: FilterParams) =>
+    (pending: FilterParams) =>
       applyNameFilters(allNames, {
-        name: filters.name,
-        country: toArr(filters.country),
-        language: toArr(filters.language),
-        tag: toArr(filters.tag),
-        position: filters.position,
-        status: filters.status,
+        name: pending.name,
+        country: toArr(pending.country),
+        language: toArr(pending.language),
+        tag: toArr(pending.tag),
+        position: pending.position,
+        status: pending.status,
       }).length,
     [allNames],
   );
 
-  const handleApplyFilters = (filters: FilterParams) => {
+  const handleApplyFilters = (applied: FilterParams) => {
     setIsFilterModalOpen(false);
-    const hasFilters =
-      filters.name ||
-      filters.country ||
-      filters.language ||
-      filters.position ||
-      filters.tag ||
-      filters.status;
-    const query = buildQuery({
-      name: filters.name,
-      country: filters.country,
-      language: filters.language,
-      position: filters.position,
-      tag: filters.tag,
-      status: filters.status,
-      ...(!hasFilters ? { letter: currentLetter } : {}),
-    });
-    router.push(`${currentPath}${query}`);
-  };
-
-  const handleLayoutChange = (mode: string) => {
-    router.push(
-      paramsToPath(
-        mode === "list"
-          ? { view: "list", showHistory }
-          : { view: "grid", showName: true, showHistory },
-      ),
-    );
+    setFilters(applied);
   };
 
   const handleToggleLetterNav = () => {
-    const nextShowLetterNav = !showLetterNav;
-    const newPrefs: NamesDisplayPrefs = { ...prefs, showLetterNav: nextShowLetterNav };
-    setPrefs(newPrefs);
-    writeDisplayPrefs(newPrefs);
-    if (nextShowLetterNav && hasActiveFilters) {
-      router.push(`${currentPath}${buildQuery({ letter: currentLetter })}`);
-    }
+    const next: NamesDisplayPrefs = { ...prefs, showLetterNav: !showLetterNav };
+    setPrefs(next);
+    writeDisplayPrefs(next);
+    // Letter nav and filters narrow the same list, so turning the nav on drops the filters
+    // rather than stacking two competing narrowings.
+    if (next.showLetterNav && hasActiveFilters) setFilters(EMPTY_FILTERS);
   };
 
-  const handleToggleTagIcons = () => {
-    router.push(paramsToPath({ view: "grid", showName: !showName, showHistory }));
-  };
-
-  const handleNameClick = (name: TyphoonName) => {
+  const handleNamePress = (name: TyphoonName) => {
     setSelectedName(name);
     setIsNameModalOpen(true);
   };
 
-  const handleCellClick = (position: number, names: TyphoonName[]) => {
+  const handleCellPress = (position: number, names: TyphoonName[]) => {
     if (showHistory) {
       setHistoryPosition(position);
       setHistoryPositionNames(names);
       setIsHistoryModalOpen(true);
-    } else {
-      if (names.length > 0) handleNameClick(names[0]);
+      return;
     }
+    if (names.length > 0) handleNamePress(names[0]);
   };
 
-  const getLetterConfig = (letter: string) => {
-    const status = letterStatusMap[letter];
-    const isActive = currentLetter === letter;
+  const getLetterConfig = (target: string) => {
+    const status = letterStatusMap[target];
+    const isActive = currentLetter === target;
 
-    if (!status?.[0]) return { isAvailable: false, color: "#9ca3af" };
+    if (!status?.[0]) return { isAvailable: false, color: "#cbd5e1" };
 
     const hasRetired = status[1];
     const hasAlive = status[2];
 
     if (hasRetired && hasAlive) {
       return { isAvailable: true, color: isActive ? "#1e40af" : "#2563eb", isActive };
-    } else if (hasRetired && !hasAlive) {
-      return { isAvailable: true, color: isActive ? "#991b1b" : "#dc2626", isActive };
-    } else {
-      return { isAvailable: true, color: isActive ? "#166534" : "#16a34a", isActive };
     }
+    if (hasRetired) {
+      return { isAvailable: true, color: isActive ? "#991b1b" : "#dc2626", isActive };
+    }
+    return { isAvailable: true, color: isActive ? "#166534" : "#16a34a", isActive };
   };
 
   return (
-    <>
-      <div className="mx-auto mb-4 max-w-4xl">
-        <div className="flex flex-wrap items-center justify-center gap-6">
-          <Segmented
+    <View style={styles.root}>
+      <View style={styles.toolbar}>
+        <View style={styles.layout}>
+          <SegmentedControl
             options={LAYOUT_OPTIONS}
             value={displayMode}
-            onChange={(v) => handleLayoutChange(String(v))}
-            aria-label="Switch between grid and list layout"
+            onChange={(mode) => onLayoutChange(mode as "grid" | "list")}
+            accessibilityLabel="Switch between grid and list layout"
           />
+        </View>
+
+        <SlashToggleButton
+          active={showLetterNav}
+          onPress={handleToggleLetterNav}
+          label={showLetterNav ? "Letter navigation is on" : "Letter navigation is off"}
+        >
+          <Ionicons name="text-outline" size={24} color="#334155" />
+        </SlashToggleButton>
+
+        {displayMode === "grid" && (
           <SlashToggleButton
-            active={showLetterNav}
-            onClick={handleToggleLetterNav}
-            title={showLetterNav ? "Letter navigation is on" : "Letter navigation is off"}
+            active={!showName}
+            onPress={() => onShowNameChange(!showName)}
+            label={!showName ? "Category icons are on" : "Category icons are off"}
           >
-            <Ionicons name="text-outline" size={26} color="#334155" />
+            <Ionicons name="pricetag-outline" size={24} color="#334155" />
           </SlashToggleButton>
-          {displayMode === "grid" && (
-            <SlashToggleButton
-              active={!showName}
-              onClick={handleToggleTagIcons}
-              title={!showName ? "Category icons are on" : "Category icons are off"}
-            >
-              <Ionicons name="pricetag-outline" size={26} color="#334155" />
-            </SlashToggleButton>
+        )}
+
+        <Pressable
+          onPress={() => {
+            Haptics.selectionAsync();
+            setIsFilterModalOpen(true);
+          }}
+          hitSlop={8}
+          style={({ pressed }) => [styles.filterButton, pressed && styles.pressed]}
+          accessibilityRole="button"
+          accessibilityLabel={`Open filters${activeFilterCount > 0 ? `, ${activeFilterCount} active` : ""}`}
+        >
+          <Ionicons name="funnel-outline" size={24} color="#334155" />
+          {activeFilterCount > 0 && (
+            <View style={styles.badge}>
+              <Text style={styles.badgeLabel}>{activeFilterCount}</Text>
+            </View>
           )}
-          <Badge count={activeFilterCount} color="#ef4444" offset={[-4, 4]}>
-            <Button
-              type="text"
-              onClick={() => setIsFilterModalOpen(true)}
-              title="Filters"
-              aria-label={`Open filters${activeFilterCount > 0 ? `, ${activeFilterCount} active` : ""}`}
-              icon={<Ionicons name="funnel-outline" size={30} color="#334155" />}
-              className="h-auto! w-auto! p-1! text-foreground! hover:bg-transparent! hover:text-highlight!"
-            />
-          </Badge>
-        </div>
-      </div>
+        </Pressable>
+      </View>
 
       {showLetterNav && (
-        <LetterNavigation onLetterChange={handleLetterChange} getLetterConfig={getLetterConfig} />
+        <View style={styles.letters}>
+          <LetterNavigation onLetterChange={setLetter} getLetterConfig={getLetterConfig} />
+        </View>
       )}
 
       {displayMode === "grid" ? (
@@ -372,11 +325,11 @@ const NamesView = ({
           showName={showName}
           showHistory={showHistory}
           colorfulHistory={colorfulHistory}
-          onNameClick={handleNameClick}
-          onCellClick={handleCellClick}
+          onNameClick={handleNamePress}
+          onCellClick={handleCellPress}
         />
       ) : (
-        <FilteredNamesTable filteredNames={filteredAllNames} onNameClick={handleNameClick} />
+        <FilteredNamesTable filteredNames={filteredAllNames} onNameClick={handleNamePress} />
       )}
 
       <ListFilterModal
@@ -388,15 +341,7 @@ const NamesView = ({
         tags={tags}
         showHistory={showHistory}
         matchCount={countMatchingNames}
-        initialFilters={{
-          name: searchName,
-          country: selectedCountry,
-          language: selectedLanguage,
-          position: searchPosition,
-          tag: selectedTag,
-          status: selectedStatus,
-          letter: "",
-        }}
+        initialFilters={{ ...filters, status: selectedStatus }}
       />
 
       <NameDetailsModal
@@ -413,8 +358,51 @@ const NamesView = ({
         storms={stormsByPosition[historyPosition] ?? []}
         onClose={() => setIsHistoryModalOpen(false)}
       />
-    </>
+    </View>
   );
 };
+
+const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
+  toolbar: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingHorizontal: 12,
+    paddingBottom: 8,
+  },
+  layout: {
+    flex: 1,
+  },
+  filterButton: {
+    padding: 4,
+  },
+  pressed: {
+    opacity: 0.6,
+  },
+  badge: {
+    position: "absolute",
+    top: -2,
+    right: -4,
+    minWidth: 16,
+    height: 16,
+    paddingHorizontal: 4,
+    borderRadius: 8,
+    backgroundColor: "#ef4444",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  badgeLabel: {
+    fontFamily: "OpenSans_700Bold",
+    fontSize: 10,
+    color: "#ffffff",
+  },
+  letters: {
+    paddingHorizontal: 12,
+    paddingBottom: 8,
+  },
+});
 
 export default NamesView;

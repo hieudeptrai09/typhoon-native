@@ -71,6 +71,16 @@ const NamesPageContent = ({
           showName={params.view === "grid" && params.showName}
           showHistory={params.showHistory}
           displayPrefs={displayPrefs}
+          onLayoutChange={(next) =>
+            onParamsChange(
+              next === "list"
+                ? { view: "list", showHistory: params.showHistory }
+                : { view: "grid", showName: scopeShowName, showHistory: params.showHistory },
+            )
+          }
+          onShowNameChange={(showName) =>
+            onParamsChange({ view: "grid", showName, showHistory: params.showHistory })
+          }
         />
       )}
     </View>
