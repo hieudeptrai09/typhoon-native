@@ -1,0 +1,9 @@
+import { getStorms } from "@/be/api/getStorms";
+import { CACHE, json, optionalInt, route } from "@/be/http";
+
+export const GET = route(async (request) => {
+  const url = new URL(request.url);
+  const position = optionalInt(url, "position");
+
+  return json(await getStorms(position), CACHE.volatile);
+});
