@@ -1,7 +1,4 @@
-"use client";
-
 import FrownError from "@/lib/components/common/FrownError";
-import PageHeader from "@/lib/components/common/PageHeader";
 import DashboardLegend from "@/lib/components/dashboard/legends/DashboardLegend";
 import AverageModal, {
   type AverageModalCriteria,
@@ -25,10 +22,8 @@ import {
   getGroupedStorms,
 } from "@/lib/utils/storm/aggregate";
 import { getEffectiveMonth } from "@/lib/utils/storm/highlights";
-import { getDashboardTitle } from "@/lib/utils/storm/metadata";
-import { paramsToPath, slugToParams } from "@/lib/utils/storm/routing";
-import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
+import { StyleSheet, Text, View } from "react-native";
 
 interface SelectedData {
   title?: string;
@@ -41,12 +36,15 @@ interface SelectedData {
 
 interface DashboardPageContentProps {
   stormsData: Storm[] | null;
+  params: DashboardParams;
+  onParamsChange: (params: DashboardParams) => void;
 }
 
-export default function DashboardPageContent({ stormsData }: DashboardPageContentProps) {
-  const router = useRouter();
-  const { slug } = useParams<{ slug: string[] }>();
-
+export default function DashboardPageContent({
+  stormsData,
+  params: currentParams,
+  onParamsChange,
+}: DashboardPageContentProps) {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isAverageModalOpen, setIsAverageModalOpen] = useState(false);
   const [isNameListModalOpen, setIsNameListModalOpen] = useState(false);
@@ -54,8 +52,7 @@ export default function DashboardPageContent({ stormsData }: DashboardPageConten
   const [isAvgDateModalOpen, setIsAvgDateModalOpen] = useState(false);
   const [selectedData, setSelectedData] = useState<SelectedData | null>(null);
 
-  const currentParams: DashboardParams = slugToParams(slug);
-  const { view, mode, filter } = currentParams;
+  const { view, filter } = currentParams;
 
   const averageValues =
     view === "average" || view === "all"
@@ -65,10 +62,6 @@ export default function DashboardPageContent({ stormsData }: DashboardPageConten
           ),
         )
       : null;
-
-  const handleApplyFilter = (newParams: DashboardParams) => {
-    router.push(paramsToPath(newParams));
-  };
 
   const handleCellClick = (data: number | string, key: string) => {
     const storms = (stormsData || []).filter((s) => s[key as keyof Storm] === data);
@@ -152,8 +145,8 @@ export default function DashboardPageContent({ stormsData }: DashboardPageConten
   }
 
   return (
-    <PageHeader title={getDashboardTitle(view, mode, filter)}>
-      <DashboardControlBar params={currentParams} onChange={handleApplyFilter} />
+    <View style={styles.root}>
+      <DashboardControlBar params={currentParams} onChange={onParamsChange} />
 
       {(() => {
         switch (view) {
@@ -194,7 +187,7 @@ export default function DashboardPageContent({ stormsData }: DashboardPageConten
               />
             );
           default:
-            return <div className="text-center text-foreground">Select filters to view data</div>;
+            return <Text style={styles.hint}>Select filters to view data</Text>;
         }
       })()}
 
@@ -238,6 +231,19 @@ export default function DashboardPageContent({ stormsData }: DashboardPageConten
       />
 
       <DashboardLegend params={currentParams} />
-    </PageHeader>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
+  hint: {
+    fontFamily: "OpenSans_400Regular",
+    fontSize: 14,
+    color: "#64748b",
+    textAlign: "center",
+    paddingVertical: 32,
+  },
+});

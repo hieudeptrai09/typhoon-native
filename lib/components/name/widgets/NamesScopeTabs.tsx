@@ -1,6 +1,7 @@
 import type { IconName } from "@/lib/types";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import Link from "next/link";
+import * as Haptics from "expo-haptics";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 export type NamesScope = "current" | "history" | "retired";
 
@@ -12,30 +13,75 @@ const TABS: { key: NamesScope; label: string; icon: IconName }[] = [
 
 interface NamesScopeTabsProps {
   activeScope: NamesScope;
-  hrefs: Record<NamesScope, string>;
+  onChange: (scope: NamesScope) => void;
 }
 
-const NamesScopeTabs = ({ activeScope, hrefs }: NamesScopeTabsProps) => (
-  <nav aria-label="Name scope" className="mx-auto mb-6 flex max-w-md border-b border-gray-200">
+// Replaces the web <h1>: the native header already says "Names", so the scope is what actually
+// needs naming on screen — and here it doubles as the control that changes it.
+const NamesScopeTabs = ({ activeScope, onChange }: NamesScopeTabsProps) => (
+  <View style={styles.root} accessibilityRole="tablist">
     {TABS.map(({ key, label, icon }) => {
       const isActive = activeScope === key;
+
       return (
-        <Link
+        <Pressable
           key={key}
-          href={hrefs[key]}
-          aria-current={isActive ? "page" : undefined}
-          className={`flex flex-1 items-center justify-center gap-1.5 px-4 pb-3 text-sm font-semibold whitespace-nowrap transition-colors ${
-            isActive
-              ? "border-b-2 border-sky-700 text-sky-700"
-              : "text-foreground hover:text-highlight"
-          }`}
+          onPress={() => {
+            if (isActive) return;
+            Haptics.selectionAsync();
+            onChange(key);
+          }}
+          style={({ pressed }) => [
+            styles.tab,
+            isActive && styles.tabActive,
+            pressed && !isActive && styles.pressed,
+          ]}
+          accessibilityRole="tab"
+          accessibilityState={{ selected: isActive }}
+          accessibilityLabel={label}
         >
-          <Ionicons name={icon} size={15} color={isActive ? "#0369a1" : "#334155"} />
-          {label}
-        </Link>
+          <Ionicons name={icon} size={15} color={isActive ? "#0369a1" : "#64748b"} />
+          <Text style={[styles.label, isActive && styles.labelActive]} numberOfLines={1}>
+            {label}
+          </Text>
+        </Pressable>
       );
     })}
-  </nav>
+  </View>
 );
+
+const styles = StyleSheet.create({
+  root: {
+    flexDirection: "row",
+    gap: 4,
+    margin: 12,
+    padding: 4,
+    borderRadius: 12,
+    backgroundColor: "#e2e8f0",
+  },
+  tab: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    height: 38,
+    borderRadius: 9,
+  },
+  tabActive: {
+    backgroundColor: "#ffffff",
+  },
+  pressed: {
+    opacity: 0.6,
+  },
+  label: {
+    fontFamily: "OpenSans_600SemiBold",
+    fontSize: 14,
+    color: "#64748b",
+  },
+  labelActive: {
+    color: "#0369a1",
+  },
+});
 
 export default NamesScopeTabs;

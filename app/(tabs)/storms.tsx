@@ -1,64 +1,21 @@
-// Chuyển từ app/(navbar)/storms/[...slug]/page.tsx — convert tại chỗ.
-
-import { getStorms } from "@/be/api/getStorms";
+import { useApiQuery } from "@/lib/api/client";
+import FrownError from "@/lib/components/common/FrownError";
+import ScreenLoading from "@/lib/components/common/ScreenLoading";
 import DashboardPageContent from "@/lib/components/dashboard/DashboardPageContent";
-import { getDashboardDescription, getDashboardTitle } from "@/lib/utils/storm/metadata";
-import {
-  getCanonicalStormsSlugs,
-  isValidStormsSlug,
-  paramsToPath,
-  slugToParams,
-  slugToPath,
-} from "@/lib/utils/storm/routing";
-import type { Metadata } from "next";
-import { notFound, redirect } from "next/navigation";
+import type { DashboardParams, Storm } from "@/lib/types";
+import { paramsForView } from "@/lib/utils/storm/routing";
+import { useState } from "react";
 
-type PageProps = {
-  params: Promise<{ slug: string[] }>;
-};
+// The web build kept view/mode/filter in the URL so each combination could be linked and indexed.
+// A tab has no address bar, and pushing a route per filter change would stack history entries the
+// back gesture then has to unwind one by one, so the dashboard owns its filters as plain state.
+export default function StormsScreen() {
+  const [params, setParams] = useState<DashboardParams>(() => paramsForView("all"));
 
-export function generateStaticParams() {
-  return getCanonicalStormsSlugs().map((slug) => ({ slug }));
+  const { data, isLoading, isError, refetch } = useApiQuery<Storm[]>("/api/v1/storms");
+
+  if (isLoading) return <ScreenLoading />;
+  if (isError) return <FrownError onRetry={refetch} />;
+
+  return <DashboardPageContent stormsData={data} params={params} onParamsChange={setParams} />;
 }
-
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { slug } = await params;
-
-  if (!isValidStormsSlug(slug)) {
-    return {};
-  }
-
-  const dashboardParams = slugToParams(slug);
-  const { view, mode, filter } = dashboardParams;
-
-  const titleParts = getDashboardTitle(view, mode, filter);
-  const title = titleParts ? `${titleParts} | Dashboard` : "Dashboard";
-  const description = getDashboardDescription(view, mode, filter);
-
-  return {
-    title: title,
-    description: description,
-    alternates: {
-      canonical: paramsToPath(dashboardParams),
-    },
-  };
-}
-
-const Dashboard = async ({ params }: PageProps) => {
-  const { slug } = await params;
-
-  if (!isValidStormsSlug(slug)) {
-    notFound();
-  }
-
-  const dashboardParams = slugToParams(slug);
-  const path = paramsToPath(dashboardParams);
-  if (slugToPath(slug) !== path) {
-    redirect(path);
-  }
-
-  const result = await getStorms();
-  return <DashboardPageContent stormsData={result?.data ?? null} />;
-};
-
-export default Dashboard;

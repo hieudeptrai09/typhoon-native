@@ -1,22 +1,20 @@
-"use client";
-
 import FrownError from "@/lib/components/common/FrownError";
-import PageHeader from "@/lib/components/common/PageHeader";
 import NamesView from "@/lib/components/name/views/NamesView";
 import RetiredView from "@/lib/components/name/views/RetiredView";
 import NamesScopeTabs, { type NamesScope } from "@/lib/components/name/widgets/NamesScopeTabs";
 import type { RetiredName, StormHistoryEntry, SuggestionWithNameId } from "@/lib/types";
 import type { NamesDisplayPrefs } from "@/lib/utils/name/displayPrefs";
-import { getNamesTitle } from "@/lib/utils/name/metadata";
-import { paramsToPath, slugToParams } from "@/lib/utils/name/routing";
-import { useParams } from "next/navigation";
+import type { NamesSlugParams } from "@/lib/utils/name/routing";
 import { useMemo } from "react";
+import { StyleSheet, View } from "react-native";
 
 interface NamesPageContentProps {
   allNames: RetiredName[] | null;
   stormHistory: StormHistoryEntry[];
   suggestedNames: SuggestionWithNameId[];
   displayPrefs: NamesDisplayPrefs;
+  params: NamesSlugParams;
+  onParamsChange: (params: NamesSlugParams) => void;
 }
 
 const NamesPageContent = ({
@@ -24,10 +22,9 @@ const NamesPageContent = ({
   stormHistory,
   suggestedNames,
   displayPrefs,
+  params,
+  onParamsChange,
 }: NamesPageContentProps) => {
-  const { slug } = useParams<{ slug: string[] }>();
-  const params = slugToParams(slug);
-
   const retiredNames = useMemo(() => (allNames || []).filter((n) => n.isRetired), [allNames]);
 
   const activeScope: NamesScope =
@@ -38,17 +35,18 @@ const NamesPageContent = ({
   const scopeShowName = params.view === "grid" ? params.showName : true;
 
   // Switching scope keeps the layout and name toggle the current view is already showing.
-  const scopeHref = (showHistory: boolean): string =>
-    paramsToPath(
+  const handleScopeChange = (scope: NamesScope) => {
+    if (scope === "retired") {
+      onParamsChange({ view: "retired" });
+      return;
+    }
+
+    const showHistory = scope === "history";
+    onParamsChange(
       layout === "list"
         ? { view: "list", showHistory }
         : { view: "grid", showName: scopeShowName, showHistory },
     );
-
-  const scopeHrefs: Record<NamesScope, string> = {
-    current: scopeHref(false),
-    history: scopeHref(true),
-    retired: paramsToPath({ view: "retired" }),
   };
 
   if (!allNames) {
@@ -56,8 +54,8 @@ const NamesPageContent = ({
   }
 
   return (
-    <PageHeader title={getNamesTitle(params)}>
-      <NamesScopeTabs activeScope={activeScope} hrefs={scopeHrefs} />
+    <View style={styles.root}>
+      <NamesScopeTabs activeScope={activeScope} onChange={handleScopeChange} />
 
       {params.view === "retired" ? (
         <RetiredView
@@ -75,8 +73,14 @@ const NamesPageContent = ({
           displayPrefs={displayPrefs}
         />
       )}
-    </PageHeader>
+    </View>
   );
 };
+
+const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
+});
 
 export default NamesPageContent;

@@ -1,75 +1,42 @@
-// Chuyển từ app/(navbar)/names/[...slug]/page.tsx — convert tại chỗ.
-
-import { getAllStormHistory } from "@/be/api/getStormHistory";
-import { getAllSuggestedNames } from "@/be/api/getSuggestedNames";
-import { getTyphoonNames } from "@/be/api/getTyphoonNames";
+import { useApiQuery } from "@/lib/api/client";
+import FrownError from "@/lib/components/common/FrownError";
+import ScreenLoading from "@/lib/components/common/ScreenLoading";
 import NamesPageContent from "@/lib/components/name/NamesPageContent";
-import { NAMES_DISPLAY_COOKIE, parseDisplayPrefs } from "@/lib/utils/name/displayPrefs";
-import { getNamesDescription, getNamesTitle } from "@/lib/utils/name/metadata";
-import {
-  isHistoryScope,
-  isValidNamesSlug,
-  paramsToPath,
-  slugToParams,
-  slugToPath,
-} from "@/lib/utils/name/routing";
-import type { Metadata } from "next";
-import { cookies } from "next/headers";
-import { notFound, redirect } from "next/navigation";
+import type { RetiredName, StormHistoryEntry, SuggestionWithNameId } from "@/lib/types";
+import { defaultDisplayPrefs } from "@/lib/utils/name/displayPrefs";
+import { isHistoryScope, type NamesSlugParams } from "@/lib/utils/name/routing";
+import { useState } from "react";
 
-type PageProps = {
-  params: Promise<{ slug: string[] }>;
-};
+// Same reasoning as the storms tab: the scope/layout toggles were URL segments on web only so the
+// pages could be indexed. Here they are state, and NamesScopeTabs drives them directly.
+export default function NamesScreen() {
+  const [params, setParams] = useState<NamesSlugParams>({
+    view: "grid",
+    showName: true,
+    showHistory: false,
+  });
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { slug } = await params;
+  const names = useApiQuery<RetiredName[]>("/api/v1/typhoon-names");
 
-  if (!isValidNamesSlug(slug)) {
-    return {};
-  }
+  // Both are only read by one scope each, so they stay unfetched until that scope is opened.
+  const history = useApiQuery<StormHistoryEntry[]>(
+    isHistoryScope(params) ? "/api/v1/storm-history" : null,
+  );
+  const suggested = useApiQuery<SuggestionWithNameId[]>(
+    params.view === "retired" ? "/api/v1/suggestions" : null,
+  );
 
-  const slugParams = slugToParams(slug);
-
-  return {
-    title: `${getNamesTitle(slugParams)} | Names`,
-    description: getNamesDescription(slugParams),
-    alternates: {
-      canonical: paramsToPath(slugParams),
-    },
-  };
-}
-
-const NamesPage = async ({ params }: PageProps) => {
-  const { slug } = await params;
-
-  if (!isValidNamesSlug(slug)) {
-    notFound();
-  }
-
-  // Only the history grid and the retired view consume these, and the slug already says which is active.
-  const slugParams = slugToParams(slug);
-
-  const path = paramsToPath(slugParams);
-  if (slugToPath(slug) !== path) {
-    redirect(path);
-  }
-
-  const [result, cookieStore, historyResult, suggestedResult] = await Promise.all([
-    getTyphoonNames(),
-    cookies(),
-    isHistoryScope(slugParams) ? getAllStormHistory() : null,
-    slugParams.view === "retired" ? getAllSuggestedNames() : null,
-  ]);
-  const displayPrefs = parseDisplayPrefs(cookieStore.get(NAMES_DISPLAY_COOKIE)?.value);
+  if (names.isLoading) return <ScreenLoading />;
+  if (names.isError) return <FrownError onRetry={names.refetch} />;
 
   return (
     <NamesPageContent
-      allNames={result?.data ?? null}
-      stormHistory={historyResult?.data ?? []}
-      suggestedNames={suggestedResult?.data ?? []}
-      displayPrefs={displayPrefs}
+      allNames={names.data}
+      stormHistory={history.data ?? []}
+      suggestedNames={suggested.data ?? []}
+      displayPrefs={defaultDisplayPrefs}
+      params={params}
+      onParamsChange={setParams}
     />
   );
-};
-
-export default NamesPage;
+}

@@ -1,64 +1,55 @@
-// Chuyển từ app/(navbar)/positions/[position]/page.tsx — convert tại chỗ.
-
-import { getPositionDetails } from "@/be/api/getPositionDetails";
+import { useApiQuery } from "@/lib/api/client";
+import EmptyResults from "@/lib/components/common/EmptyResults";
+import FrownError from "@/lib/components/common/FrownError";
+import ScreenLoading from "@/lib/components/common/ScreenLoading";
 import PositionPageContent from "@/lib/components/position/PositionPageContent";
-import { getPositionFromSlug, getPositionSlug, getPositionTitle } from "@/lib/utils/position";
-import type { Metadata } from "next";
-import { notFound, permanentRedirect } from "next/navigation";
+import type { PositionDetail } from "@/lib/types";
+import { getPositionFromSlug, getPositionTitle } from "@/lib/utils/position";
+import { Stack, useLocalSearchParams } from "expo-router";
+import { StyleSheet, View } from "react-native";
 
-interface PositionPageProps {
-  params: Promise<{ position: string }>;
-}
+const TOTAL_POSITIONS = 143;
 
-const isValidPosition = (position: number): boolean =>
-  Number.isInteger(position) && position >= 1 && position <= 143;
+const isValidPosition = (position: number | null): position is number =>
+  position !== null && Number.isInteger(position) && position >= 1 && position <= TOTAL_POSITIONS;
 
-export async function generateStaticParams() {
-  return Array.from({ length: 143 }, (_, i) => ({ position: getPositionSlug(i + 1) }));
-}
+export default function PositionScreen() {
+  const { position: slug = "" } = useLocalSearchParams<{ position: string }>();
 
-export async function generateMetadata({ params }: PositionPageProps): Promise<Metadata> {
-  const { position } = await params;
-  const positionNum = getPositionFromSlug(position);
+  // getPositionFromSlug accepts every spelling a deep link can carry ("3i", "3I", "37"), so there
+  // is nothing to redirect to — the web version normalised the URL only to keep one canonical link.
+  const position = getPositionFromSlug(slug);
+  const isKnown = isValidPosition(position);
 
-  if (positionNum === null || !isValidPosition(positionNum)) {
-    return {};
-  }
-
-  const positionTitle = getPositionTitle(positionNum);
-
-  return {
-    title: `${positionTitle} — Naming Position`,
-    description: `Names, storm history, and average intensity for naming position ${positionTitle}.`,
-    alternates: {
-      canonical: `/positions/${getPositionSlug(positionNum)}/`,
-    },
-  };
-}
-
-export default async function PositionPage({ params }: PositionPageProps) {
-  const { position } = await params;
-  const positionNum = getPositionFromSlug(position);
-
-  if (positionNum !== null && getPositionSlug(positionNum) !== position) {
-    permanentRedirect(`/positions/${getPositionSlug(positionNum)}/`);
-  }
-
-  if (positionNum === null || !isValidPosition(positionNum)) {
-    notFound();
-  }
-
-  const result = await getPositionDetails(positionNum);
-
-  if (result && !result.data) {
-    notFound();
-  }
+  const { data, isLoading, isError, isNotFound, refetch } = useApiQuery<PositionDetail>(
+    isKnown ? `/api/v1/position-detail?position=${position}` : null,
+  );
 
   return (
-    <PositionPageContent
-      detail={result?.data ?? null}
-      position={positionNum}
-      isError={result === null}
-    />
+    <>
+      <Stack.Screen options={{ title: isKnown ? getPositionTitle(position) : "Position" }} />
+
+      {!isKnown || isNotFound ? (
+        <View style={styles.state}>
+          <EmptyResults
+            icon="help-circle-outline"
+            description={`There is no naming position "${slug}".`}
+          />
+        </View>
+      ) : isLoading ? (
+        <ScreenLoading />
+      ) : isError ? (
+        <FrownError onRetry={refetch} />
+      ) : (
+        <PositionPageContent detail={data} position={position} />
+      )}
+    </>
   );
 }
+
+const styles = StyleSheet.create({
+  state: {
+    flex: 1,
+    justifyContent: "center",
+  },
+});
