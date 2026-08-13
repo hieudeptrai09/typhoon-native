@@ -1,0 +1,20 @@
+/* Gentle counter-clockwise spin for the typhoon swirl standing in for the "0". */
+.nf-swirl {
+  animation: nf-swirl-rotate 8s linear infinite;
+  filter: drop-shadow(0 4px 12px rgba(3, 105, 161, 0.25));
+}
+
+@keyframes nf-swirl-rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nf-swirl {
+    animation: none;
+  }
+}
