@@ -189,6 +189,7 @@ const AverageListTable = ({ filter, stormsData, onCellClick }: AverageListTableP
       data={data}
       keyExtractor={(row) => rowKey(row, filter)}
       sortFields={sortFields}
+      sortKey={`average/${filter}`}
       onRowPress={(row) => {
         const value = row[filter as keyof AverageData];
         if (value === undefined) return;

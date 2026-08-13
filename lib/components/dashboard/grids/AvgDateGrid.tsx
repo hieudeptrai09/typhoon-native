@@ -3,6 +3,7 @@ import { GRID_EMPTY_CELL_COLOR } from "@/lib/constants";
 import type { Storm } from "@/lib/types";
 import { getAvgDateColor } from "@/lib/utils/colors";
 import { formatDayOfYear, getDoyMonth, type AvgDates } from "@/lib/utils/storm/dates";
+import { useCallback } from "react";
 
 interface AvgDateGridProps {
   stormsData: Storm[];
@@ -19,16 +20,18 @@ const AvgDateGrid = ({
   avgDateValues,
   onCellClick,
   isClickable = true,
-}: AvgDateGridProps) => (
-  <PositionCellGrid
-    stormsData={stormsData}
-    onPositionPress={(position) => onCellClick(position, "position")}
-    renderValue={(position) => {
+}: AvgDateGridProps) => {
+  const renderValue = useCallback(
+    (position: number) => {
       const dates = avgDateValues?.[position];
       if (!hasDates(dates)) return undefined;
       return `${formatDayOfYear(dates.startDoy)} – ${formatDayOfYear(dates.endDoy)}`;
-    }}
-    renderCell={(position) => {
+    },
+    [avgDateValues],
+  );
+
+  const renderCell = useCallback(
+    (position: number) => {
       const dates = avgDateValues?.[position];
       // The season's start month is what the colour scale reads; the readout carries both dates.
       return {
@@ -37,8 +40,23 @@ const AvgDateGrid = ({
           : GRID_EMPTY_CELL_COLOR,
         clickable: isClickable,
       };
-    }}
-  />
-);
+    },
+    [avgDateValues, isClickable],
+  );
+
+  const handlePress = useCallback(
+    (position: number) => onCellClick(position, "position"),
+    [onCellClick],
+  );
+
+  return (
+    <PositionCellGrid
+      stormsData={stormsData}
+      onPositionPress={handlePress}
+      renderValue={renderValue}
+      renderCell={renderCell}
+    />
+  );
+};
 
 export default AvgDateGrid;

@@ -14,6 +14,9 @@ export const SLUG_POSITIONS: Record<string, number> = Object.fromEntries(
   Object.entries(POSITION_SLUGS).map(([id, slug]) => [slug, Number(id)]),
 );
 
+// The grid plus the agency slots — the full range a position route accepts and pages through.
+export const TOTAL_POSITIONS = Math.max(GRID_MAX, ...Object.keys(POSITION_SLUGS).map(Number));
+
 // The agency positions as a render-ready list; integer-like keys iterate in ascending id order.
 export const SPECIAL_POSITIONS = Object.entries(POSITION_SLUGS).map(([id, slug]) => ({
   id: Number(id),

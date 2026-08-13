@@ -1,4 +1,5 @@
 import DefModal from "@/lib/components/common/DefModal";
+import OpenDetailButton from "@/lib/components/common/OpenDetailButton";
 import StormListContent from "@/lib/components/storm/StormListContent";
 import { TEXT_COLOR_WHITE_BACKGROUND } from "@/lib/constants";
 import type { BaseModalProps, Storm } from "@/lib/types";
@@ -25,6 +26,7 @@ const NameListModal = ({ isOpen, onClose, name, storms, avgIntensity = 0 }: Name
           {name}
         </Text>
       }
+      footer={<OpenDetailButton target={{ kind: "name", name }} onClose={onClose} />}
     >
       <StormListContent storms={storms} />
     </DefModal>

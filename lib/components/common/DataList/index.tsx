@@ -1,4 +1,8 @@
+import IndexBar from "@/lib/components/common/DataList/IndexBar";
+import { useSortMemory } from "@/lib/components/common/DataList/sortMemory";
 import SortSheet from "@/lib/components/common/DataList/SortSheet";
+import EdgeFade from "@/lib/components/common/EdgeFade";
+import { useRefreshControl } from "@/lib/components/common/RefreshContext";
 import { COLOR, SPACE } from "@/lib/constants/theme";
 import {
   applySort,
@@ -6,11 +10,12 @@ import {
   liveCriteria,
   type SortCriterion,
   type SortField,
+  type SortKey,
 } from "@/lib/utils/table";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import * as Haptics from "expo-haptics";
-import { useMemo, useState, type ReactNode } from "react";
-import { FlatList, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useMemo, useRef, useState, type ReactNode } from "react";
+import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 
 interface DataListProps<T> {
   data: T[];
@@ -24,6 +29,15 @@ interface DataListProps<T> {
   empty?: ReactNode;
   /** Scrolls away above the first card. Page-level controls belong outside DataList. */
   header?: ReactNode;
+  /** Names this list's sort so it survives the view being switched away and back. */
+  sortKey?: string;
+  /** Order applied before the user touches anything. */
+  defaultSort?: SortCriterion[];
+  /**
+   * Turns on the alphabet rail, but only while the list is actually ordered by `key` — an index
+   * over rows that aren't grouped by their initial would point at the wrong place.
+   */
+  indexField?: { key: SortKey; letterOf: (row: T) => string };
 }
 
 const defaultCountLabel = (count: number) => `${count} result${count === 1 ? "" : "s"}`;
@@ -42,13 +56,36 @@ const DataList = <T,>({
   countLabel = defaultCountLabel,
   empty,
   header,
+  sortKey,
+  defaultSort,
+  indexField,
 }: DataListProps<T>) => {
-  const [criteria, setCriteria] = useState<SortCriterion[]>([]);
+  const [criteria, setCriteria] = useSortMemory(sortKey, defaultSort);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const refreshControl = useRefreshControl();
+  const listRef = useRef<FlatList<T>>(null);
 
   // Switching a view's filter swaps its sort fields, which can strand a criterion.
   const active = useMemo(() => liveCriteria(criteria, sortFields), [criteria, sortFields]);
   const sorted = useMemo(() => applySort(data, active, sortFields), [data, active, sortFields]);
+
+  const indexed =
+    indexField !== undefined && active.length === 1 && active[0].key === indexField.key;
+  const letters = useMemo(() => {
+    if (!indexed || !indexField) return [];
+    const seen: string[] = [];
+    for (const row of sorted) {
+      const letter = indexField.letterOf(row);
+      if (letter !== seen[seen.length - 1]) seen.push(letter);
+    }
+    return seen;
+  }, [indexed, indexField, sorted]);
+
+  const jumpTo = (letter: string) => {
+    if (!indexField) return;
+    const index = sorted.findIndex((row) => indexField.letterOf(row) === letter);
+    if (index >= 0) listRef.current?.scrollToIndex({ index, animated: false, viewPosition: 0 });
+  };
 
   const labelOf = (key: string) => sortFields.find((field) => field.key === key)?.label ?? key;
 
@@ -98,11 +135,7 @@ const DataList = <T,>({
           </View>
 
           {active.length > 0 && (
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.chips}
-            >
+            <EdgeFade contentContainerStyle={styles.chips}>
               {active.map((criterion, index) => (
                 <Pressable
                   key={criterion.key}
@@ -125,23 +158,43 @@ const DataList = <T,>({
                   />
                 </Pressable>
               ))}
-            </ScrollView>
+            </EdgeFade>
           )}
         </View>
       )}
 
-      <FlatList
-        data={sorted}
-        keyExtractor={keyExtractor}
-        renderItem={renderItem}
-        ListHeaderComponent={header ? <>{header}</> : null}
-        ListEmptyComponent={empty ? <>{empty}</> : null}
-        contentContainerStyle={sorted.length === 0 ? styles.contentEmpty : styles.content}
-        initialNumToRender={12}
-        windowSize={9}
-        removeClippedSubviews
-        keyboardShouldPersistTaps="handled"
-      />
+      <View style={styles.body}>
+        <FlatList
+          ref={listRef}
+          data={sorted}
+          keyExtractor={keyExtractor}
+          renderItem={renderItem}
+          ListHeaderComponent={header ? <>{header}</> : null}
+          ListEmptyComponent={empty ? <>{empty}</> : null}
+          contentContainerStyle={[
+            sorted.length === 0 ? styles.contentEmpty : styles.content,
+            indexed && letters.length > 1 && styles.contentIndexed,
+          ]}
+          refreshControl={refreshControl}
+          initialNumToRender={12}
+          windowSize={9}
+          removeClippedSubviews
+          keyboardShouldPersistTaps="handled"
+          // Scrolling a list while a keyboard covers half of it is the search screen's default
+          // state; the drag itself is the signal that the user is done typing.
+          keyboardDismissMode="on-drag"
+          // Cards vary in height, so a jump far down the list can land before its target has been
+          // measured. Fall back to the estimate, then land the jump on the next frame.
+          onScrollToIndexFailed={({ index, averageItemLength }) => {
+            listRef.current?.scrollToOffset({ offset: index * averageItemLength, animated: false });
+            requestAnimationFrame(() =>
+              listRef.current?.scrollToIndex({ index, animated: false, viewPosition: 0 }),
+            );
+          }}
+        />
+
+        {indexed && <IndexBar letters={letters} onSelect={jumpTo} />}
+      </View>
 
       <SortSheet
         open={sheetOpen}
@@ -228,10 +281,17 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: COLOR.accent,
   },
+  body: {
+    flex: 1,
+  },
   content: {
     padding: SPACE.lg,
     paddingBottom: SPACE.xxl,
     gap: 10,
+  },
+  /** Clears the alphabet rail so a card's right edge never runs under it. */
+  contentIndexed: {
+    paddingRight: SPACE.lg + 20,
   },
   contentEmpty: {
     flexGrow: 1,

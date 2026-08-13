@@ -1,4 +1,5 @@
 import FrownError from "@/lib/components/common/FrownError";
+import StaleBanner from "@/lib/components/common/StaleBanner";
 import DashboardLegend from "@/lib/components/dashboard/legends/DashboardLegend";
 import AverageModal, {
   type AverageModalCriteria,
@@ -6,6 +7,7 @@ import AverageModal, {
 import AvgDateModal from "@/lib/components/dashboard/modals/AvgDateModal";
 import DistanceModal from "@/lib/components/dashboard/modals/DistanceModal";
 import NameListModal from "@/lib/components/dashboard/modals/NameListModal";
+import type { DetailTarget } from "@/lib/components/common/OpenDetailButton";
 import StormDetailModal from "@/lib/components/dashboard/modals/StormDetailModal";
 import AverageView from "@/lib/components/dashboard/views/AverageView";
 import AvgDateView from "@/lib/components/dashboard/views/AvgDateView";
@@ -33,18 +35,32 @@ interface SelectedData {
   avgIntensity?: number;
   average?: number;
   criteria?: AverageModalCriteria;
+  /** Absent for groupings with no screen behind them, e.g. a year or a month. */
+  target?: DetailTarget;
 }
+
+// Only the two groupings the app has a detail route for; the rest end at the sheet by design.
+const targetFor = (data: number | string, key: string): DetailTarget | undefined => {
+  if (key === "position") return { kind: "position", position: Number(data) };
+  if (key === "name") return { kind: "name", name: String(data) };
+  return undefined;
+};
 
 interface DashboardPageContentProps {
   stormsData: Storm[] | null;
   params: DashboardParams;
   onParamsChange: (params: DashboardParams) => void;
+  onSelectView: (view: string) => void;
+  /** A refresh failed over data already on screen — worth saying, not worth a full error page. */
+  staleError?: boolean;
 }
 
 export default function DashboardPageContent({
   stormsData,
   params: currentParams,
   onParamsChange,
+  onSelectView,
+  staleError = false,
 }: DashboardPageContentProps) {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isAverageModalOpen, setIsAverageModalOpen] = useState(false);
@@ -66,11 +82,12 @@ export default function DashboardPageContent({
 
   const handleCellClick = (data: number | string, key: string) => {
     const storms = (stormsData || []).filter((s) => s[key as keyof Storm] === data);
+    const target = targetFor(data, key);
 
     // Storms view — name list mode: clicking a name row
     if (view === "all" && key === "name") {
       const avgIntensity = calculateAverage(storms);
-      setSelectedData({ name: data as string, storms, avgIntensity });
+      setSelectedData({ name: data as string, storms, avgIntensity, target });
       setIsNameListModalOpen(true);
       return;
     }
@@ -78,7 +95,7 @@ export default function DashboardPageContent({
     // Storms view — any table mode (position or name grid): clicking a cell
     if (view === "all" && key === "position") {
       const title = key === "position" ? getPositionTitle(Number(data)) : String(data);
-      setSelectedData({ title, storms });
+      setSelectedData({ title, storms, target });
       setIsDetailModalOpen(true);
       return;
     }
@@ -89,6 +106,7 @@ export default function DashboardPageContent({
         average: calculateAverage(storms),
         storms,
         criteria: "name",
+        target,
       });
       setIsAverageModalOpen(true);
       return;
@@ -113,7 +131,7 @@ export default function DashboardPageContent({
     // Recurrence view: clicking a position or name opens the recurrence timeline
     if (view === "recurrence") {
       const title = key === "position" ? getPositionTitle(Number(data)) : String(data);
-      setSelectedData({ title, storms, average: calculateGapAverage(storms) });
+      setSelectedData({ title, storms, average: calculateGapAverage(storms), target });
       setIsDistanceModalOpen(true);
       return;
     }
@@ -121,7 +139,7 @@ export default function DashboardPageContent({
     // Avg. Date view: clicking a position or name opens the seasonal date modal
     if (view === "avgdate") {
       const title = key === "position" ? getPositionTitle(Number(data)) : String(data);
-      setSelectedData({ title, storms });
+      setSelectedData({ title, storms, target });
       setIsAvgDateModalOpen(true);
       return;
     }
@@ -137,6 +155,7 @@ export default function DashboardPageContent({
       average: calculateAverage(storms),
       storms,
       criteria: key as AverageModalCriteria,
+      target,
     });
     setIsAverageModalOpen(true);
   };
@@ -147,7 +166,13 @@ export default function DashboardPageContent({
 
   return (
     <View style={styles.root}>
-      <DashboardControlBar params={currentParams} onChange={onParamsChange} />
+      <DashboardControlBar
+        params={currentParams}
+        onChange={onParamsChange}
+        onSelectView={onSelectView}
+      />
+
+      {staleError && <StaleBanner />}
 
       {(() => {
         switch (view) {
@@ -197,6 +222,9 @@ export default function DashboardPageContent({
         onClose={() => setIsDetailModalOpen(false)}
         title={selectedData?.title || ""}
         storms={selectedData?.storms || []}
+        position={
+          selectedData?.target?.kind === "position" ? selectedData.target.position : undefined
+        }
       />
 
       <AverageModal
@@ -206,6 +234,7 @@ export default function DashboardPageContent({
         average={selectedData?.average || 0}
         storms={selectedData?.storms || []}
         criteria={selectedData?.criteria || "position"}
+        target={selectedData?.target}
       />
 
       <NameListModal
@@ -222,6 +251,7 @@ export default function DashboardPageContent({
         title={selectedData?.title || ""}
         storms={selectedData?.storms || []}
         average={selectedData?.average ?? -1}
+        target={selectedData?.target}
       />
 
       <AvgDateModal
@@ -229,6 +259,7 @@ export default function DashboardPageContent({
         onClose={() => setIsAvgDateModalOpen(false)}
         title={selectedData?.title || ""}
         storms={selectedData?.storms || []}
+        target={selectedData?.target}
       />
 
       <DashboardLegend params={currentParams} />

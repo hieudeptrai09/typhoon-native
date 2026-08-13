@@ -1,4 +1,5 @@
 import CountryFlag, { COUNTRY_NAMES } from "@/lib/components/common/CountryFlag";
+import EdgeFade from "@/lib/components/common/EdgeFade";
 import { GRID_COLS, GRID_ROWS } from "@/lib/constants/position";
 import { COLOR, SPACE } from "@/lib/constants/theme";
 import { getPositionTitle, positionColumnLetter } from "@/lib/utils/position";
@@ -100,12 +101,7 @@ const CountryPager = ({
 
   return (
     <View style={styles.root}>
-      <ScrollView
-        ref={tabsRef}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.tabs}
-      >
+      <EdgeFade scrollRef={tabsRef} contentContainerStyle={styles.tabs} accessibilityRole="tablist">
         {COUNTRY_NAMES.map((country, col) => (
           <Pressable
             key={country}
@@ -121,7 +117,7 @@ const CountryPager = ({
             </Text>
           </Pressable>
         ))}
-      </ScrollView>
+      </EdgeFade>
 
       <View style={styles.pageHeader}>
         <CountryFlag country={COUNTRY_NAMES[index]} size={18} showName />
@@ -235,9 +231,9 @@ const styles = StyleSheet.create({
   rowContent: {
     flex: 1,
   },
+  // Unpadded: what goes here is a LegendShell, which spans the full width and brings its own gutters.
   footer: {
-    paddingHorizontal: 16,
-    paddingBottom: 12,
+    flexShrink: 0,
   },
 });
 

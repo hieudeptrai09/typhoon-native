@@ -26,6 +26,24 @@ export const DASHBOARD_ICON_MAP: Record<string, Record<string, IconName>> = {
   },
 };
 
+export const VIEW_TABS: { key: string; label: string }[] = [
+  { key: "all", label: "Storms" },
+  { key: "highlights", label: "Highlights" },
+  { key: "average", label: "Average" },
+  { key: "recurrence", label: "Recurrence" },
+  { key: "avgdate", label: "Avg. Date" },
+];
+
+// The web build could lean on a sidebar and hover text to explain these; a tab strip cannot, and
+// "Recurrence" tells a first-time visitor nothing on its own.
+export const VIEW_DESCRIPTION: Record<string, string> = {
+  all: "Every storm that has used each name",
+  highlights: "The record holder in each naming position",
+  average: "Mean intensity of the storms in each group",
+  recurrence: "Typical gap in years between reuses of a name",
+  avgdate: "When in the season each name usually appears",
+};
+
 const filterOption = (value: string, label: string): SegmentOption => ({
   value,
   label,

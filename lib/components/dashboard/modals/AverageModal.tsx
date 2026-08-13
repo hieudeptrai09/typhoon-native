@@ -1,4 +1,7 @@
 import DefModal from "@/lib/components/common/DefModal";
+import OpenDetailButton, {
+  type DetailTarget,
+} from "@/lib/components/common/OpenDetailButton";
 import {
   BACKGROUND_BADGE,
   INTENSITY_LABEL,
@@ -21,6 +24,8 @@ interface AverageModalProps extends BaseModalProps {
   average: number;
   storms: Storm[];
   criteria: AverageModalCriteria;
+  /** Only position and name groupings have a screen of their own; year/month/country do not. */
+  target?: DetailTarget;
 }
 
 interface IntensityGroupData {
@@ -95,7 +100,15 @@ const AverageFormula = ({
   );
 };
 
-const AverageModal = ({ isOpen, onClose, title, average, storms, criteria }: AverageModalProps) => {
+const AverageModal = ({
+  isOpen,
+  onClose,
+  title,
+  average,
+  storms,
+  criteria,
+  target,
+}: AverageModalProps) => {
   // Web showed both the formula and each group's storms on hover. Touch has no hover, so both
   // expand in place — one open group at a time, so the sheet does not grow past a scroll or two.
   const [showFormula, setShowFormula] = useState(false);
@@ -119,7 +132,12 @@ const AverageModal = ({ isOpen, onClose, title, average, storms, criteria }: Ave
   };
 
   return (
-    <DefModal open={isOpen} onClose={onClose} title={title}>
+    <DefModal
+      open={isOpen}
+      onClose={onClose}
+      title={title}
+      footer={target ? <OpenDetailButton target={target} onClose={onClose} /> : undefined}
+    >
       <View style={styles.summary}>
         <Text style={styles.summaryLabel}>Overall Average Intensity:</Text>
         <Text

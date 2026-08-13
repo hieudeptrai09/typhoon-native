@@ -1,22 +1,23 @@
 import CountryFlag from "@/lib/components/common/CountryFlag";
-import FrownError from "@/lib/components/common/FrownError";
+import { useRefreshControl } from "@/lib/components/common/RefreshContext";
+import Section from "@/lib/components/common/Section";
+import StaleBanner from "@/lib/components/common/StaleBanner";
 import NameDetailsContent from "@/lib/components/name/NameDetailsContent";
 import NameStatusIcon from "@/lib/components/name/NameStatusIcon";
 import StormCard from "@/lib/components/storm/StormCard";
 import StormStats from "@/lib/components/storm/StormStats";
-import { COLOR } from "@/lib/constants/theme";
+import { COLOR, RADIUS, SPACE } from "@/lib/constants/theme";
 import type { RetiredName, RetirementReason, SearchDetail, Storm, TyphoonName } from "@/lib/types";
 import { getNameStatusBgColor, getNameStatusColor } from "@/lib/utils/colors";
 import { isExternalPosition } from "@/lib/utils/position";
-import Ionicons from "@expo/vector-icons/Ionicons";
-import { useRouter } from "expo-router";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { FlatList, StyleSheet, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface InfoPageContentProps {
   detail: SearchDetail | null;
   name: string;
-  isError?: boolean;
-  allNames?: string[];
+  /** A refresh failed over data already on screen — worth saying, not worth a full error page. */
+  staleError?: boolean;
 }
 
 function StatusBadge({
@@ -44,66 +45,13 @@ function StatusBadge({
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <View style={styles.section}>
-      <Text style={styles.sectionTitle}>{title}</Text>
-      {children}
-    </View>
-  );
-}
-
-function InfoPagination({ names, currentIndex }: { names: string[]; currentIndex: number }) {
-  const router = useRouter();
-
-  if (names.length === 0 || currentIndex === -1) return null;
-
-  const isFirst = currentIndex === 0;
-  const isLast = currentIndex === names.length - 1;
-  const prevName = names[isFirst ? names.length - 1 : currentIndex - 1];
-  const nextName = names[isLast ? 0 : currentIndex + 1];
-
-  // replace, not push: paging through names should not build a back stack to unwind.
-  const go = (target: string) => router.replace(`/info/${target.toLowerCase()}`);
-
-  return (
-    <View style={styles.pagination} accessibilityLabel="Name pagination">
-      <Pressable
-        onPress={() => go(prevName)}
-        style={({ pressed }) => [styles.pageButton, pressed && styles.pressed]}
-        accessibilityRole="button"
-        accessibilityLabel={`Previous name, ${prevName}`}
-      >
-        <Ionicons name="chevron-back" size={16} color={COLOR.textInverse} />
-        <Text style={styles.pageLabel} numberOfLines={1}>
-          {prevName.toLowerCase()}
-        </Text>
-      </Pressable>
-
-      <Pressable
-        onPress={() => go(nextName)}
-        style={({ pressed }) => [styles.pageButton, pressed && styles.pressed]}
-        accessibilityRole="button"
-        accessibilityLabel={`Next name, ${nextName}`}
-      >
-        <Text style={styles.pageLabel} numberOfLines={1}>
-          {nextName.toLowerCase()}
-        </Text>
-        <Ionicons name="chevron-forward" size={16} color={COLOR.textInverse} />
-      </Pressable>
-    </View>
-  );
-}
-
 export default function InfoPageContent({
   detail,
   name,
-  isError = false,
-  allNames = [],
+  staleError = false,
 }: InfoPageContentProps) {
-  if (isError) {
-    return <FrownError />;
-  }
+  const refreshControl = useRefreshControl();
+  const insets = useSafeAreaInsets();
 
   const nameData: TyphoonName | RetiredName | null = detail?.name ?? null;
   const storms: Storm[] = detail?.storms ?? [];
@@ -118,14 +66,9 @@ export default function InfoPageContent({
   const correctSpelling = storms[0]?.correctSpelling;
   const metaCountry = nameData?.country ?? storms[0]?.country;
   const metaPosition = nameData?.position ?? storms[0]?.position;
-  const currentIndex = allNames.findIndex((n) => n.toLowerCase() === displayName.toLowerCase());
 
-  return (
-    <ScrollView
-      style={styles.screen}
-      contentContainerStyle={styles.content}
-      showsVerticalScrollIndicator={false}
-    >
+  const header = (
+    <View style={styles.header}>
       <View style={styles.heading}>
         <NameStatusIcon
           isRetired={isRetired}
@@ -163,38 +106,51 @@ export default function InfoPageContent({
         </Section>
       )}
 
-      <Section title={`All Storms (${storms.length})`}>
-        {storms.length === 0 ? (
-          <Text style={styles.empty}>No storms found for this name.</Text>
-        ) : (
-          <View style={styles.storms}>
-            <StormStats storms={storms} />
-            {/* One card per row: a track map at half a phone's width is unreadable. */}
-            {storms.map((storm, index) => (
-              <StormCard key={index} storm={storm} />
-            ))}
-          </View>
-        )}
-      </Section>
+      <Text style={styles.listTitle}>All Storms ({storms.length})</Text>
 
-      <InfoPagination names={allNames} currentIndex={currentIndex} />
-    </ScrollView>
+      {storms.length > 0 && <StormStats storms={storms} />}
+    </View>
+  );
+
+  return (
+    <View style={styles.root}>
+      {staleError && <StaleBanner />}
+
+      <FlatList
+        data={storms}
+        keyExtractor={(storm, index) => `${storm.name}-${storm.year}-${index}`}
+        // One card per row: a track map at half a phone's width is unreadable.
+        renderItem={({ item }) => <StormCard storm={item} />}
+        ListHeaderComponent={header}
+        ListEmptyComponent={<Text style={styles.empty}>No storms found for this name.</Text>}
+        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + SPACE.xl }]}
+        refreshControl={refreshControl}
+        showsVerticalScrollIndicator={false}
+        // Each card carries a remote track map, so mounting the whole history at once is what the
+        // ScrollView this replaced got wrong.
+        initialNumToRender={4}
+        windowSize={7}
+        removeClippedSubviews
+      />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: {
+  root: {
     flex: 1,
   },
   content: {
-    padding: 16,
-    paddingBottom: 32,
-    gap: 16,
+    padding: SPACE.lg,
+    gap: SPACE.lg,
+  },
+  header: {
+    gap: SPACE.lg,
   },
   heading: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 10,
+    gap: SPACE.sm + 2,
   },
   title: {
     flexShrink: 1,
@@ -206,7 +162,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     alignItems: "center",
-    gap: 10,
+    gap: SPACE.sm + 2,
   },
   metaText: {
     fontFamily: "OpenSans_600SemiBold",
@@ -219,23 +175,15 @@ const styles = StyleSheet.create({
     color: COLOR.textBody,
   },
   badge: {
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 999,
+    paddingHorizontal: SPACE.md,
+    paddingVertical: SPACE.xs,
+    borderRadius: RADIUS.pill,
   },
   badgeLabel: {
     fontFamily: "OpenSans_600SemiBold",
     fontSize: 13,
   },
-  section: {
-    gap: 14,
-    padding: 16,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: COLOR.border,
-    backgroundColor: COLOR.surface,
-  },
-  sectionTitle: {
+  listTitle: {
     fontFamily: "OpenSans_700Bold",
     fontSize: 17,
     color: COLOR.textSecondary,
@@ -245,40 +193,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: COLOR.textMuted,
     textAlign: "center",
-    paddingVertical: 12,
-  },
-  storms: {
-    gap: 16,
-  },
-  pagination: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 12,
-    marginTop: 4,
-    paddingTop: 16,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: COLOR.borderStrong,
-  },
-  pageButton: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 4,
-    minHeight: 44,
-    paddingHorizontal: 14,
-    borderRadius: 10,
-    backgroundColor: COLOR.accent,
-  },
-  pressed: {
-    opacity: 0.8,
-  },
-  pageLabel: {
-    flexShrink: 1,
-    fontFamily: "OpenSans_600SemiBold",
-    fontSize: 14,
-    color: COLOR.textInverse,
-    textTransform: "capitalize",
+    paddingVertical: SPACE.md,
   },
 });

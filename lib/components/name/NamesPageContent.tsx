@@ -1,86 +1,78 @@
-import FrownError from "@/lib/components/common/FrownError";
+import StaleBanner from "@/lib/components/common/StaleBanner";
+import type { NamesLayout, NamesScope } from "@/lib/components/name/options";
 import NamesView from "@/lib/components/name/views/NamesView";
 import RetiredView from "@/lib/components/name/views/RetiredView";
-import NamesScopeTabs, { type NamesScope } from "@/lib/components/name/widgets/NamesScopeTabs";
-import type { RetiredName, StormHistoryEntry, SuggestionWithNameId } from "@/lib/types";
-import type { NamesDisplayPrefs } from "@/lib/utils/name/displayPrefs";
-import type { NamesSlugParams } from "@/lib/utils/name/routing";
+import NamesScopeTabs from "@/lib/components/name/widgets/NamesScopeTabs";
+import type {
+  FilterParams,
+  RetiredFilterParams,
+  RetiredName,
+  StormHistoryEntry,
+  SuggestionWithNameId,
+} from "@/lib/types";
 import { useMemo } from "react";
 import { StyleSheet, View } from "react-native";
 
 interface NamesPageContentProps {
-  allNames: RetiredName[] | null;
+  allNames: RetiredName[];
   stormHistory: StormHistoryEntry[];
   suggestedNames: SuggestionWithNameId[];
-  displayPrefs: NamesDisplayPrefs;
-  params: NamesSlugParams;
-  onParamsChange: (params: NamesSlugParams) => void;
+  scope: NamesScope;
+  onScopeChange: (scope: NamesScope) => void;
+  layout: NamesLayout;
+  onLayoutChange: (layout: NamesLayout) => void;
+  showName: boolean;
+  onShowNameChange: (showName: boolean) => void;
+  nameFilters: FilterParams;
+  onNameFiltersChange: (filters: FilterParams) => void;
+  retiredFilters: RetiredFilterParams;
+  onRetiredFiltersChange: (filters: RetiredFilterParams) => void;
+  /** A refresh failed over data already on screen — worth saying, not worth a full error page. */
+  staleError?: boolean;
 }
 
 const NamesPageContent = ({
   allNames,
   stormHistory,
   suggestedNames,
-  displayPrefs,
-  params,
-  onParamsChange,
+  scope,
+  onScopeChange,
+  layout,
+  onLayoutChange,
+  showName,
+  onShowNameChange,
+  nameFilters,
+  onNameFiltersChange,
+  retiredFilters,
+  onRetiredFiltersChange,
+  staleError = false,
 }: NamesPageContentProps) => {
-  const retiredNames = useMemo(() => (allNames || []).filter((n) => n.isRetired), [allNames]);
-
-  const activeScope: NamesScope =
-    params.view === "retired" ? "retired" : params.showHistory ? "history" : "current";
-
-  // From the retired view there is no grid/list context to preserve, so fall back to the grid.
-  const layout = params.view === "list" ? "list" : "grid";
-  const scopeShowName = params.view === "grid" ? params.showName : true;
-
-  // Switching scope keeps the layout and name toggle the current view is already showing.
-  const handleScopeChange = (scope: NamesScope) => {
-    if (scope === "retired") {
-      onParamsChange({ view: "retired" });
-      return;
-    }
-
-    const showHistory = scope === "history";
-    onParamsChange(
-      layout === "list"
-        ? { view: "list", showHistory }
-        : { view: "grid", showName: scopeShowName, showHistory },
-    );
-  };
-
-  if (!allNames) {
-    return <FrownError />;
-  }
+  const retiredNames = useMemo(() => allNames.filter((n) => n.isRetired), [allNames]);
 
   return (
     <View style={styles.root}>
-      <NamesScopeTabs activeScope={activeScope} onChange={handleScopeChange} />
+      <NamesScopeTabs activeScope={scope} onChange={onScopeChange} />
 
-      {params.view === "retired" ? (
+      {staleError && <StaleBanner />}
+
+      {scope === "retired" ? (
         <RetiredView
           retiredNames={retiredNames}
           suggestedNames={suggestedNames}
-          displayPrefs={displayPrefs}
+          filters={retiredFilters}
+          onFiltersChange={onRetiredFiltersChange}
         />
       ) : (
         <NamesView
           allNames={allNames}
           stormHistory={stormHistory}
-          viewMode={params.view}
-          showName={params.view === "grid" && params.showName}
-          showHistory={params.showHistory}
-          displayPrefs={displayPrefs}
-          onLayoutChange={(next) =>
-            onParamsChange(
-              next === "list"
-                ? { view: "list", showHistory: params.showHistory }
-                : { view: "grid", showName: scopeShowName, showHistory: params.showHistory },
-            )
-          }
-          onShowNameChange={(showName) =>
-            onParamsChange({ view: "grid", showName, showHistory: params.showHistory })
-          }
+          layout={layout}
+          showName={showName}
+          showHistory={scope === "history"}
+          filters={nameFilters}
+          onLayoutChange={onLayoutChange}
+          onShowNameChange={onShowNameChange}
+          onFiltersChange={onNameFiltersChange}
         />
       )}
     </View>

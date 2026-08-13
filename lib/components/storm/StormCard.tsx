@@ -1,4 +1,4 @@
-import ImageWithLoader from "@/lib/components/common/ImageWithLoader";
+import ZoomableImage from "@/lib/components/common/ZoomableImage";
 import StormHighlightBadges, { hasHighlight } from "@/lib/components/storm/StormHighlightBadges";
 import { BACKGROUND_BADGE, INTENSITY_LABEL, TEXT_COLOR_BADGE } from "@/lib/constants";
 import { COLOR } from "@/lib/constants/theme";
@@ -41,7 +41,7 @@ const StormCard = ({ storm }: { storm: Storm }) => {
         </View>
       </View>
 
-      <ImageWithLoader
+      <ZoomableImage
         source={storm.map?.trim() || null}
         label={`${storm.name} ${storm.year} track`}
         style={styles.map}

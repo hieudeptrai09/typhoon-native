@@ -82,7 +82,7 @@ const ALL_SLUGS: string[][] = [
 export const getCanonicalStormsSlugs = (): string[][] =>
   ALL_SLUGS.filter((slug) => paramsToPath(slugToParams(slug)) === slugToPath(slug));
 
-export type LegendKind = "intensity" | "recurrence" | "avgdate" | "highlight" | null;
+export type LegendKind = "intensity" | "recurrence" | "avgdate" | "highlight" | "count" | null;
 
 // Which legend a view/mode pairing needs is decided by the same params that pick the view itself.
 export const getLegendKind = ({ view, mode, filter }: DashboardParams): LegendKind => {
@@ -96,7 +96,9 @@ export const getLegendKind = ({ view, mode, filter }: DashboardParams): LegendKi
     case "average":
       return "intensity";
     case "all":
-      return mode === "list" && filter === "name" ? "intensity" : null;
+      if (mode === "list") return filter === "name" ? "intensity" : null;
+      // The default landing view is a heatmap; its shading needs saying just as much as the rest.
+      return filter === "position" ? "count" : null;
     default:
       return null;
   }

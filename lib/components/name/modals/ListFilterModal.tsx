@@ -41,7 +41,9 @@ const STATUS_OPTIONS = [
   { value: "retired", label: "Retired" },
 ];
 
-const toFilters = (values: FormValues): FilterParams => {
+// Status is only a choice inside the history scope. Emitting the implied "current" outside it
+// would follow the user into history as a filter they never set and cannot see a control for.
+const toFilters = (values: FormValues, showHistory: boolean): FilterParams => {
   const position = positionFromValue(values.position);
   return {
     name: values.name ?? "",
@@ -49,8 +51,7 @@ const toFilters = (values: FormValues): FilterParams => {
     language: toStr(values.language),
     tag: toStr(values.tag),
     position: position != null ? String(position) : "",
-    status: values.status ?? "",
-    letter: "",
+    status: showHistory ? (values.status ?? "") : "",
   };
 };
 
@@ -87,7 +88,7 @@ const ListFilterModal = ({
 
   const position = positionFromValue(values.position);
   const isIncomplete = isPartialPosition(values.position);
-  const pending = toFilters(values);
+  const pending = toFilters(values, showHistory);
   const hasFilters = Boolean(
     pending.name ||
     pending.country ||
@@ -125,7 +126,7 @@ const ListFilterModal = ({
           </Pressable>
 
           <Pressable
-            onPress={() => onApply(toFilters(values))}
+            onPress={() => onApply(toFilters(values, showHistory))}
             disabled={isIncomplete}
             style={({ pressed }) => [
               styles.apply,

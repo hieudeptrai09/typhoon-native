@@ -1,51 +1,76 @@
 import { COLOR } from "@/lib/constants/theme";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { ActivityIndicator, Pressable, StyleSheet, TextInput, View } from "react-native";
+import { useFocusEffect } from "expo-router";
+import { useCallback, useRef } from "react";
+import { InteractionManager, Pressable, StyleSheet, TextInput, View } from "react-native";
 
 interface SearchFieldProps {
   value: string;
   onChangeText: (value: string) => void;
-  isLoading?: boolean;
   placeholder?: string;
 }
 
 const SearchField = ({
   value,
   onChangeText,
-  isLoading = false,
   placeholder = "Search typhoon names",
-}: SearchFieldProps) => (
-  <View style={styles.root}>
-    <Ionicons name="search" size={18} color={COLOR.textMuted} />
+}: SearchFieldProps) => {
+  const input = useRef<TextInput>(null);
+  // Read inside the focus effect instead of listed as a dependency, so re-focusing is decided by
+  // what is typed *now* without the effect tearing down on every keystroke.
+  const typed = useRef(value);
+  typed.current = value;
 
-    <TextInput
-      value={value}
-      onChangeText={onChangeText}
-      placeholder={placeholder}
-      placeholderTextColor={COLOR.textFaint}
-      style={styles.input}
-      // Names are proper nouns the keyboard would otherwise capitalise and autocorrect into
-      // ordinary words, and the query is matched case-insensitively anyway.
-      autoCapitalize="none"
-      autoCorrect={false}
-      returnKeyType="search"
-      accessibilityLabel="Search typhoon names"
-    />
+  // Opening the Search tab with nothing typed should land on the keyboard — that is the only reason
+  // to be here. Coming back to a query still on screen must not steal it: the user left to read a
+  // result and wants the results, not the keyboard, when they return.
+  useFocusEffect(
+    useCallback(() => {
+      if (typed.current !== "") return;
 
-    {isLoading ? (
-      <ActivityIndicator size="small" color={COLOR.textMuted} />
-    ) : value.length > 0 ? (
-      <Pressable
-        onPress={() => onChangeText("")}
-        hitSlop={10}
-        accessibilityRole="button"
-        accessibilityLabel="Clear search"
-      >
-        <Ionicons name="close-circle" size={18} color={COLOR.textFaint} />
-      </Pressable>
-    ) : null}
-  </View>
-);
+      const task = InteractionManager.runAfterInteractions(() => input.current?.focus());
+      return () => task.cancel();
+    }, []),
+  );
+
+  return (
+    <View style={styles.root}>
+      <Ionicons name="search" size={18} color={COLOR.textMuted} />
+
+      <TextInput
+        ref={input}
+        value={value}
+        onChangeText={onChangeText}
+        placeholder={placeholder}
+        placeholderTextColor={COLOR.textFaint}
+        style={styles.input}
+        // Names are proper nouns the keyboard would otherwise capitalise and autocorrect into
+        // ordinary words, and the query is matched case-insensitively anyway.
+        autoCapitalize="none"
+        autoCorrect={false}
+        returnKeyType="search"
+        // Results are already on screen by the time this key is reachable, so submitting means
+        // "get the keyboard out of the way".
+        onSubmitEditing={() => input.current?.blur()}
+        accessibilityLabel="Search typhoon names"
+      />
+
+      {value.length > 0 && (
+        <Pressable
+          onPress={() => {
+            onChangeText("");
+            input.current?.focus();
+          }}
+          hitSlop={10}
+          accessibilityRole="button"
+          accessibilityLabel="Clear search"
+        >
+          <Ionicons name="close-circle" size={18} color={COLOR.textFaint} />
+        </Pressable>
+      )}
+    </View>
+  );
+};
 
 const styles = StyleSheet.create({
   root: {

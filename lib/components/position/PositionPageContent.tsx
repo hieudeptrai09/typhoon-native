@@ -1,15 +1,18 @@
 import CountryFlag from "@/lib/components/common/CountryFlag";
 import EmptyResults from "@/lib/components/common/EmptyResults";
-import FrownError from "@/lib/components/common/FrownError";
 import ImageCredit from "@/lib/components/common/ImageCredit";
-import ImageWithLoader from "@/lib/components/common/ImageWithLoader";
+import { useRefreshControl } from "@/lib/components/common/RefreshContext";
+import Section from "@/lib/components/common/Section";
+import StaleBanner from "@/lib/components/common/StaleBanner";
+import ZoomableImage from "@/lib/components/common/ZoomableImage";
 import StormCard from "@/lib/components/storm/StormCard";
 import StormStats from "@/lib/components/storm/StormStats";
 import { BACKGROUND_BADGE, TEXT_COLOR_WHITE_BACKGROUND } from "@/lib/constants";
-import { COLOR } from "@/lib/constants/theme";
+import { GRID_MAX } from "@/lib/constants/position";
+import { COLOR, RADIUS, SPACE } from "@/lib/constants/theme";
 import type { PositionDetail, RetiredName, Storm, TyphoonName } from "@/lib/types";
 import { getDistanceColor, getNameStatusColor } from "@/lib/utils/colors";
-import { getPositionSlug, getPositionTitle } from "@/lib/utils/position";
+import { getPositionTitle } from "@/lib/utils/position";
 import {
   calculateAverage,
   calculateGapAverage,
@@ -19,66 +22,25 @@ import {
   sortNamesByFirstYear,
 } from "@/lib/utils/storm/aggregate";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useMemo, useState } from "react";
+import { Pressable, SectionList, StyleSheet, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface PositionPageContentProps {
   detail: PositionDetail | null;
   position: number;
-  isError?: boolean;
+  /** A refresh failed over data already on screen — worth saying, not worth a full error page. */
+  staleError?: boolean;
 }
 
-const TOTAL_POSITIONS = 143;
-/** Above this the position belongs to another basin's agency, which has no grid cell or country. */
-const LAST_GRID_POSITION = 140;
-
-function PositionPagination({ position }: { position: number }) {
-  const router = useRouter();
-
-  const isFirst = position === 1;
-  const isLast = position === TOTAL_POSITIONS;
-  const prevPosition = isFirst ? TOTAL_POSITIONS : position - 1;
-  const nextPosition = isLast ? 1 : position + 1;
-
-  // replace, not push: paging through positions should not build a back stack to unwind.
-  const go = (target: number) => router.replace(`/positions/${getPositionSlug(target)}`);
-
-  return (
-    <View style={styles.pagination} accessibilityLabel="Position pagination">
-      <Pressable
-        onPress={() => go(prevPosition)}
-        style={({ pressed }) => [
-          styles.pageButton,
-          // A wrap-around jumps to the far end of the table, so it is toned down to read as such.
-          isFirst && styles.pageButtonWrap,
-          pressed && styles.pressed,
-        ]}
-        accessibilityRole="button"
-        accessibilityLabel={`Previous position, ${getPositionTitle(prevPosition)}`}
-      >
-        <Ionicons name="chevron-back" size={16} color={COLOR.textInverse} />
-        <Text style={styles.pageLabel}>{getPositionTitle(prevPosition)}</Text>
-      </Pressable>
-
-      <Text style={styles.pageCounter}>
-        {position} / {TOTAL_POSITIONS}
-      </Text>
-
-      <Pressable
-        onPress={() => go(nextPosition)}
-        style={({ pressed }) => [
-          styles.pageButton,
-          isLast && styles.pageButtonWrap,
-          pressed && styles.pressed,
-        ]}
-        accessibilityRole="button"
-        accessibilityLabel={`Next position, ${getPositionTitle(nextPosition)}`}
-      >
-        <Text style={styles.pageLabel}>{getPositionTitle(nextPosition)}</Text>
-        <Ionicons name="chevron-forward" size={16} color={COLOR.textInverse} />
-      </Pressable>
-    </View>
-  );
+interface StormGroup {
+  name: string;
+  data: Storm[];
+  count: number;
+  average: number;
+  recurrence: number;
 }
 
 function NameTimelineItem({ name, storms }: { name: TyphoonName | RetiredName; storms: Storm[] }) {
@@ -103,22 +65,23 @@ function NameTimelineItem({ name, storms }: { name: TyphoonName | RetiredName; s
     era = `${firstYear} – present`;
   }
 
+  // The whole row navigates, rather than the name being a text-sized link inside it: at 17px a
+  // word is a ~24pt target, well under what a thumb can hit.
   return (
-    <View style={styles.timelineItem}>
+    <Pressable
+      onPress={() => router.push(`/info/${name.name.toLowerCase()}`)}
+      style={({ pressed }) => [styles.timelineItem, pressed && styles.timelineItemPressed]}
+      android_ripple={{ color: COLOR.accentSoft }}
+      accessibilityRole="link"
+      accessibilityLabel={`${name.name}, ${era}. Open name.`}
+    >
       <View style={[styles.timelineDot, { backgroundColor: statusColor }]} />
 
       <View style={styles.timelineBody}>
         <Text style={styles.era}>{era}</Text>
 
         <View style={styles.nameLine}>
-          <Pressable
-            onPress={() => router.push(`/info/${name.name.toLowerCase()}`)}
-            hitSlop={6}
-            accessibilityRole="link"
-            accessibilityLabel={`Open ${name.name}`}
-          >
-            <Text style={[styles.name, { color: statusColor }]}>{name.name}</Text>
-          </Pressable>
+          <Text style={[styles.name, { color: statusColor }]}>{name.name}</Text>
           {name.originalText ? <Text style={styles.original}>{name.originalText}</Text> : null}
           {name.language ? <Text style={styles.language}>· {name.language}</Text> : null}
         </View>
@@ -135,21 +98,24 @@ function NameTimelineItem({ name, storms }: { name: TyphoonName | RetiredName; s
 
         {name.image ? (
           <View style={styles.timelineImageBlock}>
-            <ImageWithLoader
+            <ZoomableImage
               source={name.image}
               label={name.name}
               style={styles.timelineImage}
               spinnerSize="small"
+              credit={name.imageCredit}
             />
             <ImageCredit credit={name.imageCredit} align="end" />
           </View>
         ) : null}
       </View>
-    </View>
+
+      <Ionicons name="chevron-forward" size={16} color={COLOR.textFaint} />
+    </Pressable>
   );
 }
 
-function NamesSection({ names, storms }: { names: TyphoonName[]; storms: Storm[] }) {
+function NameTimeline({ names, storms }: { names: TyphoonName[]; storms: Storm[] }) {
   const stormsByName: Record<string, Storm[]> = {};
   storms.forEach((storm) => {
     if (!stormsByName[storm.name]) stormsByName[storm.name] = [];
@@ -165,9 +131,7 @@ function NamesSection({ names, storms }: { names: TyphoonName[]; storms: Storm[]
   const sortedNames = [...names].sort((a, b) => sortKey(a) - sortKey(b));
 
   return (
-    <View style={styles.section}>
-      <Text style={styles.sectionTitle}>Name Timeline ({names.length})</Text>
-
+    <Section title={`Name Timeline (${names.length})`}>
       {names.length === 0 ? (
         <Text style={styles.empty}>No names have been assigned to this slot.</Text>
       ) : (
@@ -177,117 +141,65 @@ function NamesSection({ names, storms }: { names: TyphoonName[]; storms: Storm[]
           ))}
         </View>
       )}
-    </View>
-  );
-}
-
-function StormsSection({ storms }: { storms: Storm[] }) {
-  if (storms.length === 0) {
-    return (
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>All Storms (0)</Text>
-        <Text style={styles.empty}>No storms recorded at this position.</Text>
-      </View>
-    );
-  }
-
-  const nameGroups = sortNamesByFirstYear(Object.entries(getGroupedStorms(storms, "name"))).map(
-    ([name, group]) => {
-      const sorted = [...group].sort((a, b) => a.year - b.year);
-      return {
-        name,
-        storms: sorted,
-        average: calculateAverage(sorted),
-        count: sorted.length,
-        recurrence: calculateGapAverage(sorted),
-      };
-    },
-  );
-
-  return (
-    <View style={styles.section}>
-      <Text style={styles.sectionTitle}>All Storms ({storms.length})</Text>
-
-      <StormStats storms={storms} />
-
-      {nameGroups.map((group) => {
-        const intensityLabel = getIntensityFromNumber(group.average);
-
-        return (
-          <View key={group.name} style={styles.group}>
-            <View
-              style={[styles.groupHeader, { borderLeftColor: BACKGROUND_BADGE[intensityLabel] }]}
-            >
-              <Text style={styles.groupName}>{group.name}</Text>
-
-              <View style={styles.groupStats}>
-                <Text style={styles.stat}>
-                  Count: <Text style={styles.statValue}>{group.count}</Text>
-                </Text>
-                <Text style={styles.stat}>
-                  Avg:{" "}
-                  <Text
-                    style={[
-                      styles.statValue,
-                      { color: TEXT_COLOR_WHITE_BACKGROUND[intensityLabel] },
-                    ]}
-                  >
-                    {group.average.toFixed(2)}
-                  </Text>
-                </Text>
-                {/* A lone storm leaves no gap to measure, so the stat is left off entirely. */}
-                {group.recurrence >= 0 && (
-                  <Text style={styles.stat}>
-                    Every:{" "}
-                    <Text style={[styles.statValue, { color: getDistanceColor(group.recurrence) }]}>
-                      {formatDistance(group.recurrence)}
-                    </Text>{" "}
-                    yrs
-                  </Text>
-                )}
-              </View>
-            </View>
-
-            {/* One card per row: a track map at half a phone's width is unreadable. */}
-            <View style={styles.cards}>
-              {group.storms.map((storm, index) => (
-                <StormCard key={index} storm={storm} />
-              ))}
-            </View>
-          </View>
-        );
-      })}
-    </View>
+    </Section>
   );
 }
 
 export default function PositionPageContent({
   detail,
   position,
-  isError = false,
+  staleError = false,
 }: PositionPageContentProps) {
-  if (isError) {
-    return <FrownError />;
-  }
-  if (!detail || (detail.names.length === 0 && detail.storms.length === 0)) {
+  const refreshControl = useRefreshControl();
+  const insets = useSafeAreaInsets();
+  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+
+  const storms = useMemo(() => detail?.storms ?? [], [detail]);
+
+  const groups = useMemo<StormGroup[]>(
+    () =>
+      sortNamesByFirstYear(Object.entries(getGroupedStorms(storms, "name"))).map(
+        ([name, group]) => {
+          const sorted = [...group].sort((a, b) => a.year - b.year);
+          return {
+            name,
+            data: sorted,
+            count: sorted.length,
+            average: calculateAverage(sorted),
+            recurrence: calculateGapAverage(sorted),
+          };
+        },
+      ),
+    [storms],
+  );
+
+  const sections = useMemo(
+    () => groups.map((group) => ({ ...group, data: collapsed[group.name] ? [] : group.data })),
+    [groups, collapsed],
+  );
+
+  if (!detail || (detail.names.length === 0 && storms.length === 0)) {
     return (
-      <EmptyResults icon="search-outline" description="No data recorded for this position yet." />
+      <View style={styles.state}>
+        <EmptyResults icon="search-outline" description="No data recorded for this position yet." />
+      </View>
     );
   }
 
-  const { country, names, storms } = detail;
-  const isInGrid = position <= LAST_GRID_POSITION;
+  const { country, names } = detail;
+  const isInGrid = position <= GRID_MAX;
   const titleColor =
     storms.length > 0
       ? TEXT_COLOR_WHITE_BACKGROUND[getIntensityFromNumber(calculateAverage(storms))]
       : COLOR.textMuted;
 
-  return (
-    <ScrollView
-      style={styles.screen}
-      contentContainerStyle={styles.content}
-      showsVerticalScrollIndicator={false}
-    >
+  const toggle = (name: string) => {
+    Haptics.selectionAsync();
+    setCollapsed((current) => ({ ...current, [name]: !current[name] }));
+  };
+
+  const header = (
+    <View style={styles.header}>
       <View style={styles.heading}>
         {isInGrid && <CountryFlag country={country} size={22} />}
         <Text style={[styles.title, { color: titleColor }]}>{getPositionTitle(position)}</Text>
@@ -298,27 +210,124 @@ export default function PositionPageContent({
         )}
       </View>
 
-      {isInGrid && <NamesSection names={names} storms={storms} />}
-      <StormsSection storms={storms} />
+      {isInGrid && <NameTimeline names={names} storms={storms} />}
 
-      <PositionPagination position={position} />
-    </ScrollView>
+      <Text style={styles.listTitle}>All Storms ({storms.length})</Text>
+
+      {storms.length > 0 ? (
+        <StormStats storms={storms} />
+      ) : (
+        <Text style={styles.empty}>No storms recorded at this position.</Text>
+      )}
+    </View>
+  );
+
+  return (
+    <View style={styles.root}>
+      {staleError && <StaleBanner />}
+
+      <SectionList<Storm, StormGroup>
+        sections={sections}
+        keyExtractor={(storm, index) => `${storm.name}-${storm.year}-${index}`}
+        // One card per row: a track map at half a phone's width is unreadable.
+        renderItem={({ item }) => (
+          <View style={styles.card}>
+            <StormCard storm={item} />
+          </View>
+        )}
+        renderSectionHeader={({ section: group }) => {
+          const intensityLabel = getIntensityFromNumber(group.average);
+          const isCollapsed = Boolean(collapsed[group.name]);
+
+          return (
+            <View style={styles.groupHeaderWrap}>
+              <Pressable
+                onPress={() => toggle(group.name)}
+                style={({ pressed }) => [
+                  styles.groupHeader,
+                  { borderLeftColor: BACKGROUND_BADGE[intensityLabel] },
+                  pressed && styles.pressed,
+                ]}
+                accessibilityRole="button"
+                accessibilityState={{ expanded: !isCollapsed }}
+                accessibilityLabel={`${group.name}, ${group.count} storms`}
+              >
+                <View style={styles.groupBody}>
+                  <Text style={styles.groupName}>{group.name}</Text>
+
+                  <View style={styles.groupStats}>
+                    <Text style={styles.stat}>
+                      Count: <Text style={styles.statValue}>{group.count}</Text>
+                    </Text>
+                    <Text style={styles.stat}>
+                      Avg:{" "}
+                      <Text
+                        style={[
+                          styles.statValue,
+                          { color: TEXT_COLOR_WHITE_BACKGROUND[intensityLabel] },
+                        ]}
+                      >
+                        {group.average.toFixed(2)}
+                      </Text>
+                    </Text>
+                    {/* A lone storm leaves no gap to measure, so the stat is left off entirely. */}
+                    {group.recurrence >= 0 && (
+                      <Text style={styles.stat}>
+                        Every:{" "}
+                        <Text
+                          style={[styles.statValue, { color: getDistanceColor(group.recurrence) }]}
+                        >
+                          {formatDistance(group.recurrence)}
+                        </Text>{" "}
+                        yrs
+                      </Text>
+                    )}
+                  </View>
+                </View>
+
+                <Ionicons
+                  name={isCollapsed ? "chevron-down" : "chevron-up"}
+                  size={18}
+                  color={COLOR.textMuted}
+                />
+              </Pressable>
+            </View>
+          );
+        }}
+        ListHeaderComponent={header}
+        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + SPACE.xl }]}
+        refreshControl={refreshControl}
+        showsVerticalScrollIndicator={false}
+        stickySectionHeadersEnabled
+        // Every card carries a remote track map, and a long-lived position runs to dozens of them.
+        initialNumToRender={4}
+        windowSize={7}
+        removeClippedSubviews
+      />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: {
+  root: {
     flex: 1,
   },
+  state: {
+    flex: 1,
+    justifyContent: "center",
+  },
   content: {
-    padding: 16,
-    paddingBottom: 32,
-    gap: 16,
+    paddingHorizontal: SPACE.lg,
+    paddingTop: SPACE.lg,
+  },
+  header: {
+    gap: SPACE.lg,
+    paddingBottom: SPACE.lg,
   },
   heading: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 10,
+    gap: SPACE.sm + 2,
   },
   title: {
     fontFamily: "OpenSans_700Bold",
@@ -330,15 +339,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: COLOR.textBody,
   },
-  section: {
-    gap: 16,
-    padding: 16,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: COLOR.border,
-    backgroundColor: COLOR.surface,
-  },
-  sectionTitle: {
+  listTitle: {
     fontFamily: "OpenSans_700Bold",
     fontSize: 17,
     color: COLOR.textSecondary,
@@ -348,21 +349,27 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: COLOR.textMuted,
     textAlign: "center",
-    paddingVertical: 12,
+    paddingVertical: SPACE.md,
   },
   timeline: {
-    gap: 20,
+    gap: SPACE.md,
   },
   timelineItem: {
     flexDirection: "row",
-    gap: 12,
+    alignItems: "flex-start",
+    gap: SPACE.md,
+    paddingVertical: SPACE.sm,
+    borderRadius: RADIUS.sm,
+  },
+  timelineItemPressed: {
+    backgroundColor: COLOR.surfaceMuted,
   },
   // The rail is the dot column itself: a phone is too narrow to spare a separate spine and indent.
   timelineDot: {
     width: 14,
     height: 14,
     borderRadius: 7,
-    marginTop: 3,
+    marginTop: 5,
     borderWidth: 2,
     borderColor: COLOR.surface,
   },
@@ -381,7 +388,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     alignItems: "baseline",
-    columnGap: 8,
+    columnGap: SPACE.sm,
     rowGap: 2,
   },
   name: {
@@ -407,7 +414,7 @@ const styles = StyleSheet.create({
   succeeded: {
     fontFamily: "OpenSans_600SemiBold",
     fontSize: 12,
-    marginTop: 4,
+    marginTop: SPACE.xs,
   },
   note: {
     fontFamily: "OpenSans_400Regular_Italic",
@@ -417,26 +424,40 @@ const styles = StyleSheet.create({
   },
   timelineImageBlock: {
     width: 144,
-    marginTop: 8,
+    marginTop: SPACE.sm,
   },
   timelineImage: {
     width: "100%",
     aspectRatio: 4 / 3,
-    borderRadius: 10,
+    borderRadius: RADIUS.md,
     borderWidth: 1,
     borderColor: COLOR.border,
     backgroundColor: COLOR.surfaceSubtle,
   },
-  group: {
-    gap: 12,
+  // Opaque and full-bleed, so cards scrolling under the pinned header stay hidden.
+  groupHeaderWrap: {
+    paddingBottom: SPACE.md,
+    backgroundColor: COLOR.background,
   },
   groupHeader: {
-    gap: 4,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: 8,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: SPACE.sm,
+    minHeight: 56,
+    paddingHorizontal: SPACE.md,
+    paddingVertical: SPACE.sm,
+    borderRadius: RADIUS.sm,
     borderLeftWidth: 4,
-    backgroundColor: COLOR.surfaceSubtle,
+    borderWidth: 1,
+    borderColor: COLOR.border,
+    backgroundColor: COLOR.surface,
+  },
+  groupBody: {
+    flex: 1,
+    gap: SPACE.xs,
+  },
+  pressed: {
+    backgroundColor: COLOR.surfaceMuted,
   },
   groupName: {
     fontFamily: "OpenSans_600SemiBold",
@@ -446,7 +467,7 @@ const styles = StyleSheet.create({
   groupStats: {
     flexDirection: "row",
     flexWrap: "wrap",
-    columnGap: 12,
+    columnGap: SPACE.md,
     rowGap: 2,
   },
   stat: {
@@ -458,43 +479,7 @@ const styles = StyleSheet.create({
     fontFamily: "OpenSans_600SemiBold",
     color: COLOR.textSecondary,
   },
-  cards: {
-    gap: 16,
-  },
-  pagination: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 8,
-    marginTop: 4,
-    paddingTop: 16,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: COLOR.borderStrong,
-  },
-  pageButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    minHeight: 44,
-    paddingHorizontal: 12,
-    borderRadius: 10,
-    backgroundColor: COLOR.accent,
-  },
-  pageButtonWrap: {
-    backgroundColor: COLOR.textMuted,
-  },
-  pressed: {
-    opacity: 0.8,
-  },
-  pageLabel: {
-    fontFamily: "OpenSans_600SemiBold",
-    fontSize: 14,
-    color: COLOR.textInverse,
-  },
-  pageCounter: {
-    fontFamily: "OpenSans_400Regular",
-    fontSize: 13,
-    color: COLOR.textMuted,
-    fontVariant: ["tabular-nums"],
+  card: {
+    paddingBottom: SPACE.lg,
   },
 });

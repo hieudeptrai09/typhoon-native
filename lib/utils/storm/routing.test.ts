@@ -171,8 +171,11 @@ describe("getLegendKind", () => {
   const kind = (view: string, filter: string, mode: string) =>
     getLegendKind({ view, filter, mode });
 
-  it("shows no legend where the storms grids render one flat color", () => {
-    expect(kind("all", "position", "table")).toBeNull();
+  it("explains the storms heatmap, whose shading counts storms per position", () => {
+    expect(kind("all", "position", "table")).toBe("count");
+  });
+
+  it("shows no legend where the grid renders names rather than a color scale", () => {
     expect(kind("all", "name", "table")).toBeNull();
   });
 

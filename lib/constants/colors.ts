@@ -52,6 +52,14 @@ export const AVG_DATE_MONTH_COLOR: Record<number, string> = {
 
 export const AVG_DATE_FALLBACK_COLOR = "#374151";
 
+// The web grid spelled out each position's label in its cell; here the axes do that, so the fill
+// is free to carry how busy the position is. Index 0 is "one storm", and the last bucket is open-ended.
+export const STORM_COUNT_COLORS = ["#dbeafe", "#93c5fd", "#60a5fa", "#3b82f6", "#1d4ed8"];
+
+// How many times a position has reused a name, on the names history table. Index 0 is "used once",
+// and the last bucket is open-ended.
+export const NAME_REUSE_COLORS = [COLOR.success, COLOR.accent, COLOR.warning, COLOR.danger];
+
 export const HIGHLIGHT_CELL_COLOR: Record<string, string> = {
   strongest: "#fda4af",
   first: "#93c5fd",

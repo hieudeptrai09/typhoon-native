@@ -28,6 +28,13 @@ export interface StormHighlight {
   name: string;
   position: number;
   status: StormHighlightStatus;
+  /**
+   * Set only when `status` is "active" — an upcoming name has no storm behind it yet. Also absent
+   * if the deployed get_storm_highlight predates these fields, so the card must degrade without
+   * them rather than assume they arrived.
+   */
+  intensity?: IntensityType;
+  dateStart?: string;
 }
 
 /**

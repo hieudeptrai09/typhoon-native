@@ -1,10 +1,11 @@
+import EdgeFade from "@/lib/components/common/EdgeFade";
 import { SPECIAL_POSITIONS } from "@/lib/constants";
-import { COLOR, SPACE } from "@/lib/constants/theme";
+import { COLOR, RADIUS, SPACE } from "@/lib/constants/theme";
 import type { Storm } from "@/lib/types";
 import { sortNamesByFirstYear } from "@/lib/utils/storm/aggregate";
 import * as Haptics from "expo-haptics";
 import type { ReactNode } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 interface SpecialNamesListProps {
   stormsData: Storm[];
@@ -13,6 +14,11 @@ interface SpecialNamesListProps {
   nameSubtitles?: Record<string, ReactNode>;
 }
 
+/**
+ * Three agencies with a handful of crossover names each. Stacked as columns they cost a third of
+ * the screen and still needed a scroller of their own; one short row per agency — label pinned
+ * left, names running sideways — fits the same content under the grid without taking from it.
+ */
 const SpecialNamesList = ({
   stormsData,
   onNameClick,
@@ -42,42 +48,43 @@ const SpecialNamesList = ({
   return (
     <View style={styles.root}>
       <Text style={styles.heading}>Other Regions</Text>
-      {/* Capped: these three agencies hold enough crossover names to squeeze the country pager
-          above into nothing if this block is left to grow. */}
-      <ScrollView style={styles.scroll} nestedScrollEnabled showsVerticalScrollIndicator={false}>
-        <View style={styles.columns}>
-          {stormsByPosition.map(({ id, label, names }) => (
-            <View key={id} style={styles.column}>
-              <Text style={styles.columnLabel}>{label}</Text>
-              <View style={styles.box}>
-                {names.length === 0 ? (
-                  <Text style={styles.empty}>—</Text>
-                ) : (
-                  names.map(({ name, color, storms }) => (
-                    <Pressable
-                      key={name}
-                      onPress={() => {
-                        Haptics.selectionAsync();
-                        onNameClick(name, storms);
-                      }}
-                      style={({ pressed }) => [styles.name, pressed && styles.pressed]}
-                      accessibilityRole="button"
-                      accessibilityLabel={`${name}, ${label} region`}
-                    >
-                      <Text style={[styles.nameLabel, { color }]} numberOfLines={1}>
-                        {name}
-                      </Text>
-                      {nameSubtitles?.[name] !== undefined && (
-                        <Text style={styles.subtitle}>{nameSubtitles[name]}</Text>
-                      )}
-                    </Pressable>
-                  ))
-                )}
-              </View>
-            </View>
-          ))}
-        </View>
-      </ScrollView>
+
+      <View style={styles.card}>
+        {stormsByPosition.map(({ id, label, names }, index) => (
+          <View key={id} style={[styles.row, index > 0 && styles.rowDivided]}>
+            <Text style={styles.rowLabel}>{label}</Text>
+
+            {names.length === 0 ? (
+              <Text style={styles.empty}>—</Text>
+            ) : (
+              <EdgeFade
+                style={styles.chipRow}
+                contentContainerStyle={styles.chips}
+                backgroundColor={COLOR.surface}
+                accessibilityLabel={`${label} region names`}
+              >
+                {names.map(({ name, color, storms }) => (
+                  <Pressable
+                    key={name}
+                    onPress={() => {
+                      Haptics.selectionAsync();
+                      onNameClick(name, storms);
+                    }}
+                    style={({ pressed }) => [styles.chip, pressed && styles.pressed]}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${name}, ${label} region`}
+                  >
+                    <Text style={[styles.chipName, { color }]}>{name}</Text>
+                    {nameSubtitles?.[name] !== undefined && (
+                      <Text style={styles.subtitle}>{nameSubtitles[name]}</Text>
+                    )}
+                  </Pressable>
+                ))}
+              </EdgeFade>
+            )}
+          </View>
+        ))}
+      </View>
     </View>
   );
 };
@@ -88,10 +95,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACE.lg,
     paddingBottom: SPACE.md,
   },
-  scroll: {
-    flexGrow: 0,
-    maxHeight: 220,
-  },
   heading: {
     fontFamily: "OpenSans_600SemiBold",
     fontSize: 11,
@@ -99,57 +102,65 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     color: COLOR.textMuted,
   },
-  columns: {
-    flexDirection: "row",
-    gap: 8,
-  },
-  column: {
-    flex: 1,
-    gap: 4,
-  },
-  columnLabel: {
-    fontFamily: "OpenSans_600SemiBold",
-    fontSize: 11,
-    letterSpacing: 0.5,
-    color: COLOR.textMuted,
-    textAlign: "center",
-  },
-  box: {
-    flex: 1,
-    gap: 2,
-    padding: 6,
-    borderRadius: 10,
+  card: {
+    borderRadius: RADIUS.md,
     borderWidth: 1,
     borderColor: COLOR.borderStrong,
     backgroundColor: COLOR.surface,
+    overflow: "hidden",
   },
-  empty: {
-    fontFamily: "OpenSans_400Regular",
-    fontSize: 12,
-    color: COLOR.textFaint,
-    textAlign: "center",
-    paddingVertical: 8,
-  },
-  name: {
-    minHeight: 40,
+  row: {
+    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 6,
-    paddingVertical: 4,
-    borderRadius: 8,
+    minHeight: 44,
+    paddingLeft: SPACE.md,
   },
-  pressed: {
+  rowDivided: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: COLOR.border,
+  },
+  // Fixed, so the names of all three agencies line up into a column of their own.
+  rowLabel: {
+    width: 42,
+    fontFamily: "OpenSans_700Bold",
+    fontSize: 11,
+    letterSpacing: 0.5,
+    color: COLOR.textMuted,
+  },
+  chipRow: {
+    flex: 1,
+  },
+  chips: {
+    alignItems: "center",
+    gap: 6,
+    paddingRight: SPACE.md,
+  },
+  chip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    minHeight: 32,
+    paddingHorizontal: 10,
+    borderRadius: RADIUS.pill,
     backgroundColor: COLOR.surfaceMuted,
   },
-  nameLabel: {
+  pressed: {
+    backgroundColor: COLOR.surfaceSunken,
+  },
+  chipName: {
     fontFamily: "OpenSans_600SemiBold",
-    fontSize: 12,
+    fontSize: 13,
   },
   subtitle: {
     fontFamily: "OpenSans_400Regular",
-    fontSize: 10,
+    fontSize: 11,
     color: COLOR.textMuted,
     fontVariant: ["tabular-nums"],
+  },
+  empty: {
+    fontFamily: "OpenSans_400Regular",
+    fontSize: 13,
+    color: COLOR.textFaint,
   },
 });
 

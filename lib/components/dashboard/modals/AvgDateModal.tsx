@@ -1,5 +1,8 @@
 import DefModal from "@/lib/components/common/DefModal";
 import StatTile from "@/lib/components/common/StatTile";
+import OpenDetailButton, {
+  type DetailTarget,
+} from "@/lib/components/common/OpenDetailButton";
 import { MONTH_NAMES } from "@/lib/constants";
 import { COLOR } from "@/lib/constants/theme";
 import type { BaseModalProps, Storm } from "@/lib/types";
@@ -20,6 +23,8 @@ import { LayoutAnimation, Pressable, StyleSheet, Text, View } from "react-native
 interface AvgDateModalProps extends BaseModalProps {
   title: string;
   storms: Storm[];
+  /** The subject this sheet was opened from, when it has a screen of its own to go on to. */
+  target?: DetailTarget;
 }
 
 interface MonthGroup {
@@ -47,7 +52,7 @@ const groupByStartMonth = (storms: Storm[]): MonthGroup[] => {
     .sort((a, b) => a.month - b.month);
 };
 
-const AvgDateModal = ({ isOpen, onClose, title, storms }: AvgDateModalProps) => {
+const AvgDateModal = ({ isOpen, onClose, title, storms, target }: AvgDateModalProps) => {
   // The month rows revealed their storms on hover on web; on touch they expand in place instead.
   const [expanded, setExpanded] = useState<number | null>(null);
 
@@ -71,6 +76,7 @@ const AvgDateModal = ({ isOpen, onClose, title, storms }: AvgDateModalProps) => 
           {title}
         </Text>
       }
+      footer={target ? <OpenDetailButton target={target} onClose={onClose} /> : undefined}
     >
       <View style={styles.tiles}>
         <View style={styles.tile}>

@@ -11,7 +11,8 @@ export interface CacheOptions {
   revalidate: number;
 }
 
-// `search` is keyed by user input, so the key space is unbounded and needs a ceiling.
+// Some entries are keyed by a name taken straight from the URL, so the key space is bounded by
+// what callers ask for rather than by the data, and needs a ceiling.
 const MAX_ENTRIES = 500;
 
 const store = new Map<string, Entry<unknown>>();

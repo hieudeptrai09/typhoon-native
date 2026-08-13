@@ -1,9 +1,25 @@
-import { COLOR } from "@/lib/constants/theme";
+import { COLOR, SPACE } from "@/lib/constants/theme";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { Tabs } from "expo-router";
+import { Link, Tabs } from "expo-router";
+import { Pressable } from "react-native";
 
 const ACTIVE = COLOR.accent;
 const INACTIVE = COLOR.textMuted;
+
+// About was reachable only from the old home footer. A footer is web chrome, so it moves to the
+// one header the user always passes through.
+const AboutButton = () => (
+  <Link href="/about" asChild>
+    <Pressable
+      hitSlop={12}
+      style={({ pressed }) => ({ marginRight: SPACE.lg, opacity: pressed ? 0.6 : 1 })}
+      accessibilityRole="button"
+      accessibilityLabel="About this app"
+    >
+      <Ionicons name="information-circle-outline" size={24} color={COLOR.textInverse} />
+    </Pressable>
+  </Link>
+);
 
 export default function TabsLayout() {
   return (
@@ -21,10 +37,10 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: "Home",
-          headerShown: false,
+          title: "Today",
+          headerRight: () => <AboutButton />,
           tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons name={focused ? "home" : "home-outline"} color={color} size={size} />
+            <Ionicons name={focused ? "today" : "today-outline"} color={color} size={size} />
           ),
         }}
       />

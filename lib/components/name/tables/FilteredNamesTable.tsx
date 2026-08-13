@@ -5,11 +5,11 @@ import NameStatusIcon from "@/lib/components/name/NameStatusIcon";
 import type { TyphoonName } from "@/lib/types";
 import { getNameStatusColor } from "@/lib/utils/colors";
 import { getPositionTitle } from "@/lib/utils/position";
-import type { SortField } from "@/lib/utils/table";
+import type { SortCriterion, SortField } from "@/lib/utils/table";
 
 interface FilteredNamesTableProps {
   filteredNames: TyphoonName[];
-  onNameClick: (name: TyphoonName) => void;
+  onNamePress: (name: TyphoonName) => void;
 }
 
 const sortFields: SortField<TyphoonName>[] = [
@@ -32,7 +32,15 @@ const sortFields: SortField<TyphoonName>[] = [
   { key: "position", label: "Position", compare: (a, b) => a.position - b.position },
 ];
 
-const FilteredNamesTable = ({ filteredNames, onNameClick }: FilteredNamesTableProps) => {
+// Module-level so the identity is stable: DataList memoises the sorted rows off this.
+const BY_NAME: SortCriterion[] = [{ key: "name", order: "ascend" }];
+
+const indexField = {
+  key: "name",
+  letterOf: (name: TyphoonName) => name.name.charAt(0).toUpperCase(),
+};
+
+const FilteredNamesTable = ({ filteredNames, onNamePress }: FilteredNamesTableProps) => {
   if (filteredNames.length === 0) return <EmptyResults />;
 
   return (
@@ -40,8 +48,11 @@ const FilteredNamesTable = ({ filteredNames, onNameClick }: FilteredNamesTablePr
       data={filteredNames}
       keyExtractor={(name) => String(name.id)}
       sortFields={sortFields}
+      sortKey="names"
+      defaultSort={BY_NAME}
+      indexField={indexField}
       countLabel={(count) => `${count} name${count === 1 ? "" : "s"}`}
-      onRowPress={onNameClick}
+      onRowPress={onNamePress}
       renderCard={(name, index) => (
         <DataCard
           ordinal={index + 1}

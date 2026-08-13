@@ -1,50 +1,43 @@
-import SegmentedControl from "@/lib/components/common/SegmentedControl";
+import EdgeFade from "@/lib/components/common/EdgeFade";
 import {
   DASHBOARD_ICON_MAP,
   FILTER_OPTIONS,
   MODE_OPTIONS,
+  VIEW_DESCRIPTION,
+  VIEW_TABS,
 } from "@/lib/components/dashboard/options";
+import ViewOptionsSheet from "@/lib/components/dashboard/widgets/ViewOptionsSheet";
 import { COLOR, SPACE } from "@/lib/constants/theme";
 import type { DashboardParams } from "@/lib/types";
-import { isGridOnly, isListOnly, paramsForFilter, paramsForView } from "@/lib/utils/storm/routing";
+import { isGridOnly, isListOnly, paramsForFilter } from "@/lib/utils/storm/routing";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import * as Haptics from "expo-haptics";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-
-const VIEW_TABS: { key: string; label: string }[] = [
-  { key: "all", label: "Storms" },
-  { key: "highlights", label: "Highlights" },
-  { key: "average", label: "Average" },
-  { key: "recurrence", label: "Recurrence" },
-  { key: "avgdate", label: "Avg. Date" },
-];
+import { useState } from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 interface DashboardControlBarProps {
   params: DashboardParams;
   onChange: (params: DashboardParams) => void;
+  onSelectView: (view: string) => void;
 }
 
 // On web each view was a <Link> so it could be indexed; here the dashboard owns its params as
 // state, so these are plain buttons that swap the view in place.
-const DashboardControlBar = ({ params, onChange }: DashboardControlBarProps) => {
+const DashboardControlBar = ({ params, onChange, onSelectView }: DashboardControlBarProps) => {
+  const [sheetOpen, setSheetOpen] = useState(false);
   const { view, filter, mode } = params;
-  const filterOptions = FILTER_OPTIONS[view] ?? [];
 
-  const modeOptions = MODE_OPTIONS.map((option) => ({
-    ...option,
-    disabled:
-      (option.value === "table" && isListOnly(view, filter)) ||
-      (option.value === "list" && isGridOnly(view, filter)),
-  }));
+  const filterOptions = FILTER_OPTIONS[view] ?? [];
+  const activeFilter = filterOptions.find((option) => option.value === filter) ?? filterOptions[0];
+
+  // A layout the view cannot honour is dropped rather than shown greyed out: a dead control still
+  // costs a tap to discover it is dead.
+  const layoutLocked = isGridOnly(view, filter) || isListOnly(view, filter);
+  const modeLabel = MODE_OPTIONS.find((option) => option.value === mode)?.label;
 
   return (
     <View style={styles.root}>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.tabs}
-        accessibilityRole="tablist"
-      >
+      <EdgeFade contentContainerStyle={styles.tabs} accessibilityRole="tablist">
         {VIEW_TABS.map(({ key, label }) => {
           const isActive = view === key;
 
@@ -54,7 +47,7 @@ const DashboardControlBar = ({ params, onChange }: DashboardControlBarProps) => 
               onPress={() => {
                 if (isActive) return;
                 Haptics.selectionAsync();
-                onChange(paramsForView(key));
+                onSelectView(key);
               }}
               style={({ pressed }) => [
                 styles.tab,
@@ -76,38 +69,51 @@ const DashboardControlBar = ({ params, onChange }: DashboardControlBarProps) => 
             </Pressable>
           );
         })}
-      </ScrollView>
+      </EdgeFade>
 
-      <View style={styles.controls}>
-        <View style={styles.controlHead}>
-          <Text style={styles.controlLabel}>Group by</Text>
-          <View style={styles.modeSlot}>
-            <SegmentedControl
-              options={modeOptions}
-              value={mode}
-              onChange={(next) => onChange({ view, filter, mode: next })}
-              accessibilityLabel="Select display mode"
-            />
-          </View>
-        </View>
+      <View style={styles.summary}>
+        <Text style={styles.description} numberOfLines={2}>
+          {VIEW_DESCRIPTION[view]}
+        </Text>
 
-        <SegmentedControl
-          scrollable
-          options={filterOptions}
-          value={filter || filterOptions[0]?.value}
-          onChange={(next) => onChange(paramsForFilter(view, next, mode))}
-          accessibilityLabel="Select grouping option"
-        />
+        <Pressable
+          onPress={() => setSheetOpen(true)}
+          style={({ pressed }) => [styles.options, pressed && styles.pressed]}
+          accessibilityRole="button"
+          accessibilityLabel={`View options. Grouped by ${activeFilter?.label ?? filter}${
+            layoutLocked ? "" : `, ${modeLabel} layout`
+          }`}
+        >
+          {activeFilter?.icon && (
+            <Ionicons name={activeFilter.icon} size={15} color={COLOR.accent} />
+          )}
+          <Text style={styles.optionsLabel} numberOfLines={1}>
+            {activeFilter?.label ?? filter}
+            {layoutLocked ? "" : ` · ${modeLabel}`}
+          </Text>
+          <Ionicons name="chevron-down" size={14} color={COLOR.accent} />
+        </Pressable>
       </View>
+
+      <ViewOptionsSheet
+        open={sheetOpen}
+        onClose={() => setSheetOpen(false)}
+        filterOptions={filterOptions}
+        filter={filter}
+        onFilterChange={(next) => onChange(paramsForFilter(view, next, mode))}
+        modeOptions={layoutLocked ? undefined : MODE_OPTIONS}
+        mode={mode}
+        onModeChange={(next) => onChange({ view, filter, mode: next })}
+      />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   root: {
-    gap: SPACE.md,
+    gap: SPACE.sm,
     paddingTop: SPACE.md,
-    paddingBottom: SPACE.md,
+    paddingBottom: SPACE.sm,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: COLOR.borderStrong,
   },
@@ -142,25 +148,37 @@ const styles = StyleSheet.create({
   tabLabelActive: {
     color: COLOR.textInverse,
   },
-  controls: {
-    gap: SPACE.sm,
-    paddingHorizontal: SPACE.lg,
-  },
-  controlHead: {
+  summary: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
     gap: SPACE.md,
+    paddingHorizontal: SPACE.lg,
   },
-  modeSlot: {
-    flexShrink: 1,
-  },
-  controlLabel: {
-    fontFamily: "OpenSans_600SemiBold",
-    fontSize: 11,
-    letterSpacing: 1,
-    textTransform: "uppercase",
+  description: {
+    flex: 1,
+    fontFamily: "OpenSans_400Regular",
+    fontSize: 12,
+    lineHeight: 16,
     color: COLOR.textMuted,
+  },
+  options: {
+    flexShrink: 0,
+    maxWidth: "55%",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    height: 36,
+    paddingHorizontal: 12,
+    borderRadius: 18,
+    backgroundColor: COLOR.accentSoft,
+    borderWidth: 1,
+    borderColor: COLOR.accentBorder,
+  },
+  optionsLabel: {
+    flexShrink: 1,
+    fontFamily: "OpenSans_600SemiBold",
+    fontSize: 13,
+    color: COLOR.accent,
   },
 });
 

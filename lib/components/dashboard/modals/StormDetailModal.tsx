@@ -1,4 +1,5 @@
 import DefModal from "@/lib/components/common/DefModal";
+import OpenDetailButton from "@/lib/components/common/OpenDetailButton";
 import IntensityBadge from "@/lib/components/storm/IntensityBadge";
 import { TEXT_COLOR_WHITE_BACKGROUND } from "@/lib/constants";
 import { COLOR } from "@/lib/constants/theme";
@@ -8,9 +9,17 @@ import { StyleSheet, Text, View } from "react-native";
 export interface StormDetailModalProps extends BaseModalProps {
   title: string;
   storms: Storm[];
+  /** Set when the sheet was opened from a naming position, which then has a screen of its own. */
+  position?: number;
 }
 
-const StormDetailModal = ({ isOpen, onClose, title, storms }: StormDetailModalProps) => {
+const StormDetailModal = ({
+  isOpen,
+  onClose,
+  title,
+  storms,
+  position,
+}: StormDetailModalProps) => {
   const groupedByName = storms.reduce<Record<string, Storm[]>>((acc, storm) => {
     if (!acc[storm.name]) acc[storm.name] = [];
     acc[storm.name].push(storm);
@@ -21,7 +30,16 @@ const StormDetailModal = ({ isOpen, onClose, title, storms }: StormDetailModalPr
   const hasMultipleNames = nameGroups.length > 1;
 
   return (
-    <DefModal open={isOpen} onClose={onClose} title={title}>
+    <DefModal
+      open={isOpen}
+      onClose={onClose}
+      title={title}
+      footer={
+        position !== undefined ? (
+          <OpenDetailButton target={{ kind: "position", position }} onClose={onClose} />
+        ) : undefined
+      }
+    >
       <View>
         {nameGroups.map(([name, stormGroup], groupIndex) => (
           <View key={name} style={styles.group}>

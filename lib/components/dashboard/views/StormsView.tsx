@@ -89,6 +89,7 @@ const StormsView = ({ params, stormsData, averageValues, onCellClick }: StormsVi
       data={nameData}
       keyExtractor={(row) => row.name}
       sortFields={sortFields}
+      sortKey="all/name"
       countLabel={(count) => `${count} name${count === 1 ? "" : "s"}`}
       onRowPress={(row) => onCellClick(row.name, "name")}
       renderCard={(row, index) => {

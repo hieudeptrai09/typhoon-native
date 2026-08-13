@@ -57,7 +57,6 @@ const toFilters = (values: FormValues): RetiredFilterParams => {
     country: toStr(values.country),
     reason: toStr(values.reason),
     position: position != null ? String(position) : "",
-    letter: "",
   };
 };
 

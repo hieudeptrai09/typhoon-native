@@ -133,6 +133,7 @@ const DistanceView = ({ params, stormsData, onCellClick }: DistanceViewProps) =>
       data={data}
       keyExtractor={(row) => (filterType === "name" ? (row.name ?? "") : String(row.position))}
       sortFields={sortFields}
+      sortKey={`recurrence/${filterType}`}
       onRowPress={(row) =>
         filterType === "name"
           ? onCellClick(row.name ?? "", "name")

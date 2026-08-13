@@ -5,7 +5,6 @@ export interface FilterParams {
   position: string;
   tag: string;
   status: string;
-  letter?: string;
 }
 
 export interface RetiredFilterParams {
@@ -14,7 +13,6 @@ export interface RetiredFilterParams {
   country: string;
   reason: string;
   position: string;
-  letter?: string;
 }
 
 export interface DashboardParams {

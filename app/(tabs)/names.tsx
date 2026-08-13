@@ -1,46 +1,64 @@
 import { useApiQuery } from "@/lib/api/client";
+import { SortMemoryProvider } from "@/lib/components/common/DataList/sortMemory";
 import FrownError from "@/lib/components/common/FrownError";
+import { RefreshProvider } from "@/lib/components/common/RefreshContext";
 import ScreenLoading from "@/lib/components/common/ScreenLoading";
 import NamesPageContent from "@/lib/components/name/NamesPageContent";
-import type { RetiredName, StormHistoryEntry, SuggestionWithNameId } from "@/lib/types";
-import { isHistoryScope, type NamesSlugParams } from "@/lib/utils/name/routing";
-import { useDisplayPrefs } from "@/lib/utils/name/useDisplayPrefs";
+import type { NamesLayout, NamesScope } from "@/lib/components/name/options";
+import type {
+  FilterParams,
+  RetiredFilterParams,
+  RetiredName,
+  StormHistoryEntry,
+  SuggestionWithNameId,
+} from "@/lib/types";
+import { EMPTY_NAME_FILTERS, EMPTY_RETIRED_FILTERS } from "@/lib/utils/name/filters";
 import { useState } from "react";
 
-// Same reasoning as the storms tab: the scope/layout toggles were URL segments on web only so the
-// pages could be indexed. Here they are state, and NamesScopeTabs drives them directly.
+// The scope/layout toggles were URL segments on web only so the pages could be indexed. Here they
+// are state, and they live on the screen rather than inside the views: a phone user hops between
+// scopes far more than a web user hopped between pages, and rebuilding the filters every time
+// makes each trip back a fresh start.
 export default function NamesScreen() {
-  const [params, setParams] = useState<NamesSlugParams>({
-    view: "grid",
-    showName: true,
-    showHistory: false,
-  });
-
-  const { isLoaded, ...displayPrefs } = useDisplayPrefs();
+  const [scope, setScope] = useState<NamesScope>("current");
+  const [layout, setLayout] = useState<NamesLayout>("grid");
+  const [showName, setShowName] = useState(true);
+  const [nameFilters, setNameFilters] = useState<FilterParams>(EMPTY_NAME_FILTERS);
+  const [retiredFilters, setRetiredFilters] = useState<RetiredFilterParams>(EMPTY_RETIRED_FILTERS);
 
   const names = useApiQuery<RetiredName[]>("/api/v1/typhoon-names");
 
   // Both are only read by one scope each, so they stay unfetched until that scope is opened.
   const history = useApiQuery<StormHistoryEntry[]>(
-    isHistoryScope(params) ? "/api/v1/storm-history" : null,
+    scope === "history" ? "/api/v1/storm-history" : null,
   );
   const suggested = useApiQuery<SuggestionWithNameId[]>(
-    params.view === "retired" ? "/api/v1/suggestions" : null,
+    scope === "retired" ? "/api/v1/suggestions" : null,
   );
 
-  // The views seed their toggle state from displayPrefs on mount, so rendering before storage
-  // answers would lock in the default and ignore what the user last chose.
-  if (names.isLoading || !isLoaded) return <ScreenLoading />;
-  if (names.isError) return <FrownError onRetry={names.refetch} />;
+  if (names.isLoading) return <ScreenLoading />;
+  if (!names.data) return <FrownError onRetry={names.refetch} />;
 
   return (
-    <NamesPageContent
-      allNames={names.data}
-      stormHistory={history.data ?? []}
-      suggestedNames={suggested.data ?? []}
-      displayPrefs={displayPrefs}
-      params={params}
-      onParamsChange={setParams}
-    />
+    <RefreshProvider value={{ refreshing: names.isRefetching, onRefresh: names.refetch }}>
+      <SortMemoryProvider>
+        <NamesPageContent
+          allNames={names.data}
+          stormHistory={history.data ?? []}
+          suggestedNames={suggested.data ?? []}
+          scope={scope}
+          onScopeChange={setScope}
+          layout={layout}
+          onLayoutChange={setLayout}
+          showName={showName}
+          onShowNameChange={setShowName}
+          nameFilters={nameFilters}
+          onNameFiltersChange={setNameFilters}
+          retiredFilters={retiredFilters}
+          onRetiredFiltersChange={setRetiredFilters}
+          staleError={names.isError}
+        />
+      </SortMemoryProvider>
+    </RefreshProvider>
   );
 }

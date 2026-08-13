@@ -1,7 +1,7 @@
 import PositionCellGrid from "@/lib/components/position/PositionCellGrid";
-import { GRID_EMPTY_CELL_COLOR } from "@/lib/constants";
+import { GRID_EMPTY_CELL_COLOR, STORM_COUNT_COLORS } from "@/lib/constants";
 import type { Storm } from "@/lib/types";
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 
 interface StormsGridProps {
   stormsData: Storm[];
@@ -9,11 +9,10 @@ interface StormsGridProps {
   isClickable?: boolean;
 }
 
-// The web grid spelled out each position's label in its cell; here the axes do that,
-// so the fill is free to carry how busy the position is.
-const COUNT_COLORS = ["#dbeafe", "#93c5fd", "#60a5fa", "#3b82f6", "#1d4ed8"];
 const countColor = (count: number): string =>
-  count === 0 ? GRID_EMPTY_CELL_COLOR : COUNT_COLORS[Math.min(count, COUNT_COLORS.length) - 1];
+  count === 0
+    ? GRID_EMPTY_CELL_COLOR
+    : STORM_COUNT_COLORS[Math.min(count, STORM_COUNT_COLORS.length) - 1];
 
 const StormsGrid = ({ stormsData, onCellClick, isClickable = true }: StormsGridProps) => {
   const countByPosition = useMemo(() => {
@@ -24,23 +23,40 @@ const StormsGrid = ({ stormsData, onCellClick, isClickable = true }: StormsGridP
     return counts;
   }, [stormsData]);
 
+  // PositionCellGrid memoises 140 cells against these, so an inline arrow would rebuild all of
+  // them on every render of this component.
+  const renderValue = useCallback(
+    (position: number) => {
+      const count = countByPosition.get(position) ?? 0;
+      return `${count} storm${count === 1 ? "" : "s"}`;
+    },
+    [countByPosition],
+  );
+
+  const renderCell = useCallback(
+    (position: number) => {
+      const count = countByPosition.get(position) ?? 0;
+      return {
+        color: countColor(count),
+        label: count > 0 ? String(count) : undefined,
+        labelColor: count >= 4 ? "#ffffff" : "#0f172a",
+        clickable: isClickable,
+      };
+    },
+    [countByPosition, isClickable],
+  );
+
+  const handlePress = useCallback(
+    (position: number) => onCellClick(position, "position"),
+    [onCellClick],
+  );
+
   return (
     <PositionCellGrid
       stormsData={stormsData}
-      onPositionPress={(position) => onCellClick(position, "position")}
-      renderValue={(position) => {
-        const count = countByPosition.get(position) ?? 0;
-        return `${count} storm${count === 1 ? "" : "s"}`;
-      }}
-      renderCell={(position) => {
-        const count = countByPosition.get(position) ?? 0;
-        return {
-          color: countColor(count),
-          label: count > 0 ? String(count) : undefined,
-          labelColor: count >= 4 ? "#ffffff" : "#0f172a",
-          clickable: isClickable,
-        };
-      }}
+      onPositionPress={handlePress}
+      renderValue={renderValue}
+      renderCell={renderCell}
     />
   );
 };

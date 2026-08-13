@@ -4,11 +4,11 @@ import EmptyResults from "@/lib/components/common/EmptyResults";
 import type { RetiredName } from "@/lib/types";
 import { getRetiredReasonColor } from "@/lib/utils/colors";
 import { getPositionTitle } from "@/lib/utils/position";
-import type { SortField } from "@/lib/utils/table";
+import type { SortCriterion, SortField } from "@/lib/utils/table";
 
 interface RetiredNamesTableProps {
-  paginatedData: RetiredName[];
-  onNameClick: (name: RetiredName) => void;
+  retiredNames: RetiredName[];
+  onNamePress: (name: RetiredName) => void;
 }
 
 const sortFields: SortField<RetiredName>[] = [
@@ -22,16 +22,27 @@ const sortFields: SortField<RetiredName>[] = [
   { key: "lastYear", label: "Last used", compare: (a, b) => a.lastYear - b.lastYear },
 ];
 
-const RetiredNamesTable = ({ paginatedData, onNameClick }: RetiredNamesTableProps) => {
-  if (!paginatedData || paginatedData.length === 0) return <EmptyResults />;
+// Module-level so the identity is stable: DataList memoises the sorted rows off this.
+const BY_NAME: SortCriterion[] = [{ key: "name", order: "ascend" }];
+
+const indexField = {
+  key: "name",
+  letterOf: (name: RetiredName) => name.name.charAt(0).toUpperCase(),
+};
+
+const RetiredNamesTable = ({ retiredNames, onNamePress }: RetiredNamesTableProps) => {
+  if (retiredNames.length === 0) return <EmptyResults />;
 
   return (
     <DataList<RetiredName>
-      data={paginatedData}
+      data={retiredNames}
       keyExtractor={(name) => String(name.id)}
       sortFields={sortFields}
+      sortKey="retiredNames"
+      defaultSort={BY_NAME}
+      indexField={indexField}
       countLabel={(count) => `${count} retired name${count === 1 ? "" : "s"}`}
-      onRowPress={onNameClick}
+      onRowPress={onNamePress}
       renderCard={(name, index) => {
         const color = getRetiredReasonColor(name.retirementReason);
         return (

@@ -2,7 +2,7 @@ import PositionCellGrid from "@/lib/components/position/PositionCellGrid";
 import { HIGHLIGHT_EMPTY_CELL_COLOR } from "@/lib/constants";
 import type { Storm } from "@/lib/types";
 import { getHighlightCellColor } from "@/lib/utils/colors";
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 
 interface HighlightsGridProps {
   stormsData: Storm[];
@@ -19,21 +19,27 @@ const HighlightsGrid = ({ stormsData, highlightedStorms, highlightType }: Highli
     return map;
   }, [highlightedStorms]);
 
+  const renderValue = useCallback(
+    (position: number) => {
+      const storms = byPosition.get(position);
+      if (!storms || storms.length === 0) return undefined;
+      return storms.map((storm) => `${storm.name} (${storm.year})`).join(", ");
+    },
+    [byPosition],
+  );
+
+  const renderCell = useCallback(
+    (position: number) => ({
+      color: byPosition.has(position)
+        ? getHighlightCellColor(highlightType)
+        : HIGHLIGHT_EMPTY_CELL_COLOR,
+      clickable: false,
+    }),
+    [byPosition, highlightType],
+  );
+
   return (
-    <PositionCellGrid
-      stormsData={stormsData}
-      renderValue={(position) => {
-        const storms = byPosition.get(position);
-        if (!storms || storms.length === 0) return undefined;
-        return storms.map((storm) => `${storm.name} (${storm.year})`).join(", ");
-      }}
-      renderCell={(position) => ({
-        color: byPosition.has(position)
-          ? getHighlightCellColor(highlightType)
-          : HIGHLIGHT_EMPTY_CELL_COLOR,
-        clickable: false,
-      })}
-    />
+    <PositionCellGrid stormsData={stormsData} renderValue={renderValue} renderCell={renderCell} />
   );
 };
 

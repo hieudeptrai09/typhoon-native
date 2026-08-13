@@ -1,17 +1,11 @@
 import CountryFlag, { COUNTRY_NAMES } from "@/lib/components/common/CountryFlag";
 import { GRID_COLS, GRID_ROWS } from "@/lib/constants/position";
 import { COLOR } from "@/lib/constants/theme";
-import { positionColumnLetter } from "@/lib/utils/position";
+import { getPositionTitle, positionColumnLetter } from "@/lib/utils/position";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import * as Haptics from "expo-haptics";
-import { useMemo, useRef, useState, type ReactNode } from "react";
-import {
-  LayoutChangeEvent,
-  PanResponder,
-  StyleSheet,
-  Text,
-  View,
-  type GestureResponderEvent,
-} from "react-native";
+import { memo, useCallback, useMemo, useRef, useState, type ReactNode } from "react";
+import { LayoutChangeEvent, Pressable, StyleSheet, Text, View } from "react-native";
 
 export interface GridCell {
   /** Cell fill — this is what carries the data on a heatmap. */
@@ -24,40 +18,70 @@ export interface GridCell {
 
 interface PositionGridProps {
   renderCell: (position: number) => GridCell;
-  /** Detail for the cell under the finger, shown in the readout below the grid. */
+  /** Detail for the selected cell, shown in the readout below the grid. */
   renderReadout?: (position: number) => ReactNode;
   onPositionPress?: (position: number) => void;
 }
 
 const ROW_LABEL_WIDTH = 18;
 const MIN_CELL = 18;
-const TAP_SLOP = 8;
 
-const positionAt = (event: GestureResponderEvent, cellSize: number): number | null => {
-  if (cellSize <= 0) return null;
-  const { locationX, locationY } = event.nativeEvent;
-  const col = Math.floor(locationX / cellSize);
-  const row = Math.floor(locationY / cellSize);
-  if (col < 0 || col >= GRID_COLS || row < 0 || row >= GRID_ROWS) return null;
-  return row * GRID_COLS + col + 1;
-};
+interface CellButtonProps {
+  position: number;
+  cell: GridCell;
+  size: number;
+  isSelected: boolean;
+  onSelect: (position: number) => void;
+}
 
 /**
- * The 14×10 naming table as a heatmap that fits a phone in one screen: colour
- * carries the value, the axes carry the labels, and dragging a finger across the
- * grid reads out the cell under it. The web build scrolled this table sideways —
- * on a phone that costs the whole point of a 2D layout.
+ * Split out and memoised: 140 of these re-render on every selection change otherwise, and the
+ * selection is the one thing the user changes constantly.
+ */
+const CellButton = memo(({ position, cell, size, isSelected, onSelect }: CellButtonProps) => (
+  <Pressable
+    onPress={() => onSelect(position)}
+    style={[styles.cellSlot, { width: size, height: size }]}
+    accessibilityRole={cell.clickable ? "button" : "text"}
+    accessibilityState={{ selected: isSelected }}
+    accessibilityLabel={`Position ${Math.floor((position - 1) / GRID_COLS) + 1}${positionColumnLetter(
+      (position - 1) % GRID_COLS,
+    )}${cell.label ? `, ${cell.label}` : ""}`}
+  >
+    <View style={[styles.cell, { backgroundColor: cell.color }, isSelected && styles.cellSelected]}>
+      {cell.label ? (
+        <Text
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          style={[
+            styles.cellLabel,
+            { fontSize: size * 0.38, color: cell.labelColor ?? COLOR.text },
+          ]}
+        >
+          {cell.label}
+        </Text>
+      ) : null}
+    </View>
+  </Pressable>
+));
+CellButton.displayName = "CellButton";
+
+/**
+ * The 14×10 naming table as a heatmap that fits a phone in one screen: colour carries the value,
+ * the axes carry the labels, and the cell you tap is read out below the grid. The web build
+ * scrolled this table sideways — on a phone that costs the whole point of a 2D layout.
+ *
+ * A cell is ~22dp wide, well under a comfortable tap target, so a single tap only *selects*: it
+ * costs nothing to correct. Opening is the full-width button in the readout, or a second tap on
+ * the cell already selected.
  */
 const PositionGrid = ({ renderCell, renderReadout, onPositionPress }: PositionGridProps) => {
   const [plotWidth, setPlotWidth] = useState(0);
-  const [peeked, setPeeked] = useState<number | null>(null);
-  // Read inside the pan handlers, which are created once and never see fresh state.
-  const peekedRef = useRef<number | null>(null);
-  const gestureStart = useRef<{ position: number | null; x: number; y: number }>({
-    position: null,
-    x: 0,
-    y: 0,
-  });
+  const [selected, setSelected] = useState<number | null>(null);
+  // Read by the tap handler, which is kept stable so the 140 memoised cells survive a selection.
+  const selectedRef = useRef<number | null>(null);
+  const latest = useRef({ onPositionPress, hasReadout: renderReadout !== undefined });
+  latest.current = { onPositionPress, hasReadout: renderReadout !== undefined };
 
   const cellSize = plotWidth > 0 ? Math.max(MIN_CELL, plotWidth / GRID_COLS) : 0;
 
@@ -69,49 +93,23 @@ const PositionGrid = ({ renderCell, renderReadout, onPositionPress }: PositionGr
       }),
     [renderCell],
   );
+  const cellsRef = useRef(cells);
+  cellsRef.current = cells;
 
-  // The PanResponder below is built once, so everything its handlers read has to
-  // come through a ref — the first render's cellSize is 0 and would swallow every touch.
-  const latest = useRef({ cellSize, cells, onPositionPress });
-  latest.current = { cellSize, cells, onPositionPress };
+  const handleSelect = useCallback((position: number) => {
+    Haptics.selectionAsync();
 
-  const peek = (position: number | null) => {
-    if (position === peekedRef.current) return;
-    peekedRef.current = position;
-    setPeeked(position);
-    if (position !== null) Haptics.selectionAsync();
-  };
+    const cell = cellsRef.current[position - 1];
+    // Without a readout there is nowhere for a selection to show, so the tap has to open outright.
+    const confirming = selectedRef.current === position || !latest.current.hasReadout;
+    if (confirming && cell?.clickable) {
+      latest.current.onPositionPress?.(position);
+      return;
+    }
 
-  const pan = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: () => true,
-      onPanResponderGrant: (event) => {
-        const position = positionAt(event, latest.current.cellSize);
-        gestureStart.current = {
-          position,
-          x: event.nativeEvent.locationX,
-          y: event.nativeEvent.locationY,
-        };
-        peek(position);
-      },
-      onPanResponderMove: (event) => peek(positionAt(event, latest.current.cellSize)),
-      onPanResponderRelease: (event) => {
-        const start = gestureStart.current;
-        const travelled =
-          Math.abs(event.nativeEvent.locationX - start.x) > TAP_SLOP ||
-          Math.abs(event.nativeEvent.locationY - start.y) > TAP_SLOP;
-        // A scrub leaves the readout on the last cell; only a tap opens the detail.
-        if (travelled || start.position === null) return;
-
-        const cell = latest.current.cells[start.position - 1];
-        if (cell?.clickable) latest.current.onPositionPress?.(start.position);
-      },
-      // The page scroller claims a clear vertical drag off the grid; without this the readout
-      // would stay frozen on whichever cell the finger last crossed.
-      onPanResponderTerminate: () => peek(null),
-    }),
-  ).current;
+    selectedRef.current = position;
+    setSelected(position);
+  }, []);
 
   const handleLayout = (event: LayoutChangeEvent) => setPlotWidth(event.nativeEvent.layout.width);
 
@@ -139,56 +137,44 @@ const PositionGrid = ({ renderCell, renderReadout, onPositionPress }: PositionGr
         <View
           style={styles.plot}
           onLayout={handleLayout}
-          {...pan.panHandlers}
           accessibilityLabel="Typhoon name positions by country"
         >
           {cellSize > 0 &&
             cells.map((cell) => (
-              <View
+              <CellButton
                 key={cell.position}
-                style={[styles.cellSlot, { width: cellSize, height: cellSize }]}
-                accessible
-                accessibilityRole={cell.clickable ? "button" : "text"}
-                accessibilityLabel={`Position ${Math.floor((cell.position - 1) / GRID_COLS) + 1}${positionColumnLetter(
-                  (cell.position - 1) % GRID_COLS,
-                )}${cell.label ? `, ${cell.label}` : ""}`}
-                onAccessibilityTap={
-                  cell.clickable ? () => onPositionPress?.(cell.position) : undefined
-                }
-              >
-                <View
-                  style={[
-                    styles.cell,
-                    { backgroundColor: cell.color },
-                    peeked === cell.position && styles.cellPeeked,
-                  ]}
-                >
-                  {cell.label ? (
-                    <Text
-                      numberOfLines={1}
-                      adjustsFontSizeToFit
-                      style={[
-                        styles.cellLabel,
-                        { fontSize: cellSize * 0.38, color: cell.labelColor ?? COLOR.text },
-                      ]}
-                    >
-                      {cell.label}
-                    </Text>
-                  ) : null}
-                </View>
-              </View>
+                position={cell.position}
+                cell={cell}
+                size={cellSize}
+                isSelected={selected === cell.position}
+                onSelect={handleSelect}
+              />
             ))}
         </View>
       </View>
 
       {renderReadout ? (
         <View style={styles.readout}>
-          {peeked === null ? (
-            <Text style={styles.readoutHint}>
-              Drag across the grid to read a position, tap to open it.
-            </Text>
+          {selected === null ? (
+            <Text style={styles.readoutHint}>Tap a cell to read it, then open it.</Text>
           ) : (
-            renderReadout(peeked)
+            <>
+              {renderReadout(selected)}
+              {cells[selected - 1]?.clickable && (
+                <Pressable
+                  onPress={() => {
+                    Haptics.selectionAsync();
+                    onPositionPress?.(selected);
+                  }}
+                  style={({ pressed }) => [styles.open, pressed && styles.openPressed]}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Open ${getPositionTitle(selected)}`}
+                >
+                  <Text style={styles.openLabel}>Open {getPositionTitle(selected)}</Text>
+                  <Ionicons name="chevron-forward" size={14} color={COLOR.textInverse} />
+                </Pressable>
+              )}
+            </>
           )}
         </View>
       ) : null}
@@ -243,7 +229,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  cellPeeked: {
+  cellSelected: {
     borderWidth: 2,
     borderColor: COLOR.text,
   },
@@ -253,12 +239,31 @@ const styles = StyleSheet.create({
   readout: {
     minHeight: 54,
     justifyContent: "center",
+    gap: 10,
     paddingHorizontal: 12,
     paddingVertical: 10,
     borderRadius: 12,
     backgroundColor: COLOR.surface,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: COLOR.border,
+  },
+  open: {
+    alignSelf: "flex-start",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    height: 40,
+    paddingHorizontal: 14,
+    borderRadius: 20,
+    backgroundColor: COLOR.accent,
+  },
+  openPressed: {
+    opacity: 0.7,
+  },
+  openLabel: {
+    fontFamily: "OpenSans_600SemiBold",
+    fontSize: 13,
+    color: COLOR.textInverse,
   },
   readoutHint: {
     fontFamily: "OpenSans_400Regular",

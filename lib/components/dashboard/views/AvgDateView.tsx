@@ -158,6 +158,7 @@ const AvgDateView = ({ params, stormsData, onCellClick }: AvgDateViewProps) => {
       data={data}
       keyExtractor={(row) => (filterType === "name" ? (row.name ?? "") : String(row.position))}
       sortFields={sortFields}
+      sortKey={`avgdate/${filterType}`}
       onRowPress={(row) =>
         filterType === "name"
           ? onCellClick(row.name ?? "", "name")

@@ -1,6 +1,9 @@
+import EdgeFade from "@/lib/components/common/EdgeFade";
 import { COLOR, SPACE } from "@/lib/constants/theme";
-import type { ReactNode } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import * as Haptics from "expo-haptics";
+import { useState, type ReactNode } from "react";
+import { LayoutAnimation, Pressable, StyleSheet, Text, View } from "react-native";
 
 interface LegendShellProps {
   label: string;
@@ -8,14 +11,48 @@ interface LegendShellProps {
   children: ReactNode;
 }
 
+/**
+ * A legend is reference, not content, so on a phone it starts as one scrollable line pinned above
+ * the tab bar and only wraps to its full height when tapped. The web version could afford to
+ * wrap across three rows permanently; here that was a fifth of the viewport.
+ */
 export default function LegendShell({ label, accessibilityLabel, children }: LegendShellProps) {
+  const [expanded, setExpanded] = useState(false);
+
+  const toggle = () => {
+    Haptics.selectionAsync();
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setExpanded((current) => !current);
+  };
+
   return (
-    <View style={styles.root} accessibilityLabel={accessibilityLabel}>
-      <View style={styles.items}>
+    <Pressable
+      onPress={toggle}
+      style={styles.root}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
+      accessibilityState={{ expanded }}
+    >
+      <View style={styles.head}>
         <Text style={styles.label}>{label}</Text>
-        {children}
+
+        {/* Collapsed, the items share the label's row so the whole legend costs one line. The
+            scroller sits inside the Pressable: a tap that does not scroll falls through to it. */}
+        {!expanded && (
+          <EdgeFade style={styles.strip} contentContainerStyle={styles.stripContent}>
+            {children}
+          </EdgeFade>
+        )}
+
+        <Ionicons
+          name={expanded ? "chevron-down" : "chevron-up"}
+          size={14}
+          color={COLOR.textMuted}
+        />
       </View>
-    </View>
+
+      {expanded && <View style={styles.wrapped}>{children}</View>}
+    </Pressable>
   );
 }
 
@@ -33,14 +70,28 @@ export const LegendItem = ({ label, color }: LegendItemProps) => (
 
 const styles = StyleSheet.create({
   root: {
+    gap: 6,
     paddingHorizontal: SPACE.lg,
-    paddingTop: SPACE.md,
-    paddingBottom: SPACE.md,
+    paddingTop: SPACE.sm,
+    paddingBottom: SPACE.sm,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: COLOR.borderStrong,
     backgroundColor: COLOR.background,
   },
-  items: {
+  head: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: SPACE.sm,
+  },
+  strip: {
+    flex: 1,
+  },
+  stripContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    columnGap: 12,
+  },
+  wrapped: {
     flexDirection: "row",
     flexWrap: "wrap",
     alignItems: "center",

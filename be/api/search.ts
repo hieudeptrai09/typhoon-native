@@ -15,8 +15,13 @@ interface SearchRow {
   stormCount: string;
 }
 
-async function querySearch(query: string): Promise<ApiListResponse<SearchResult[]>> {
-  const rows = await rpc.call<SearchRow[]>("search_names", { p_query: query });
+/**
+ * The whole searchable catalogue, which the app matches against on-device rather than asking per
+ * keystroke. An empty pattern is the "everything" case of the same ILIKE `search_names` already
+ * runs, so the SQL side is unchanged.
+ */
+async function querySearchIndex(): Promise<ApiListResponse<SearchResult[]>> {
+  const rows = await rpc.call<SearchRow[]>("search_names", { p_query: "" });
 
   const data: SearchResult[] = rows.map((row) => ({
     id: row.id !== null ? Number(row.id) : null,
@@ -33,4 +38,4 @@ async function querySearch(query: string): Promise<ApiListResponse<SearchResult[
   return { data, count: data.length };
 }
 
-export const search = cached(querySearch, ["search"], { revalidate: 3600 });
+export const searchIndex = cached(querySearchIndex, ["searchIndex"], { revalidate: 3600 });

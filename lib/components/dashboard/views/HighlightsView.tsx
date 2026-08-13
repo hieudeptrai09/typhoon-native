@@ -78,6 +78,7 @@ const HighlightsView = ({ params, stormsData }: HighlightsViewProps) => {
       data={highlightData}
       keyExtractor={(row) => `${row.name}-${row.year}`}
       sortFields={sortFields}
+      sortKey={`highlights/${params.filter}`}
       countLabel={(count) => `${count} storm${count === 1 ? "" : "s"}`}
       renderCard={(row, index) => (
         <DataCard

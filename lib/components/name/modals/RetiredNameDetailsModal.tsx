@@ -1,4 +1,5 @@
 import DefModal from "@/lib/components/common/DefModal";
+import OpenDetailButton from "@/lib/components/common/OpenDetailButton";
 import Tabs, { type Tab } from "@/lib/components/common/Tabs";
 import NameDetailsContent from "@/lib/components/name/NameDetailsContent";
 import SuggestionCard from "@/lib/components/name/widgets/SuggestionCard";
@@ -59,6 +60,9 @@ const RetiredNameDetailsModal = ({
         >
           {selectedName.name}
         </Text>
+      }
+      footer={
+        <OpenDetailButton target={{ kind: "name", name: selectedName.name }} onClose={onClose} />
       }
     >
       <Tabs tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />

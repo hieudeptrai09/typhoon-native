@@ -105,7 +105,9 @@ AS $$
     ORDER BY s.year ASC;
 $$;
 
--- Picks at random among ongoing storms, which is why the route serving this must not cache it.
+-- Returns a json array: every ongoing storm, newest first, or the single next name in the
+-- rotation when nothing is ongoing. The card shows one at a time and offers the rest, so the
+-- route serving this must not cache it — a storm that starts has to reach the card.
 CREATE OR REPLACE FUNCTION public.get_storm_highlight()
 RETURNS json
 LANGUAGE plpgsql
@@ -114,20 +116,34 @@ SECURITY DEFINER
 SET search_path = catfisha_typhoons, public
 AS $$
 DECLARE
+    v_active json;
     v_name text;
     v_position integer;
     v_next_position integer;
     v_next_name text;
 BEGIN
-    -- An ongoing storm outranks everything else.
-    SELECT s.name::text, s.position INTO v_name, v_position
-    FROM catfisha_typhoons.storms s
-    WHERE s.enddate IS NULL
-    ORDER BY random()
-    LIMIT 1;
+    -- Ongoing storms outrank everything else.
+    -- intensity/dateStart only exist on this branch: the "next" branch names a slot in the
+    -- rotation, which has no storm behind it yet.
+    SELECT json_agg(
+               json_build_object(
+                   'name', c.name,
+                   'position', c.position,
+                   'status', 'active',
+                   'intensity', c.intensity,
+                   'dateStart', c."dateStart"
+               ) ORDER BY c."dateStart" DESC, c.id DESC
+           )
+    INTO v_active
+    FROM (
+        SELECT s.id, s.name::text AS name, s.position, s.intensity::text AS intensity,
+               s.startdate::text AS "dateStart"
+        FROM catfisha_typhoons.storms s
+        WHERE s.enddate IS NULL
+    ) c;
 
-    IF v_name IS NOT NULL THEN
-        RETURN json_build_object('name', v_name, 'position', v_position, 'status', 'active');
+    IF v_active IS NOT NULL THEN
+        RETURN v_active;
     END IF;
 
     -- Otherwise point at whatever name comes next after the most recent storm.
@@ -150,10 +166,14 @@ BEGIN
 
     -- No name in rotation for that slot: fall back to the storm we just found.
     IF v_next_name IS NULL THEN
-        RETURN json_build_object('name', v_name, 'position', v_position, 'status', 'next');
+        RETURN json_build_array(
+            json_build_object('name', v_name, 'position', v_position, 'status', 'next')
+        );
     END IF;
 
-    RETURN json_build_object('name', v_next_name, 'position', v_next_position, 'status', 'next');
+    RETURN json_build_array(
+        json_build_object('name', v_next_name, 'position', v_next_position, 'status', 'next')
+    );
 END;
 $$;
 

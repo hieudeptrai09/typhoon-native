@@ -1,154 +1,85 @@
-import QuickActionsMenu from "@/lib/components/home/QuickActionsMenu";
-import StormHighlightBadge from "@/lib/components/home/StormHighlightBadge";
-import { TITLE_COMMON } from "@/lib/constants";
-import { COLOR, RADIUS, SPACE } from "@/lib/constants/theme";
-import Ionicons from "@expo/vector-icons/Ionicons";
-import { Image } from "expo-image";
-import { useRouter } from "expo-router";
-import { StatusBar } from "expo-status-bar";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useApiQuery } from "@/lib/api/client";
+import FunFactCard from "@/lib/components/home/FunFactCard";
+import NowCard from "@/lib/components/home/NowCard";
+import OnThisDayCard from "@/lib/components/home/OnThisDayCard";
+import { COLOR, SPACE } from "@/lib/constants/theme";
+import type { ActiveOnThisDayStorm, OnThisDayStorm, StormHighlight } from "@/lib/types";
+import { useEffect, useRef, useState } from "react";
+import { RefreshControl, ScrollView, StyleSheet } from "react-native";
 
-const logo = require("@/assets/images/logo.png");
+/**
+ * The landing page the web build opened with had to introduce the site to a stranger. An installed
+ * app has no stranger to convince, and the tab bar already carries navigation — so this tab is a
+ * feed of the date-scoped content that has no other home in the app, not a menu of the tabs below.
+ *
+ * The queries live here rather than in each card so pull-to-refresh can reload all of them at once.
+ */
+export default function TodayScreen() {
+  const today = new Date();
+  const dayParams = `day=${today.getDate()}&month=${today.getMonth() + 1}`;
 
-export default function HomeScreen() {
-  const router = useRouter();
+  const highlight = useApiQuery<StormHighlight[]>("/api/v1/storm-highlight");
+  const events = useApiQuery<OnThisDayStorm[]>(`/api/v1/on-this-day?${dayParams}`);
+  const active = useApiQuery<ActiveOnThisDayStorm[]>(`/api/v1/on-this-day-active?${dayParams}`);
+  const fact = useApiQuery<string | null>("/api/v1/random-fact");
+
+  const isAnyLoading =
+    highlight.isLoading || events.isLoading || active.isLoading || fact.isLoading;
+
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  // refetch() only flips isLoading on the render after the one that queued it, so clearing the
+  // spinner on "nothing is loading" alone would end it before the requests even start.
+  const hasStarted = useRef(false);
+
+  useEffect(() => {
+    if (!isRefreshing) return;
+    if (isAnyLoading) {
+      hasStarted.current = true;
+      return;
+    }
+    if (hasStarted.current) {
+      hasStarted.current = false;
+      setIsRefreshing(false);
+    }
+  }, [isRefreshing, isAnyLoading]);
+
+  const onRefresh = () => {
+    setIsRefreshing(true);
+    highlight.refetch();
+    events.refetch();
+    active.refetch();
+    fact.refetch();
+  };
 
   return (
-    <SafeAreaView style={styles.safe} edges={["top"]}>
-      <StatusBar style="dark" />
-
-      {/* Centred by flexGrow, not by a flex:1 View: on a short screen the hero scrolls
-          instead of clipping. */}
-      <ScrollView
-        contentContainerStyle={styles.hero}
-        showsVerticalScrollIndicator={false}
-        bounces={false}
-      >
-        <Image source={logo} style={styles.logo} contentFit="contain" transition={200} />
-        <Text style={styles.tagline}>Track typhoons and explore their names</Text>
-
-        <StormHighlightBadge />
-
-        <View style={styles.discover}>
-          <QuickActionsMenu />
-        </View>
-
-        <View style={styles.actions}>
-          <Pressable
-            style={({ pressed }) => [styles.button, styles.stormsButton, pressed && styles.pressed]}
-            onPress={() => router.navigate("/storms")}
-            accessibilityRole="button"
-          >
-            <Ionicons name="thunderstorm" size={20} color={COLOR.textInverse} />
-            <Text style={styles.buttonLabel}>Browse Storms</Text>
-          </Pressable>
-
-          <Pressable
-            style={({ pressed }) => [styles.button, styles.namesButton, pressed && styles.pressed]}
-            onPress={() => router.navigate("/names")}
-            accessibilityRole="button"
-          >
-            <Ionicons name="book" size={20} color={COLOR.accent} />
-            <Text style={[styles.buttonLabel, styles.namesLabel]}>Explore Names</Text>
-          </Pressable>
-        </View>
-      </ScrollView>
-
-      {/* Thay cho Footer của bản web: bản native không có footer, chỉ còn lối vào About */}
-      <View style={styles.footer}>
-        <Text style={styles.copyright}>
-          © {new Date().getFullYear()} {TITLE_COMMON}
-        </Text>
-        <Pressable
-          onPress={() => router.push("/about")}
-          hitSlop={8}
-          accessibilityRole="button"
-          accessibilityLabel="About this app"
-        >
-          <Text style={styles.aboutLink}>About</Text>
-        </Pressable>
-      </View>
-    </SafeAreaView>
+    <ScrollView
+      style={styles.root}
+      contentContainerStyle={styles.content}
+      showsVerticalScrollIndicator={false}
+      refreshControl={
+        <RefreshControl
+          refreshing={isRefreshing}
+          onRefresh={onRefresh}
+          tintColor={COLOR.accent}
+          colors={[COLOR.accent]}
+        />
+      }
+    >
+      <NowCard query={highlight} />
+      <OnThisDayCard events={events} active={active} />
+      <FunFactCard query={fact} />
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: {
+  root: {
     flex: 1,
-    backgroundColor: COLOR.accentSoft,
   },
-  hero: {
-    flexGrow: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: SPACE.xl,
-    paddingVertical: SPACE.xl,
+  content: {
+    paddingHorizontal: SPACE.lg,
+    paddingTop: SPACE.lg,
+    paddingBottom: SPACE.xl,
     gap: SPACE.lg,
-  },
-  logo: {
-    width: "100%",
-    maxWidth: 320,
-    aspectRatio: 400 / 134,
-  },
-  tagline: {
-    fontFamily: "OpenSans_600SemiBold",
-    fontSize: 17,
-    lineHeight: 24,
-    color: COLOR.text,
-    textAlign: "center",
-  },
-  discover: {
-    width: "100%",
-    maxWidth: 360,
-  },
-  actions: {
-    width: "100%",
-    maxWidth: 360,
-    gap: SPACE.md,
-  },
-  button: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 10,
-    height: 52,
-    borderRadius: RADIUS.lg,
-  },
-  stormsButton: {
-    backgroundColor: COLOR.accent,
-  },
-  namesButton: {
-    backgroundColor: COLOR.surface,
-    borderWidth: 1,
-    borderColor: COLOR.accentBorder,
-  },
-  pressed: {
-    opacity: 0.85,
-  },
-  buttonLabel: {
-    fontFamily: "OpenSans_600SemiBold",
-    fontSize: 16,
-    color: COLOR.textInverse,
-  },
-  namesLabel: {
-    color: COLOR.accent,
-  },
-  footer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: SPACE.xl,
-    paddingVertical: SPACE.md,
-  },
-  copyright: {
-    fontFamily: "OpenSans_400Regular",
-    fontSize: 12,
-    color: COLOR.textMuted,
-  },
-  aboutLink: {
-    fontFamily: "OpenSans_600SemiBold",
-    fontSize: 12,
-    color: COLOR.accent,
   },
 });

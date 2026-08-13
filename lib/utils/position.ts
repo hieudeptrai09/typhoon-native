@@ -4,6 +4,7 @@ import {
   GRID_ROWS,
   POSITION_SLUGS,
   SLUG_POSITIONS,
+  TOTAL_POSITIONS,
 } from "@/lib/constants/position";
 import type { PositionValue } from "@/lib/types";
 
@@ -24,6 +25,14 @@ export const getPositionTitle = (position: number): string => {
 // Positions outside the grid belong to another basin's agency (CPHC/NHC/IMD) rather than the naming table.
 export const isExternalPosition = (position?: number): boolean =>
   position !== undefined && (position < 1 || position > GRID_MAX);
+
+/** A position a detail screen can actually render: inside the grid, or one of the agency slots. */
+export const isKnownPosition = (position: number | null): position is number =>
+  position !== null && Number.isInteger(position) && position >= 1 && position <= TOTAL_POSITIONS;
+
+/** Next/previous in the paging order, wrapping at both ends. */
+export const stepPosition = (position: number, step: 1 | -1): number =>
+  ((position - 1 + step + TOTAL_POSITIONS) % TOTAL_POSITIONS) + 1;
 
 // Parse a grid label ("3I" / "3i") or a plain number ("37") into a 1–140 position, else null.
 export const parsePositionLabel = (input: string): number | null => {
