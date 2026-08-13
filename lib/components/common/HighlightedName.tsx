@@ -1,3 +1,4 @@
+import { COLOR } from "@/lib/constants/theme";
 import { StyleSheet, Text, type StyleProp, type TextStyle } from "react-native";
 
 const HighlightedName = ({
@@ -24,7 +25,7 @@ const HighlightedName = ({
 const styles = StyleSheet.create({
   match: {
     fontFamily: "OpenSans_700Bold",
-    color: "#0369a1",
+    color: COLOR.accent,
   },
 });
 

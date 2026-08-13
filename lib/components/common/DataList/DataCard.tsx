@@ -1,3 +1,4 @@
+import { COLOR } from "@/lib/constants/theme";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import type { ReactNode } from "react";
 import { StyleSheet, Text, View } from "react-native";
@@ -59,7 +60,7 @@ const DataCard = ({
         {trailing !== undefined && (
           <View style={styles.trailing}>{asNode(trailing, styles.trailingText)}</View>
         )}
-        {pressable && <Ionicons name="chevron-forward" size={16} color="#94a3b8" />}
+        {pressable && <Ionicons name="chevron-forward" size={16} color={COLOR.textFaint} />}
       </View>
 
       {fields && fields.length > 0 && (
@@ -79,11 +80,11 @@ const DataCard = ({
 const styles = StyleSheet.create({
   card: {
     flexDirection: "row",
-    backgroundColor: "#ffffff",
+    backgroundColor: COLOR.surface,
     borderRadius: 14,
     overflow: "hidden",
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: "#e2e8f0",
+    borderColor: COLOR.border,
   },
   accent: {
     width: 4,
@@ -103,14 +104,14 @@ const styles = StyleSheet.create({
     height: 26,
     paddingHorizontal: 6,
     borderRadius: 13,
-    backgroundColor: "#e0f2fe",
+    backgroundColor: COLOR.accentSoft,
     alignItems: "center",
     justifyContent: "center",
   },
   ordinalText: {
     fontFamily: "OpenSans_600SemiBold",
     fontSize: 12,
-    color: "#0369a1",
+    color: COLOR.accent,
   },
   titleBlock: {
     flex: 1,
@@ -119,12 +120,12 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: "OpenSans_700Bold",
     fontSize: 16,
-    color: "#0f172a",
+    color: COLOR.text,
   },
   subtitle: {
     fontFamily: "OpenSans_400Regular",
     fontSize: 12,
-    color: "#64748b",
+    color: COLOR.textMuted,
   },
   trailing: {
     alignItems: "flex-end",
@@ -132,7 +133,7 @@ const styles = StyleSheet.create({
   trailingText: {
     fontFamily: "OpenSans_600SemiBold",
     fontSize: 14,
-    color: "#334155",
+    color: COLOR.textSecondary,
   },
   fields: {
     flexDirection: "row",
@@ -152,13 +153,13 @@ const styles = StyleSheet.create({
     fontFamily: "OpenSans_600SemiBold",
     fontSize: 10,
     letterSpacing: 0.6,
-    color: "#94a3b8",
+    color: COLOR.textFaint,
   },
   fieldValue: {
     fontFamily: "OpenSans_500Medium",
     fontSize: 13,
     lineHeight: 19,
-    color: "#1e293b",
+    color: COLOR.text,
   },
 });
 

@@ -1,3 +1,4 @@
+import { COLOR } from "@/lib/constants/theme";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 
@@ -17,7 +18,7 @@ const TextField = ({ label, placeholder, value, onChangeText }: TextFieldProps) 
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
-        placeholderTextColor="#94a3b8"
+        placeholderTextColor={COLOR.textFaint}
         style={styles.input}
         autoCorrect={false}
         autoCapitalize="words"
@@ -31,7 +32,7 @@ const TextField = ({ label, placeholder, value, onChangeText }: TextFieldProps) 
           accessibilityRole="button"
           accessibilityLabel={`Clear ${label}`}
         >
-          <Ionicons name="close-circle" size={18} color="#94a3b8" />
+          <Ionicons name="close-circle" size={18} color={COLOR.textFaint} />
         </Pressable>
       )}
     </View>
@@ -45,7 +46,7 @@ const styles = StyleSheet.create({
   label: {
     fontFamily: "OpenSans_600SemiBold",
     fontSize: 13,
-    color: "#334155",
+    color: COLOR.textSecondary,
   },
   control: {
     flexDirection: "row",
@@ -55,14 +56,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: "#cbd5e1",
-    backgroundColor: "#ffffff",
+    borderColor: COLOR.borderStrong,
+    backgroundColor: COLOR.surface,
   },
   input: {
     flex: 1,
     fontFamily: "OpenSans_400Regular",
     fontSize: 15,
-    color: "#0f172a",
+    color: COLOR.text,
     paddingVertical: 10,
   },
 });

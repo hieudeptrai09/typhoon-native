@@ -1,9 +1,10 @@
 import { SPECIAL_POSITIONS } from "@/lib/constants";
+import { COLOR, SPACE } from "@/lib/constants/theme";
 import type { Storm } from "@/lib/types";
 import { sortNamesByFirstYear } from "@/lib/utils/storm/aggregate";
 import * as Haptics from "expo-haptics";
 import type { ReactNode } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 interface SpecialNamesListProps {
   stormsData: Storm[];
@@ -29,7 +30,7 @@ const SpecialNamesList = ({
 
     const names = sortNamesByFirstYear(Object.entries(nameMap)).map(([name, nameStorms]) => ({
       name,
-      color: nameColors?.[name] ?? "#374151",
+      color: nameColors?.[name] ?? COLOR.textSecondary,
       storms: nameStorms,
     }));
 
@@ -41,52 +42,62 @@ const SpecialNamesList = ({
   return (
     <View style={styles.root}>
       <Text style={styles.heading}>Other Regions</Text>
-      <View style={styles.columns}>
-        {stormsByPosition.map(({ id, label, names }) => (
-          <View key={id} style={styles.column}>
-            <Text style={styles.columnLabel}>{label}</Text>
-            <View style={styles.box}>
-              {names.length === 0 ? (
-                <Text style={styles.empty}>—</Text>
-              ) : (
-                names.map(({ name, color, storms }) => (
-                  <Pressable
-                    key={name}
-                    onPress={() => {
-                      Haptics.selectionAsync();
-                      onNameClick(name, storms);
-                    }}
-                    style={({ pressed }) => [styles.name, pressed && styles.pressed]}
-                    accessibilityRole="button"
-                    accessibilityLabel={`${name}, ${label} region`}
-                  >
-                    <Text style={[styles.nameLabel, { color }]} numberOfLines={1}>
-                      {name}
-                    </Text>
-                    {nameSubtitles?.[name] !== undefined && (
-                      <Text style={styles.subtitle}>{nameSubtitles[name]}</Text>
-                    )}
-                  </Pressable>
-                ))
-              )}
+      {/* Capped: these three agencies hold enough crossover names to squeeze the country pager
+          above into nothing if this block is left to grow. */}
+      <ScrollView style={styles.scroll} nestedScrollEnabled showsVerticalScrollIndicator={false}>
+        <View style={styles.columns}>
+          {stormsByPosition.map(({ id, label, names }) => (
+            <View key={id} style={styles.column}>
+              <Text style={styles.columnLabel}>{label}</Text>
+              <View style={styles.box}>
+                {names.length === 0 ? (
+                  <Text style={styles.empty}>—</Text>
+                ) : (
+                  names.map(({ name, color, storms }) => (
+                    <Pressable
+                      key={name}
+                      onPress={() => {
+                        Haptics.selectionAsync();
+                        onNameClick(name, storms);
+                      }}
+                      style={({ pressed }) => [styles.name, pressed && styles.pressed]}
+                      accessibilityRole="button"
+                      accessibilityLabel={`${name}, ${label} region`}
+                    >
+                      <Text style={[styles.nameLabel, { color }]} numberOfLines={1}>
+                        {name}
+                      </Text>
+                      {nameSubtitles?.[name] !== undefined && (
+                        <Text style={styles.subtitle}>{nameSubtitles[name]}</Text>
+                      )}
+                    </Pressable>
+                  ))
+                )}
+              </View>
             </View>
-          </View>
-        ))}
-      </View>
+          ))}
+        </View>
+      </ScrollView>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   root: {
-    gap: 8,
+    gap: SPACE.sm,
+    paddingHorizontal: SPACE.lg,
+    paddingBottom: SPACE.md,
+  },
+  scroll: {
+    flexGrow: 0,
+    maxHeight: 220,
   },
   heading: {
     fontFamily: "OpenSans_600SemiBold",
     fontSize: 11,
     letterSpacing: 1,
     textTransform: "uppercase",
-    color: "#64748b",
+    color: COLOR.textMuted,
   },
   columns: {
     flexDirection: "row",
@@ -100,7 +111,7 @@ const styles = StyleSheet.create({
     fontFamily: "OpenSans_600SemiBold",
     fontSize: 11,
     letterSpacing: 0.5,
-    color: "#64748b",
+    color: COLOR.textMuted,
     textAlign: "center",
   },
   box: {
@@ -109,13 +120,13 @@ const styles = StyleSheet.create({
     padding: 6,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: "#d6d3d1",
-    backgroundColor: "#ffffff",
+    borderColor: COLOR.borderStrong,
+    backgroundColor: COLOR.surface,
   },
   empty: {
     fontFamily: "OpenSans_400Regular",
     fontSize: 12,
-    color: "#94a3b8",
+    color: COLOR.textFaint,
     textAlign: "center",
     paddingVertical: 8,
   },
@@ -128,7 +139,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   pressed: {
-    backgroundColor: "#f1f5f9",
+    backgroundColor: COLOR.surfaceMuted,
   },
   nameLabel: {
     fontFamily: "OpenSans_600SemiBold",
@@ -137,7 +148,7 @@ const styles = StyleSheet.create({
   subtitle: {
     fontFamily: "OpenSans_400Regular",
     fontSize: 10,
-    color: "#6b7280",
+    color: COLOR.textMuted,
     fontVariant: ["tabular-nums"],
   },
 });

@@ -4,6 +4,7 @@ import {
   FILTER_OPTIONS,
   MODE_OPTIONS,
 } from "@/lib/components/dashboard/options";
+import { COLOR, SPACE } from "@/lib/constants/theme";
 import type { DashboardParams } from "@/lib/types";
 import { isGridOnly, isListOnly, paramsForFilter, paramsForView } from "@/lib/utils/storm/routing";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -67,7 +68,7 @@ const DashboardControlBar = ({ params, onChange }: DashboardControlBarProps) => 
               <Ionicons
                 name={DASHBOARD_ICON_MAP.view[key]}
                 size={15}
-                color={isActive ? "#ffffff" : "#475569"}
+                color={isActive ? COLOR.textInverse : COLOR.textBody}
               />
               <Text style={[styles.tabLabel, isActive && styles.tabLabelActive]} numberOfLines={1}>
                 {label}
@@ -78,26 +79,25 @@ const DashboardControlBar = ({ params, onChange }: DashboardControlBarProps) => 
       </ScrollView>
 
       <View style={styles.controls}>
-        <View style={styles.control}>
+        <View style={styles.controlHead}>
           <Text style={styles.controlLabel}>Group by</Text>
-          <SegmentedControl
-            scrollable
-            options={filterOptions}
-            value={filter || filterOptions[0]?.value}
-            onChange={(next) => onChange(paramsForFilter(view, next, mode))}
-            accessibilityLabel="Select grouping option"
-          />
+          <View style={styles.modeSlot}>
+            <SegmentedControl
+              options={modeOptions}
+              value={mode}
+              onChange={(next) => onChange({ view, filter, mode: next })}
+              accessibilityLabel="Select display mode"
+            />
+          </View>
         </View>
 
-        <View style={styles.control}>
-          <Text style={styles.controlLabel}>Display as</Text>
-          <SegmentedControl
-            options={modeOptions}
-            value={mode}
-            onChange={(next) => onChange({ view, filter, mode: next })}
-            accessibilityLabel="Select display mode"
-          />
-        </View>
+        <SegmentedControl
+          scrollable
+          options={filterOptions}
+          value={filter || filterOptions[0]?.value}
+          onChange={(next) => onChange(paramsForFilter(view, next, mode))}
+          accessibilityLabel="Select grouping option"
+        />
       </View>
     </View>
   );
@@ -105,16 +105,16 @@ const DashboardControlBar = ({ params, onChange }: DashboardControlBarProps) => 
 
 const styles = StyleSheet.create({
   root: {
-    gap: 12,
-    paddingTop: 12,
-    paddingBottom: 14,
+    gap: SPACE.md,
+    paddingTop: SPACE.md,
+    paddingBottom: SPACE.md,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#cbd5e1",
+    borderBottomColor: COLOR.borderStrong,
   },
   tabs: {
     flexDirection: "row",
-    gap: 8,
-    paddingHorizontal: 16,
+    gap: SPACE.sm,
+    paddingHorizontal: SPACE.lg,
   },
   tab: {
     flexDirection: "row",
@@ -124,12 +124,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     borderRadius: 18,
     borderWidth: 1,
-    borderColor: "#cbd5e1",
-    backgroundColor: "#ffffff",
+    borderColor: COLOR.borderStrong,
+    backgroundColor: COLOR.surface,
   },
   tabActive: {
-    backgroundColor: "#0369a1",
-    borderColor: "#0369a1",
+    backgroundColor: COLOR.accent,
+    borderColor: COLOR.accent,
   },
   pressed: {
     opacity: 0.6,
@@ -137,24 +137,30 @@ const styles = StyleSheet.create({
   tabLabel: {
     fontFamily: "OpenSans_600SemiBold",
     fontSize: 13,
-    color: "#475569",
+    color: COLOR.textBody,
   },
   tabLabelActive: {
-    color: "#ffffff",
+    color: COLOR.textInverse,
   },
   controls: {
-    gap: 10,
-    paddingHorizontal: 16,
+    gap: SPACE.sm,
+    paddingHorizontal: SPACE.lg,
   },
-  control: {
-    gap: 6,
+  controlHead: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: SPACE.md,
+  },
+  modeSlot: {
+    flexShrink: 1,
   },
   controlLabel: {
     fontFamily: "OpenSans_600SemiBold",
     fontSize: 11,
     letterSpacing: 1,
     textTransform: "uppercase",
-    color: "#64748b",
+    color: COLOR.textMuted,
   },
 });
 

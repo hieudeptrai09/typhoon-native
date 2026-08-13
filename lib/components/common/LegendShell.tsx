@@ -1,3 +1,4 @@
+import { COLOR, SPACE } from "@/lib/constants/theme";
 import type { ReactNode } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
@@ -32,10 +33,12 @@ export const LegendItem = ({ label, color }: LegendItemProps) => (
 
 const styles = StyleSheet.create({
   root: {
-    marginTop: 20,
-    paddingTop: 16,
+    paddingHorizontal: SPACE.lg,
+    paddingTop: SPACE.md,
+    paddingBottom: SPACE.md,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: "#cbd5e1",
+    borderTopColor: COLOR.borderStrong,
+    backgroundColor: COLOR.background,
   },
   items: {
     flexDirection: "row",
@@ -47,7 +50,7 @@ const styles = StyleSheet.create({
   label: {
     fontFamily: "OpenSans_600SemiBold",
     fontSize: 12,
-    color: "#475569",
+    color: COLOR.textBody,
   },
   item: {
     flexDirection: "row",
@@ -60,13 +63,13 @@ const styles = StyleSheet.create({
     borderRadius: 3,
   },
   swatchEmpty: {
-    backgroundColor: "#f1f5f9",
+    backgroundColor: COLOR.surfaceMuted,
     borderWidth: 1,
-    borderColor: "#cbd5e1",
+    borderColor: COLOR.borderStrong,
   },
   itemLabel: {
     fontFamily: "OpenSans_400Regular",
     fontSize: 12,
-    color: "#475569",
+    color: COLOR.textBody,
   },
 });

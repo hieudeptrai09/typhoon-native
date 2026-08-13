@@ -4,6 +4,7 @@ import NameDetailsContent from "@/lib/components/name/NameDetailsContent";
 import NameStatusIcon from "@/lib/components/name/NameStatusIcon";
 import StormCard from "@/lib/components/storm/StormCard";
 import StormStats from "@/lib/components/storm/StormStats";
+import { COLOR } from "@/lib/constants/theme";
 import type { RetiredName, RetirementReason, SearchDetail, Storm, TyphoonName } from "@/lib/types";
 import { getNameStatusBgColor, getNameStatusColor } from "@/lib/utils/colors";
 import { isExternalPosition } from "@/lib/utils/position";
@@ -73,7 +74,7 @@ function InfoPagination({ names, currentIndex }: { names: string[]; currentIndex
         accessibilityRole="button"
         accessibilityLabel={`Previous name, ${prevName}`}
       >
-        <Ionicons name="chevron-back" size={16} color="#ffffff" />
+        <Ionicons name="chevron-back" size={16} color={COLOR.textInverse} />
         <Text style={styles.pageLabel} numberOfLines={1}>
           {prevName.toLowerCase()}
         </Text>
@@ -88,7 +89,7 @@ function InfoPagination({ names, currentIndex }: { names: string[]; currentIndex
         <Text style={styles.pageLabel} numberOfLines={1}>
           {nextName.toLowerCase()}
         </Text>
-        <Ionicons name="chevron-forward" size={16} color="#ffffff" />
+        <Ionicons name="chevron-forward" size={16} color={COLOR.textInverse} />
       </Pressable>
     </View>
   );
@@ -112,7 +113,7 @@ export default function InfoPageContent({
 
   const titleColor = nameData
     ? getNameStatusColor({ ...nameData, isExternal: !isInPosition })
-    : "#334155";
+    : COLOR.textSecondary;
 
   const correctSpelling = storms[0]?.correctSpelling;
   const metaCountry = nameData?.country ?? storms[0]?.country;
@@ -210,12 +211,12 @@ const styles = StyleSheet.create({
   metaText: {
     fontFamily: "OpenSans_600SemiBold",
     fontSize: 15,
-    color: "#334155",
+    color: COLOR.textSecondary,
   },
   metaPosition: {
     fontFamily: "OpenSans_400Regular",
     fontSize: 15,
-    color: "#475569",
+    color: COLOR.textBody,
   },
   badge: {
     paddingHorizontal: 12,
@@ -231,18 +232,18 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: "#e2e8f0",
-    backgroundColor: "#ffffff",
+    borderColor: COLOR.border,
+    backgroundColor: COLOR.surface,
   },
   sectionTitle: {
     fontFamily: "OpenSans_700Bold",
     fontSize: 17,
-    color: "#334155",
+    color: COLOR.textSecondary,
   },
   empty: {
     fontFamily: "OpenSans_400Regular",
     fontSize: 14,
-    color: "#64748b",
+    color: COLOR.textMuted,
     textAlign: "center",
     paddingVertical: 12,
   },
@@ -257,7 +258,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
     paddingTop: 16,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: "#cbd5e1",
+    borderTopColor: COLOR.borderStrong,
   },
   pageButton: {
     flex: 1,
@@ -268,7 +269,7 @@ const styles = StyleSheet.create({
     minHeight: 44,
     paddingHorizontal: 14,
     borderRadius: 10,
-    backgroundColor: "#0369a1",
+    backgroundColor: COLOR.accent,
   },
   pressed: {
     opacity: 0.8,
@@ -277,7 +278,7 @@ const styles = StyleSheet.create({
     flexShrink: 1,
     fontFamily: "OpenSans_600SemiBold",
     fontSize: 14,
-    color: "#ffffff",
+    color: COLOR.textInverse,
     textTransform: "capitalize",
   },
 });

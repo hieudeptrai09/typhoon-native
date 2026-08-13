@@ -1,4 +1,5 @@
 import SortSheet from "@/lib/components/common/DataList/SortSheet";
+import { COLOR, SPACE } from "@/lib/constants/theme";
 import {
   applySort,
   cycleCriterion,
@@ -59,7 +60,7 @@ const DataList = <T,>({
       <Pressable
         onPress={() => onRowPress(item)}
         style={({ pressed }) => [styles.item, pressed && styles.itemPressed]}
-        android_ripple={{ color: "#dbeafe" }}
+        android_ripple={{ color: COLOR.accentSoft }}
         accessibilityRole="button"
       >
         {card}
@@ -88,7 +89,7 @@ const DataList = <T,>({
               <Ionicons
                 name="swap-vertical"
                 size={16}
-                color={active.length > 0 ? "#ffffff" : "#334155"}
+                color={active.length > 0 ? COLOR.textInverse : COLOR.textSecondary}
               />
               <Text style={[styles.sortLabel, active.length > 0 && styles.sortLabelActive]}>
                 Sort{active.length > 0 ? ` · ${active.length}` : ""}
@@ -120,7 +121,7 @@ const DataList = <T,>({
                   <Ionicons
                     name={criterion.order === "ascend" ? "arrow-up" : "arrow-down"}
                     size={13}
-                    color="#0369a1"
+                    color={COLOR.accent}
                   />
                 </Pressable>
               ))}
@@ -162,9 +163,9 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     paddingBottom: 8,
     gap: 8,
-    backgroundColor: "#f5f5f4",
+    backgroundColor: COLOR.background,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#e2e8f0",
+    borderBottomColor: COLOR.border,
   },
   toolbarRow: {
     flexDirection: "row",
@@ -176,7 +177,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontFamily: "OpenSans_500Medium",
     fontSize: 13,
-    color: "#64748b",
+    color: COLOR.textMuted,
   },
   sortButton: {
     flexDirection: "row",
@@ -185,21 +186,21 @@ const styles = StyleSheet.create({
     height: 36,
     paddingHorizontal: 14,
     borderRadius: 18,
-    backgroundColor: "#ffffff",
+    backgroundColor: COLOR.surface,
     borderWidth: 1,
-    borderColor: "#cbd5e1",
+    borderColor: COLOR.borderStrong,
   },
   sortButtonActive: {
-    backgroundColor: "#0284c7",
-    borderColor: "#0284c7",
+    backgroundColor: COLOR.accent,
+    borderColor: COLOR.accent,
   },
   sortLabel: {
     fontFamily: "OpenSans_600SemiBold",
     fontSize: 13,
-    color: "#334155",
+    color: COLOR.textSecondary,
   },
   sortLabelActive: {
-    color: "#ffffff",
+    color: COLOR.textInverse,
   },
   pressed: {
     opacity: 0.7,
@@ -215,20 +216,21 @@ const styles = StyleSheet.create({
     height: 28,
     paddingHorizontal: 10,
     borderRadius: 14,
-    backgroundColor: "#e0f2fe",
+    backgroundColor: COLOR.accentSoft,
   },
   chipRank: {
     fontFamily: "OpenSans_700Bold",
     fontSize: 11,
-    color: "#0284c7",
+    color: COLOR.accent,
   },
   chipLabel: {
     fontFamily: "OpenSans_600SemiBold",
     fontSize: 12,
-    color: "#0c4a6e",
+    color: COLOR.accent,
   },
   content: {
-    padding: 16,
+    padding: SPACE.lg,
+    paddingBottom: SPACE.xxl,
     gap: 10,
   },
   contentEmpty: {

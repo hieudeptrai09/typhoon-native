@@ -1,4 +1,5 @@
 import DefModal from "@/lib/components/common/DefModal";
+import { COLOR } from "@/lib/constants/theme";
 import type { BaseModalProps, Storm } from "@/lib/types";
 import { getDistanceColor } from "@/lib/utils/colors";
 import { formatStormDateRange } from "@/lib/utils/date";
@@ -99,7 +100,7 @@ const styles = StyleSheet.create({
   summaryLabel: {
     fontFamily: "OpenSans_400Regular",
     fontSize: 14,
-    color: "#475569",
+    color: COLOR.textBody,
   },
   summaryValue: {
     fontFamily: "OpenSans_700Bold",
@@ -109,14 +110,14 @@ const styles = StyleSheet.create({
   caption: {
     fontFamily: "OpenSans_400Regular",
     fontSize: 14,
-    color: "#475569",
+    color: COLOR.textBody,
     marginTop: 12,
     marginBottom: 8,
   },
   empty: {
     fontFamily: "OpenSans_400Regular",
     fontSize: 13,
-    color: "#64748b",
+    color: COLOR.textMuted,
   },
   gap: {
     flexDirection: "row",
@@ -162,7 +163,7 @@ const styles = StyleSheet.create({
     flexShrink: 1,
     fontFamily: "OpenSans_400Regular",
     fontSize: 12,
-    color: "#64748b",
+    color: COLOR.textMuted,
   },
 });
 

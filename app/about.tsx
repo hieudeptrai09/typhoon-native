@@ -1,4 +1,5 @@
 import { TITLE_COMMON } from "@/lib/constants";
+import { COLOR, SPACE } from "@/lib/constants/theme";
 import { IconName } from "@/lib/types";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import * as WebBrowser from "expo-web-browser";
@@ -36,7 +37,7 @@ interface SectionHeadingProps {
 
 const SectionHeading = ({ icon, title }: SectionHeadingProps) => (
   <View style={styles.heading}>
-    <Ionicons name={icon} size={20} color="#2563eb" />
+    <Ionicons name={icon} size={20} color={COLOR.accent} />
     <Text style={styles.headingText}>{title}</Text>
   </View>
 );
@@ -78,7 +79,7 @@ export default function AboutScreen() {
                 <Text style={styles.sourceName}>{source.name}</Text>
                 <Text style={styles.sourceDetail}>{source.detail}</Text>
               </View>
-              <Ionicons name="open-outline" size={16} color="#94a3b8" />
+              <Ionicons name="open-outline" size={16} color={COLOR.textFaint} />
             </Pressable>
           ))}
         </View>
@@ -126,7 +127,7 @@ export default function AboutScreen() {
           accessibilityRole="link"
           accessibilityLabel="Open our Facebook page"
         >
-          <Ionicons name="logo-facebook" size={18} color="#ffffff" />
+          <Ionicons name="logo-facebook" size={18} color={COLOR.textInverse} />
           <Text style={styles.facebookLabel}>Facebook</Text>
         </Pressable>
       </View>
@@ -141,12 +142,12 @@ export default function AboutScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: "#f5f5f4",
+    backgroundColor: COLOR.background,
   },
   content: {
-    padding: 20,
+    padding: SPACE.lg,
     paddingBottom: 40,
-    gap: 24,
+    gap: SPACE.xl,
   },
   section: {
     gap: 8,
@@ -159,21 +160,21 @@ const styles = StyleSheet.create({
   headingText: {
     fontFamily: "OpenSans_600SemiBold",
     fontSize: 17,
-    color: "#334155",
+    color: COLOR.textSecondary,
   },
   body: {
     fontFamily: "OpenSans_400Regular",
     fontSize: 15,
     lineHeight: 23,
-    color: "#475569",
+    color: COLOR.textBody,
   },
   emphasis: {
     fontFamily: "OpenSans_600SemiBold",
-    color: "#334155",
+    color: COLOR.textSecondary,
   },
   link: {
     fontFamily: "OpenSans_600SemiBold",
-    color: "#2563eb",
+    color: COLOR.accent,
   },
   sourceList: {
     gap: 10,
@@ -187,8 +188,8 @@ const styles = StyleSheet.create({
     padding: 14,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#e2e8f0",
-    backgroundColor: "#ffffff",
+    borderColor: COLOR.border,
+    backgroundColor: COLOR.surface,
   },
   sourceTextBlock: {
     flex: 1,
@@ -197,25 +198,25 @@ const styles = StyleSheet.create({
   sourceName: {
     fontFamily: "OpenSans_600SemiBold",
     fontSize: 15,
-    color: "#2563eb",
+    color: COLOR.accent,
   },
   sourceDetail: {
     fontFamily: "OpenSans_400Regular",
     fontSize: 13,
     lineHeight: 19,
-    color: "#64748b",
+    color: COLOR.textMuted,
   },
   licenseBox: {
     marginTop: 4,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#e2e8f0",
-    backgroundColor: "#f8fafc",
+    borderColor: COLOR.border,
+    backgroundColor: COLOR.surfaceSubtle,
   },
   licenseParagraph: {
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "#e2e8f0",
+    borderBottomColor: COLOR.border,
   },
   lastParagraph: {
     borderBottomWidth: 0,
@@ -227,13 +228,13 @@ const styles = StyleSheet.create({
     gap: 8,
     height: 46,
     borderRadius: 12,
-    backgroundColor: "#2563eb",
+    backgroundColor: COLOR.accent,
     marginTop: 8,
   },
   facebookLabel: {
     fontFamily: "OpenSans_600SemiBold",
     fontSize: 15,
-    color: "#ffffff",
+    color: COLOR.textInverse,
   },
   pressed: {
     opacity: 0.85,
@@ -241,7 +242,7 @@ const styles = StyleSheet.create({
   copyright: {
     fontFamily: "OpenSans_400Regular",
     fontSize: 12,
-    color: "#94a3b8",
+    color: COLOR.textFaint,
     textAlign: "center",
   },
 });

@@ -1,3 +1,4 @@
+import { COLOR } from "@/lib/constants/theme";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { ActivityIndicator, Pressable, StyleSheet, TextInput, View } from "react-native";
 
@@ -15,13 +16,13 @@ const SearchField = ({
   placeholder = "Search typhoon names",
 }: SearchFieldProps) => (
   <View style={styles.root}>
-    <Ionicons name="search" size={18} color="#64748b" />
+    <Ionicons name="search" size={18} color={COLOR.textMuted} />
 
     <TextInput
       value={value}
       onChangeText={onChangeText}
       placeholder={placeholder}
-      placeholderTextColor="#94a3b8"
+      placeholderTextColor={COLOR.textFaint}
       style={styles.input}
       // Names are proper nouns the keyboard would otherwise capitalise and autocorrect into
       // ordinary words, and the query is matched case-insensitively anyway.
@@ -32,7 +33,7 @@ const SearchField = ({
     />
 
     {isLoading ? (
-      <ActivityIndicator size="small" color="#64748b" />
+      <ActivityIndicator size="small" color={COLOR.textMuted} />
     ) : value.length > 0 ? (
       <Pressable
         onPress={() => onChangeText("")}
@@ -40,7 +41,7 @@ const SearchField = ({
         accessibilityRole="button"
         accessibilityLabel="Clear search"
       >
-        <Ionicons name="close-circle" size={18} color="#94a3b8" />
+        <Ionicons name="close-circle" size={18} color={COLOR.textFaint} />
       </Pressable>
     ) : null}
   </View>
@@ -57,13 +58,13 @@ const styles = StyleSheet.create({
     marginBottom: 4,
     paddingHorizontal: 14,
     borderRadius: 12,
-    backgroundColor: "#e2e8f0",
+    backgroundColor: COLOR.surfaceSunken,
   },
   input: {
     flex: 1,
     fontFamily: "OpenSans_400Regular",
     fontSize: 15,
-    color: "#1e293b",
+    color: COLOR.text,
     // Android pads its inputs by default, which pushes the text off the row's centre line.
     paddingVertical: 0,
   },

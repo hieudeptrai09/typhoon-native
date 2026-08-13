@@ -1,3 +1,4 @@
+import { COLOR } from "@/lib/constants/theme";
 import type { IconName } from "@/lib/types";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import type { ReactNode } from "react";
@@ -13,7 +14,7 @@ const EmptyResults = ({
   action?: ReactNode;
 }) => (
   <View style={styles.root}>
-    <Ionicons name={icon} size={56} color="#94a3b8" />
+    <Ionicons name={icon} size={56} color={COLOR.textFaint} />
     <Text style={styles.description}>{description}</Text>
     {action ? <View style={styles.action}>{action}</View> : null}
   </View>
@@ -31,7 +32,7 @@ const styles = StyleSheet.create({
     fontFamily: "OpenSans_400Regular",
     fontSize: 14,
     lineHeight: 21,
-    color: "#64748b",
+    color: COLOR.textMuted,
     textAlign: "center",
   },
   action: {

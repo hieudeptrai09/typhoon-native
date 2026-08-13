@@ -1,5 +1,6 @@
 import CountryFlag from "@/lib/components/common/CountryFlag";
 import DataList, { DataCard } from "@/lib/components/common/DataList";
+import ScreenScroll from "@/lib/components/common/ScreenScroll";
 import DistanceGrid from "@/lib/components/dashboard/grids/DistanceGrid";
 import DistanceNameGrid from "@/lib/components/dashboard/views/DistanceNameGrid";
 import SpecialButtons from "@/lib/components/dashboard/widgets/SpecialButtons";
@@ -9,7 +10,6 @@ import { getPositionTitle } from "@/lib/utils/position";
 import { calculateDistances, formatDistance, getGroupedStorms } from "@/lib/utils/storm/aggregate";
 import type { SortField } from "@/lib/utils/table";
 import { useMemo } from "react";
-import { StyleSheet, View } from "react-native";
 
 interface DistanceViewProps {
   params: DashboardParams;
@@ -109,7 +109,7 @@ const DistanceView = ({ params, stormsData, onCellClick }: DistanceViewProps) =>
 
   if (params.mode === "table" && filterType === "position") {
     return (
-      <View style={styles.stack}>
+      <ScreenScroll>
         <DistanceGrid
           onCellClick={onCellClick}
           stormsData={stormsData}
@@ -122,7 +122,7 @@ const DistanceView = ({ params, stormsData, onCellClick }: DistanceViewProps) =>
           averageValues={null}
           distanceValues={distanceValuesForGrid}
         />
-      </View>
+      </ScreenScroll>
     );
   }
 
@@ -161,12 +161,5 @@ const DistanceView = ({ params, stormsData, onCellClick }: DistanceViewProps) =>
     />
   );
 };
-
-const styles = StyleSheet.create({
-  stack: {
-    flex: 1,
-    gap: 16,
-  },
-});
 
 export default DistanceView;

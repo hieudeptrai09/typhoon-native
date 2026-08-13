@@ -1,4 +1,5 @@
 import { SPECIAL_POSITIONS, TEXT_COLOR_WHITE_BACKGROUND } from "@/lib/constants";
+import { COLOR } from "@/lib/constants/theme";
 import { getAvgDateColor, getDistanceColor } from "@/lib/utils/colors";
 import { getIntensityFromNumber } from "@/lib/utils/storm/aggregate";
 import { formatDayOfYear, getDoyMonth, type AvgDates } from "@/lib/utils/storm/dates";
@@ -44,7 +45,7 @@ const SpecialButtons = ({
         suffix: "",
       };
     }
-    return { color: "#374151", suffix: "" };
+    return { color: COLOR.textSecondary, suffix: "" };
   };
 
   return (
@@ -85,7 +86,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     letterSpacing: 1,
     textTransform: "uppercase",
-    color: "#64748b",
+    color: COLOR.textMuted,
   },
   row: {
     flexDirection: "row",
@@ -103,8 +104,8 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: "#cbd5e1",
-    backgroundColor: "#ffffff",
+    borderColor: COLOR.borderStrong,
+    backgroundColor: COLOR.surface,
   },
   pressed: {
     opacity: 0.6,
@@ -116,7 +117,7 @@ const styles = StyleSheet.create({
   suffix: {
     fontFamily: "OpenSans_400Regular",
     fontSize: 11,
-    color: "#64748b",
+    color: COLOR.textMuted,
     fontVariant: ["tabular-nums"],
   },
 });

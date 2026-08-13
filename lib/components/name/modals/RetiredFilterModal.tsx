@@ -2,6 +2,7 @@ import DefModal from "@/lib/components/common/DefModal";
 import OptionPicker from "@/lib/components/common/OptionPicker";
 import TextField from "@/lib/components/common/TextField";
 import PositionSelect from "@/lib/components/name/widgets/PositionSelect";
+import { COLOR } from "@/lib/constants/theme";
 import {
   type BaseModalProps,
   type PositionValue,
@@ -204,7 +205,7 @@ const styles = StyleSheet.create({
   groupLabel: {
     fontFamily: "OpenSans_600SemiBold",
     fontSize: 13,
-    color: "#334155",
+    color: COLOR.textSecondary,
   },
   footer: {
     flexDirection: "row",
@@ -216,30 +217,30 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#cbd5e1",
+    borderColor: COLOR.borderStrong,
     alignItems: "center",
     justifyContent: "center",
   },
   clearLabel: {
     fontFamily: "OpenSans_600SemiBold",
     fontSize: 14,
-    color: "#475569",
+    color: COLOR.textBody,
   },
   apply: {
     flex: 1,
     height: 44,
     borderRadius: 12,
-    backgroundColor: "#2563eb",
+    backgroundColor: COLOR.accent,
     alignItems: "center",
     justifyContent: "center",
   },
   applyDisabled: {
-    backgroundColor: "#cbd5e1",
+    backgroundColor: COLOR.borderStrong,
   },
   applyLabel: {
     fontFamily: "OpenSans_600SemiBold",
     fontSize: 15,
-    color: "#ffffff",
+    color: COLOR.textInverse,
   },
   pressed: {
     opacity: 0.7,

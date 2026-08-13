@@ -1,3 +1,4 @@
+import { COLOR } from "@/lib/constants/theme";
 import type { IconName } from "@/lib/types";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import * as Haptics from "expo-haptics";
@@ -53,7 +54,7 @@ const SegmentedControl = <T extends string = string>({
           <Ionicons
             name={option.icon}
             size={14}
-            color={option.disabled ? "#cbd5e1" : isActive ? "#0369a1" : "#64748b"}
+            color={option.disabled ? COLOR.disabled : isActive ? COLOR.accent : COLOR.textMuted}
           />
         )}
         <Text
@@ -92,7 +93,7 @@ const styles = StyleSheet.create({
     gap: 4,
     padding: 3,
     borderRadius: 11,
-    backgroundColor: "#e2e8f0",
+    backgroundColor: COLOR.surfaceSunken,
   },
   segment: {
     flexDirection: "row",
@@ -108,7 +109,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   segmentActive: {
-    backgroundColor: "#ffffff",
+    backgroundColor: COLOR.surface,
   },
   segmentDisabled: {
     opacity: 0.5,
@@ -119,13 +120,13 @@ const styles = StyleSheet.create({
   label: {
     fontFamily: "OpenSans_600SemiBold",
     fontSize: 13,
-    color: "#64748b",
+    color: COLOR.textMuted,
   },
   labelActive: {
-    color: "#0369a1",
+    color: COLOR.accent,
   },
   disabled: {
-    color: "#cbd5e1",
+    color: COLOR.disabled,
   },
 });
 

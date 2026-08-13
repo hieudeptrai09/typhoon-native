@@ -2,6 +2,7 @@ import CountryFlag from "@/lib/components/common/CountryFlag";
 import EmptyResults from "@/lib/components/common/EmptyResults";
 import ImageCredit from "@/lib/components/common/ImageCredit";
 import ImageWithLoader from "@/lib/components/common/ImageWithLoader";
+import { COLOR } from "@/lib/constants/theme";
 import type { IconName, RetiredName, TyphoonName } from "@/lib/types";
 import { capitalize } from "@/lib/utils/format";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -9,7 +10,7 @@ import * as WebBrowser from "expo-web-browser";
 import type { ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
-const ROW_ICON_COLOR = "#64748b";
+const ROW_ICON_COLOR = COLOR.textMuted;
 
 export interface NameDetailsContentProps {
   name: TyphoonName | RetiredName | null;
@@ -107,7 +108,7 @@ const NameDetailsContent = ({
                 accessibilityRole="button"
                 accessibilityLabel={`Listen to the pronunciation of ${capitalize(name.name.toLowerCase())}`}
               >
-                <Ionicons name="volume-high-outline" size={16} color="#334155" />
+                <Ionicons name="volume-high-outline" size={16} color={COLOR.textSecondary} />
               </Pressable>
             ) : null}
           </InfoRow>
@@ -145,10 +146,10 @@ const styles = StyleSheet.create({
     borderRadius: 999,
   },
   statusRetired: {
-    backgroundColor: "#ffe4e6",
+    backgroundColor: COLOR.dangerSoft,
   },
   statusActive: {
-    backgroundColor: "#d1fae5",
+    backgroundColor: COLOR.successSoft,
   },
   dot: {
     width: 6,
@@ -156,20 +157,20 @@ const styles = StyleSheet.create({
     borderRadius: 3,
   },
   dotRetired: {
-    backgroundColor: "#f43f5e",
+    backgroundColor: COLOR.danger,
   },
   dotActive: {
-    backgroundColor: "#10b981",
+    backgroundColor: COLOR.success,
   },
   statusLabel: {
     fontFamily: "OpenSans_500Medium",
     fontSize: 12,
   },
   statusLabelRetired: {
-    color: "#e11d48",
+    color: COLOR.danger,
   },
   statusLabelActive: {
-    color: "#047857",
+    color: COLOR.success,
   },
   header: {
     gap: 6,
@@ -178,19 +179,19 @@ const styles = StyleSheet.create({
     fontFamily: "OpenSans_600SemiBold",
     fontSize: 17,
     lineHeight: 23,
-    color: "#334155",
+    color: COLOR.textSecondary,
   },
   description: {
     fontFamily: "OpenSans_400Regular",
     fontSize: 14,
     lineHeight: 21,
-    color: "#64748b",
+    color: COLOR.textMuted,
   },
   image: {
     width: "100%",
     height: 176,
     borderRadius: 12,
-    backgroundColor: "#f8fafc",
+    backgroundColor: COLOR.surfaceSubtle,
   },
   rows: {
     gap: 10,
@@ -216,16 +217,16 @@ const styles = StyleSheet.create({
   rowText: {
     fontFamily: "OpenSans_400Regular",
     fontSize: 14,
-    color: "#475569",
+    color: COLOR.textBody,
   },
   rowStrong: {
     fontFamily: "OpenSans_500Medium",
     fontSize: 14,
-    color: "#334155",
+    color: COLOR.textSecondary,
   },
   crossRefValue: {
     fontFamily: "OpenSans_600SemiBold",
-    color: "#0d9488",
+    color: COLOR.accent,
   },
 });
 

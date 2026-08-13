@@ -1,3 +1,4 @@
+import { COLOR } from "@/lib/constants/theme";
 import { StyleSheet, Text, View } from "react-native";
 
 // The grid's 14 columns are these countries in this order, so the map doubles as
@@ -71,11 +72,11 @@ const styles = StyleSheet.create({
   name: {
     fontFamily: "OpenSans_500Medium",
     fontSize: 13,
-    color: "#334155",
+    color: COLOR.textSecondary,
   },
   fallback: {
     fontFamily: "OpenSans_500Medium",
-    color: "#64748b",
+    color: COLOR.textMuted,
   },
 });
 

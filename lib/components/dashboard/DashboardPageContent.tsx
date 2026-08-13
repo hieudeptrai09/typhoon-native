@@ -14,6 +14,7 @@ import HighlightsView from "@/lib/components/dashboard/views/HighlightsView";
 import StormsView from "@/lib/components/dashboard/views/StormsView";
 import DashboardControlBar from "@/lib/components/dashboard/widgets/DashboardControlBar";
 import { MONTH_NAMES } from "@/lib/constants";
+import { COLOR, SPACE } from "@/lib/constants/theme";
 import type { DashboardParams, Storm } from "@/lib/types";
 import { getPositionTitle } from "@/lib/utils/position";
 import {
@@ -242,8 +243,9 @@ const styles = StyleSheet.create({
   hint: {
     fontFamily: "OpenSans_400Regular",
     fontSize: 14,
-    color: "#64748b",
+    color: COLOR.textMuted,
     textAlign: "center",
-    paddingVertical: 32,
+    paddingHorizontal: SPACE.xl,
+    paddingVertical: SPACE.xxl,
   },
 });

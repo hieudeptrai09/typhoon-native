@@ -4,6 +4,7 @@ import EmptyResults from "@/lib/components/common/EmptyResults";
 import HighlightedName from "@/lib/components/common/HighlightedName";
 import NameStatusIcon from "@/lib/components/name/NameStatusIcon";
 import DidYouMean from "@/lib/components/search/DidYouMean";
+import { COLOR } from "@/lib/constants/theme";
 import type { SearchResult } from "@/lib/types";
 import { getPositionTitle } from "@/lib/utils/position";
 import type { SortField } from "@/lib/utils/table";
@@ -101,6 +102,6 @@ const styles = StyleSheet.create({
   name: {
     fontFamily: "OpenSans_700Bold",
     fontSize: 16,
-    color: "#0369a1",
+    color: COLOR.accent,
   },
 });

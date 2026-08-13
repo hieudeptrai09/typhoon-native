@@ -1,3 +1,4 @@
+import { COLOR } from "@/lib/constants/theme";
 import { Link } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
@@ -37,7 +38,7 @@ const styles = StyleSheet.create({
   label: {
     fontFamily: "OpenSans_600SemiBold",
     fontSize: 14,
-    color: "#334155",
+    color: COLOR.textSecondary,
   },
   chips: {
     flexDirection: "row",
@@ -51,8 +52,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 18,
     borderWidth: 1,
-    borderColor: "#bae6fd",
-    backgroundColor: "#f0f9ff",
+    borderColor: COLOR.accentBorder,
+    backgroundColor: COLOR.accentSoft,
   },
   pressed: {
     opacity: 0.7,
@@ -60,7 +61,7 @@ const styles = StyleSheet.create({
   chipLabel: {
     fontFamily: "OpenSans_600SemiBold",
     fontSize: 14,
-    color: "#0369a1",
+    color: COLOR.accent,
     textTransform: "capitalize",
   },
 });

@@ -1,5 +1,6 @@
 import ImageCredit from "@/lib/components/common/ImageCredit";
 import ImageWithLoader from "@/lib/components/common/ImageWithLoader";
+import { COLOR } from "@/lib/constants/theme";
 import type { Suggestion } from "@/lib/types";
 import { StyleSheet, Text, View } from "react-native";
 
@@ -52,12 +53,12 @@ const styles = StyleSheet.create({
     borderWidth: 2,
   },
   cardChosen: {
-    backgroundColor: "#dbeafe",
-    borderColor: "#3b82f6",
+    backgroundColor: COLOR.accentSoft,
+    borderColor: COLOR.accent,
   },
   cardPlain: {
-    backgroundColor: "#f1f5f9",
-    borderColor: "#e2e8f0",
+    backgroundColor: COLOR.surfaceMuted,
+    borderColor: COLOR.border,
   },
   header: {
     flexDirection: "row",
@@ -68,19 +69,19 @@ const styles = StyleSheet.create({
     flexShrink: 1,
     fontFamily: "OpenSans_600SemiBold",
     fontSize: 16,
-    color: "#334155",
+    color: COLOR.textSecondary,
   },
   badge: {
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 5,
-    backgroundColor: "#3b82f6",
+    backgroundColor: COLOR.accent,
   },
   badgeLabel: {
     fontFamily: "OpenSans_600SemiBold",
     fontSize: 10,
     letterSpacing: 0.5,
-    color: "#ffffff",
+    color: COLOR.textInverse,
   },
   body: {
     flexDirection: "row",
@@ -92,7 +93,7 @@ const styles = StyleSheet.create({
     fontFamily: "OpenSans_400Regular",
     fontSize: 14,
     lineHeight: 21,
-    color: "#475569",
+    color: COLOR.textBody,
   },
   imageBlock: {
     width: 120,
@@ -103,8 +104,8 @@ const styles = StyleSheet.create({
     aspectRatio: 4 / 3,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: "#e5e7eb",
-    backgroundColor: "#e5e7eb",
+    borderColor: COLOR.border,
+    backgroundColor: COLOR.surfaceSunken,
   },
 });
 

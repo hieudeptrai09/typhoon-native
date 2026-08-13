@@ -1,3 +1,4 @@
+import { COLOR } from "@/lib/constants/theme";
 import * as Haptics from "expo-haptics";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
@@ -62,11 +63,11 @@ const styles = StyleSheet.create({
     borderBottomColor: "transparent",
   },
   letterActive: {
-    borderBottomColor: "#0369a1",
-    backgroundColor: "#f0f9ff",
+    borderBottomColor: COLOR.accent,
+    backgroundColor: COLOR.accentSoft,
   },
   letterPressed: {
-    backgroundColor: "#e2e8f0",
+    backgroundColor: COLOR.surfaceSunken,
   },
   label: {
     fontFamily: "OpenSans_600SemiBold",

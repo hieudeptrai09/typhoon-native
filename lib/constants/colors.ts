@@ -1,3 +1,4 @@
+import { COLOR } from "@/lib/constants/theme";
 import type { IntensityType } from "@/lib/types";
 
 export const BACKGROUND_BADGE: Record<IntensityType, string> = {
@@ -36,10 +37,10 @@ export const TEXT_COLOR_WHITE_BACKGROUND: Record<IntensityType, string> = {
   5: "#AA00AA",
 };
 
-export const DISTANCE_NA_COLOR = "#6b7280";
-export const DISTANCE_SHORT_COLOR = "#dc2626";
+export const DISTANCE_NA_COLOR = COLOR.textMuted;
+export const DISTANCE_SHORT_COLOR = COLOR.danger;
 export const DISTANCE_STANDARD_COLOR = "#4d7c0f";
-export const DISTANCE_LONG_COLOR = "#2563eb";
+export const DISTANCE_LONG_COLOR = COLOR.accent;
 
 export const AVG_DATE_MONTH_COLOR: Record<number, string> = {
   6: "#1d4ed8", // June — blue
@@ -65,10 +66,10 @@ export const HIGHLIGHT_EMPTY_CELL_COLOR = "#f1f5f9";
 export const GRID_EMPTY_CELL_COLOR = "#e2e8f0";
 
 export const RETIRED_REASON_COLOR: Record<string, string> = {
-  destructive: "#dc2626",
+  destructive: COLOR.danger,
   language: "#9333ea",
-  misspell: "#d97706",
-  special: "#334155",
+  misspell: COLOR.warning,
+  special: COLOR.textSecondary,
 };
 
-export const RETIRED_REASON_FALLBACK_COLOR = "#dc2626";
+export const RETIRED_REASON_FALLBACK_COLOR = COLOR.danger;

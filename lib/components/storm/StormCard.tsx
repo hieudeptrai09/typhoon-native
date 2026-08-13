@@ -1,6 +1,7 @@
 import ImageWithLoader from "@/lib/components/common/ImageWithLoader";
 import StormHighlightBadges, { hasHighlight } from "@/lib/components/storm/StormHighlightBadges";
 import { BACKGROUND_BADGE, INTENSITY_LABEL, TEXT_COLOR_BADGE } from "@/lib/constants";
+import { COLOR } from "@/lib/constants/theme";
 import type { Storm } from "@/lib/types";
 import { formatStormDateRange } from "@/lib/utils/date";
 import { getZoomEarthUrl } from "@/lib/utils/format";
@@ -53,7 +54,7 @@ const StormCard = ({ storm }: { storm: Storm }) => {
         accessibilityLabel={`View ${storm.name} ${storm.year} on Zoom Earth`}
       >
         <Text style={styles.linkLabel}>Zoom Earth</Text>
-        <Ionicons name="open-outline" size={12} color="#0369a1" />
+        <Ionicons name="open-outline" size={12} color={COLOR.accent} />
       </Pressable>
     </View>
   );
@@ -64,8 +65,8 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#e2e8f0",
-    backgroundColor: "#ffffff",
+    borderColor: COLOR.border,
+    backgroundColor: COLOR.surface,
   },
   header: {
     minHeight: 104,
@@ -94,7 +95,7 @@ const styles = StyleSheet.create({
   map: {
     height: 176,
     width: "100%",
-    backgroundColor: "#f8fafc",
+    backgroundColor: COLOR.surfaceSubtle,
   },
   link: {
     flexDirection: "row",
@@ -103,15 +104,15 @@ const styles = StyleSheet.create({
     minHeight: 44,
     paddingHorizontal: 16,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: "#e2e8f0",
+    borderTopColor: COLOR.border,
   },
   pressed: {
-    backgroundColor: "#f1f5f9",
+    backgroundColor: COLOR.surfaceMuted,
   },
   linkLabel: {
     fontFamily: "OpenSans_600SemiBold",
     fontSize: 12,
-    color: "#0369a1",
+    color: COLOR.accent,
   },
 });
 

@@ -6,6 +6,7 @@ import ImageWithLoader from "@/lib/components/common/ImageWithLoader";
 import StormCard from "@/lib/components/storm/StormCard";
 import StormStats from "@/lib/components/storm/StormStats";
 import { BACKGROUND_BADGE, TEXT_COLOR_WHITE_BACKGROUND } from "@/lib/constants";
+import { COLOR } from "@/lib/constants/theme";
 import type { PositionDetail, RetiredName, Storm, TyphoonName } from "@/lib/types";
 import { getDistanceColor, getNameStatusColor } from "@/lib/utils/colors";
 import { getPositionSlug, getPositionTitle } from "@/lib/utils/position";
@@ -55,7 +56,7 @@ function PositionPagination({ position }: { position: number }) {
         accessibilityRole="button"
         accessibilityLabel={`Previous position, ${getPositionTitle(prevPosition)}`}
       >
-        <Ionicons name="chevron-back" size={16} color="#ffffff" />
+        <Ionicons name="chevron-back" size={16} color={COLOR.textInverse} />
         <Text style={styles.pageLabel}>{getPositionTitle(prevPosition)}</Text>
       </Pressable>
 
@@ -74,7 +75,7 @@ function PositionPagination({ position }: { position: number }) {
         accessibilityLabel={`Next position, ${getPositionTitle(nextPosition)}`}
       >
         <Text style={styles.pageLabel}>{getPositionTitle(nextPosition)}</Text>
-        <Ionicons name="chevron-forward" size={16} color="#ffffff" />
+        <Ionicons name="chevron-forward" size={16} color={COLOR.textInverse} />
       </Pressable>
     </View>
   );
@@ -279,7 +280,7 @@ export default function PositionPageContent({
   const titleColor =
     storms.length > 0
       ? TEXT_COLOR_WHITE_BACKGROUND[getIntensityFromNumber(calculateAverage(storms))]
-      : "#64748b";
+      : COLOR.textMuted;
 
   return (
     <ScrollView
@@ -327,25 +328,25 @@ const styles = StyleSheet.create({
     flexShrink: 1,
     fontFamily: "OpenSans_400Regular",
     fontSize: 15,
-    color: "#475569",
+    color: COLOR.textBody,
   },
   section: {
     gap: 16,
     padding: 16,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: "#e2e8f0",
-    backgroundColor: "#ffffff",
+    borderColor: COLOR.border,
+    backgroundColor: COLOR.surface,
   },
   sectionTitle: {
     fontFamily: "OpenSans_700Bold",
     fontSize: 17,
-    color: "#334155",
+    color: COLOR.textSecondary,
   },
   empty: {
     fontFamily: "OpenSans_400Regular",
     fontSize: 14,
-    color: "#64748b",
+    color: COLOR.textMuted,
     textAlign: "center",
     paddingVertical: 12,
   },
@@ -363,7 +364,7 @@ const styles = StyleSheet.create({
     borderRadius: 7,
     marginTop: 3,
     borderWidth: 2,
-    borderColor: "#ffffff",
+    borderColor: COLOR.surface,
   },
   timelineBody: {
     flex: 1,
@@ -374,7 +375,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     letterSpacing: 0.8,
     textTransform: "uppercase",
-    color: "#64748b",
+    color: COLOR.textMuted,
   },
   nameLine: {
     flexDirection: "row",
@@ -390,18 +391,18 @@ const styles = StyleSheet.create({
   original: {
     fontFamily: "OpenSans_400Regular",
     fontSize: 15,
-    color: "#475569",
+    color: COLOR.textBody,
   },
   language: {
     fontFamily: "OpenSans_400Regular",
     fontSize: 12,
-    color: "#64748b",
+    color: COLOR.textMuted,
   },
   meaning: {
     fontFamily: "OpenSans_400Regular_Italic",
     fontSize: 14,
     lineHeight: 20,
-    color: "#0d9488",
+    color: COLOR.textBody,
   },
   succeeded: {
     fontFamily: "OpenSans_600SemiBold",
@@ -412,7 +413,7 @@ const styles = StyleSheet.create({
     fontFamily: "OpenSans_400Regular_Italic",
     fontSize: 12,
     lineHeight: 18,
-    color: "#64748b",
+    color: COLOR.textMuted,
   },
   timelineImageBlock: {
     width: 144,
@@ -423,8 +424,8 @@ const styles = StyleSheet.create({
     aspectRatio: 4 / 3,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: "#e2e8f0",
-    backgroundColor: "#f8fafc",
+    borderColor: COLOR.border,
+    backgroundColor: COLOR.surfaceSubtle,
   },
   group: {
     gap: 12,
@@ -435,12 +436,12 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 8,
     borderLeftWidth: 4,
-    backgroundColor: "#f8fafc",
+    backgroundColor: COLOR.surfaceSubtle,
   },
   groupName: {
     fontFamily: "OpenSans_600SemiBold",
     fontSize: 15,
-    color: "#334155",
+    color: COLOR.textSecondary,
   },
   groupStats: {
     flexDirection: "row",
@@ -451,11 +452,11 @@ const styles = StyleSheet.create({
   stat: {
     fontFamily: "OpenSans_400Regular",
     fontSize: 13,
-    color: "#475569",
+    color: COLOR.textBody,
   },
   statValue: {
     fontFamily: "OpenSans_600SemiBold",
-    color: "#334155",
+    color: COLOR.textSecondary,
   },
   cards: {
     gap: 16,
@@ -468,7 +469,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
     paddingTop: 16,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: "#cbd5e1",
+    borderTopColor: COLOR.borderStrong,
   },
   pageButton: {
     flexDirection: "row",
@@ -477,10 +478,10 @@ const styles = StyleSheet.create({
     minHeight: 44,
     paddingHorizontal: 12,
     borderRadius: 10,
-    backgroundColor: "#0369a1",
+    backgroundColor: COLOR.accent,
   },
   pageButtonWrap: {
-    backgroundColor: "#6b7280",
+    backgroundColor: COLOR.textMuted,
   },
   pressed: {
     opacity: 0.8,
@@ -488,12 +489,12 @@ const styles = StyleSheet.create({
   pageLabel: {
     fontFamily: "OpenSans_600SemiBold",
     fontSize: 14,
-    color: "#ffffff",
+    color: COLOR.textInverse,
   },
   pageCounter: {
     fontFamily: "OpenSans_400Regular",
     fontSize: 13,
-    color: "#64748b",
+    color: COLOR.textMuted,
     fontVariant: ["tabular-nums"],
   },
 });

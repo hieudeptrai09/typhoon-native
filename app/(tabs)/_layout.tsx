@@ -1,8 +1,9 @@
+import { COLOR } from "@/lib/constants/theme";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Tabs } from "expo-router";
 
-const ACTIVE = "#2563eb";
-const INACTIVE = "#64748b";
+const ACTIVE = COLOR.accent;
+const INACTIVE = COLOR.textMuted;
 
 export default function TabsLayout() {
   return (
@@ -11,9 +12,9 @@ export default function TabsLayout() {
         tabBarActiveTintColor: ACTIVE,
         tabBarInactiveTintColor: INACTIVE,
         tabBarLabelStyle: { fontFamily: "OpenSans_500Medium", fontSize: 11 },
-        sceneStyle: { backgroundColor: "#f5f5f4" },
-        headerStyle: { backgroundColor: "#2563eb" },
-        headerTintColor: "#ffffff",
+        sceneStyle: { backgroundColor: COLOR.background },
+        headerStyle: { backgroundColor: COLOR.accent },
+        headerTintColor: COLOR.textInverse,
         headerTitleStyle: { fontFamily: "OpenSans_600SemiBold" },
       }}
     >

@@ -1,6 +1,7 @@
 import DefModal from "@/lib/components/common/DefModal";
 import ImageCredit from "@/lib/components/common/ImageCredit";
 import ImageWithLoader from "@/lib/components/common/ImageWithLoader";
+import { COLOR } from "@/lib/constants/theme";
 import type { BaseModalProps, StormHistoryEntry, TyphoonName } from "@/lib/types";
 import { getNameStatusColor } from "@/lib/utils/colors";
 import { getPositionTitle } from "@/lib/utils/position";
@@ -103,7 +104,7 @@ const HistoryModal = ({ isOpen, onClose, position, positionNames, storms }: Hist
                     <Ionicons
                       name={isExpanded ? "chevron-up" : "chevron-down"}
                       size={14}
-                      color="#94a3b8"
+                      color={COLOR.textFaint}
                     />
                   )}
                 </Pressable>
@@ -134,7 +135,7 @@ const styles = StyleSheet.create({
   empty: {
     fontFamily: "OpenSans_400Regular",
     fontSize: 14,
-    color: "#64748b",
+    color: COLOR.textMuted,
     textAlign: "center",
     paddingVertical: 20,
   },
@@ -155,18 +156,18 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   headExpanded: {
-    backgroundColor: "#f0f9ff",
+    backgroundColor: COLOR.accentSoft,
     borderBottomLeftRadius: 0,
     borderBottomRightRadius: 0,
   },
   pressed: {
-    backgroundColor: "#f1f5f9",
+    backgroundColor: COLOR.surfaceMuted,
   },
   count: {
     minWidth: 30,
     fontFamily: "OpenSans_700Bold",
     fontSize: 13,
-    color: "#475569",
+    color: COLOR.textBody,
     fontVariant: ["tabular-nums"],
   },
   entryBody: {
@@ -183,30 +184,30 @@ const styles = StyleSheet.create({
   },
   years: {
     fontSize: 13,
-    color: "#475569",
+    color: COLOR.textBody,
   },
   language: {
     fontSize: 12,
-    color: "#64748b",
+    color: COLOR.textMuted,
   },
   meaning: {
     fontFamily: "OpenSans_400Regular_Italic",
     fontSize: 12,
     lineHeight: 18,
-    color: "#0f766e",
+    color: COLOR.textBody,
   },
   description: {
     fontFamily: "OpenSans_400Regular",
     fontSize: 12,
     lineHeight: 18,
-    color: "#475569",
+    color: COLOR.textBody,
   },
   imagePanel: {
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: "#bae6fd",
-    backgroundColor: "#f0f9ff",
+    borderTopColor: COLOR.accentBorder,
+    backgroundColor: COLOR.accentSoft,
   },
   imageBox: {
     alignSelf: "center",
@@ -217,8 +218,8 @@ const styles = StyleSheet.create({
     aspectRatio: 4 / 3,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: "#e5e7eb",
-    backgroundColor: "#f8fafc",
+    borderColor: COLOR.border,
+    backgroundColor: COLOR.surfaceSubtle,
   },
 });
 

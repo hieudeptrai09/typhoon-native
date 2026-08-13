@@ -1,5 +1,6 @@
 import CountryFlag from "@/lib/components/common/CountryFlag";
 import DataList, { DataCard } from "@/lib/components/common/DataList";
+import ScreenScroll from "@/lib/components/common/ScreenScroll";
 import HighlightsGrid from "@/lib/components/dashboard/grids/HighlightsGrid";
 import IntensityBadge from "@/lib/components/storm/IntensityBadge";
 import { SORTING_RANK } from "@/lib/constants";
@@ -49,11 +50,13 @@ const HighlightsView = ({ params, stormsData }: HighlightsViewProps) => {
 
   if (params.mode === "table") {
     return (
-      <HighlightsGrid
-        stormsData={stormsData}
-        highlightedStorms={highlights}
-        highlightType={params.filter}
-      />
+      <ScreenScroll>
+        <HighlightsGrid
+          stormsData={stormsData}
+          highlightedStorms={highlights}
+          highlightType={params.filter}
+        />
+      </ScreenScroll>
     );
   }
 

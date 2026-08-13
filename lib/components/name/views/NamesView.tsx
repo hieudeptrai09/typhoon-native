@@ -7,6 +7,7 @@ import NameDetailsModal from "@/lib/components/name/modals/NameDetailsModal";
 import FilteredNamesTable from "@/lib/components/name/tables/FilteredNamesTable";
 import PositionNameGrid from "@/lib/components/name/widgets/PositionNameGrid";
 import { defaultTyphoonName } from "@/lib/constants";
+import { COLOR, SPACE } from "@/lib/constants/theme";
 import type { FilterParams, StormHistoryEntry, TyphoonName } from "@/lib/types";
 import { writeDisplayPrefs, type NamesDisplayPrefs } from "@/lib/utils/name/displayPrefs";
 import { toArr } from "@/lib/utils/params";
@@ -250,18 +251,14 @@ const NamesView = ({
     const status = letterStatusMap[target];
     const isActive = currentLetter === target;
 
-    if (!status?.[0]) return { isAvailable: false, color: "#cbd5e1" };
+    if (!status?.[0]) return { isAvailable: false, color: COLOR.disabled };
 
     const hasRetired = status[1];
     const hasAlive = status[2];
 
-    if (hasRetired && hasAlive) {
-      return { isAvailable: true, color: isActive ? "#1e40af" : "#2563eb", isActive };
-    }
-    if (hasRetired) {
-      return { isAvailable: true, color: isActive ? "#991b1b" : "#dc2626", isActive };
-    }
-    return { isAvailable: true, color: isActive ? "#166534" : "#16a34a", isActive };
+    if (hasRetired && hasAlive) return { isAvailable: true, color: COLOR.accent, isActive };
+    if (hasRetired) return { isAvailable: true, color: COLOR.danger, isActive };
+    return { isAvailable: true, color: COLOR.success, isActive };
   };
 
   return (
@@ -281,7 +278,7 @@ const NamesView = ({
           onPress={handleToggleLetterNav}
           label={showLetterNav ? "Letter navigation is on" : "Letter navigation is off"}
         >
-          <Ionicons name="text-outline" size={24} color="#334155" />
+          <Ionicons name="text-outline" size={24} color={COLOR.textSecondary} />
         </SlashToggleButton>
 
         {displayMode === "grid" && (
@@ -290,7 +287,7 @@ const NamesView = ({
             onPress={() => onShowNameChange(!showName)}
             label={!showName ? "Category icons are on" : "Category icons are off"}
           >
-            <Ionicons name="pricetag-outline" size={24} color="#334155" />
+            <Ionicons name="pricetag-outline" size={24} color={COLOR.textSecondary} />
           </SlashToggleButton>
         )}
 
@@ -304,7 +301,7 @@ const NamesView = ({
           accessibilityRole="button"
           accessibilityLabel={`Open filters${activeFilterCount > 0 ? `, ${activeFilterCount} active` : ""}`}
         >
-          <Ionicons name="funnel-outline" size={24} color="#334155" />
+          <Ionicons name="funnel-outline" size={24} color={COLOR.textSecondary} />
           {activeFilterCount > 0 && (
             <View style={styles.badge}>
               <Text style={styles.badgeLabel}>{activeFilterCount}</Text>
@@ -369,9 +366,9 @@ const styles = StyleSheet.create({
   toolbar: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
-    paddingHorizontal: 12,
-    paddingBottom: 8,
+    gap: SPACE.sm,
+    paddingHorizontal: SPACE.lg,
+    paddingBottom: SPACE.sm,
   },
   layout: {
     flex: 1,
@@ -390,18 +387,18 @@ const styles = StyleSheet.create({
     height: 16,
     paddingHorizontal: 4,
     borderRadius: 8,
-    backgroundColor: "#ef4444",
+    backgroundColor: COLOR.danger,
     alignItems: "center",
     justifyContent: "center",
   },
   badgeLabel: {
     fontFamily: "OpenSans_700Bold",
     fontSize: 10,
-    color: "#ffffff",
+    color: COLOR.textInverse,
   },
   letters: {
-    paddingHorizontal: 12,
-    paddingBottom: 8,
+    paddingHorizontal: SPACE.lg,
+    paddingBottom: SPACE.sm,
   },
 });
 

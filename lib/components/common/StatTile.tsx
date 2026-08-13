@@ -1,3 +1,4 @@
+import { COLOR } from "@/lib/constants/theme";
 import type { ReactNode } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
@@ -20,19 +21,19 @@ const StatTile = ({ label, hint, children }: StatTileProps) => (
 const styles = StyleSheet.create({
   root: {
     borderRadius: 8,
-    backgroundColor: "#f8fafc",
+    backgroundColor: COLOR.surfaceSubtle,
     paddingHorizontal: 12,
     paddingVertical: 8,
   },
   label: {
     fontFamily: "OpenSans_400Regular",
     fontSize: 13,
-    color: "#475569",
+    color: COLOR.textBody,
   },
   value: {
     fontFamily: "OpenSans_700Bold",
     fontSize: 17,
-    color: "#0f172a",
+    color: COLOR.text,
     fontVariant: ["tabular-nums"],
   },
 });

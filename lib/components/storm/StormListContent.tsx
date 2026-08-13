@@ -4,6 +4,7 @@ import ImageWithLoader from "@/lib/components/common/ImageWithLoader";
 import StormHighlightBadges, { hasHighlight } from "@/lib/components/storm/StormHighlightBadges";
 import StormStats from "@/lib/components/storm/StormStats";
 import { BACKGROUND_BADGE, INTENSITY_LABEL, TEXT_COLOR_WHITE_BACKGROUND } from "@/lib/constants";
+import { COLOR } from "@/lib/constants/theme";
 import type { Storm } from "@/lib/types";
 import { formatStormDateRange } from "@/lib/utils/date";
 import { getZoomEarthUrl } from "@/lib/utils/format";
@@ -55,7 +56,7 @@ function StormRow({ storm, showMap }: { storm: Storm; showMap: boolean }) {
           accessibilityLabel={`View ${storm.name} ${storm.year} on Zoom Earth`}
         >
           <Text style={styles.linkLabel}>Zoom Earth</Text>
-          <Ionicons name="open-outline" size={12} color="#0369a1" />
+          <Ionicons name="open-outline" size={12} color={COLOR.accent} />
         </Pressable>
       </View>
     </View>
@@ -89,8 +90,8 @@ const StormListContent = ({ storms }: StormListContentProps) => {
             <Switch
               value={showMap}
               onValueChange={setShowMap}
-              trackColor={{ false: "#cbd5e1", true: "#7dd3fc" }}
-              thumbColor={showMap ? "#0369a1" : "#f8fafc"}
+              trackColor={{ false: COLOR.disabled, true: COLOR.accentBorder }}
+              thumbColor={showMap ? COLOR.accent : COLOR.surfaceSubtle}
               accessibilityLabel="Show storm track map"
             />
           </View>
@@ -117,7 +118,7 @@ const styles = StyleSheet.create({
     gap: 12,
     paddingBottom: 16,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#cbd5e1",
+    borderBottomColor: COLOR.borderStrong,
   },
   summaryHeader: {
     flexDirection: "row",
@@ -134,12 +135,12 @@ const styles = StyleSheet.create({
   originName: {
     fontFamily: "OpenSans_500Medium",
     fontSize: 13,
-    color: "#334155",
+    color: COLOR.textSecondary,
   },
   position: {
     fontFamily: "OpenSans_400Regular",
     fontSize: 13,
-    color: "#9ca3af",
+    color: COLOR.textFaint,
   },
   toggle: {
     flexDirection: "row",
@@ -149,7 +150,7 @@ const styles = StyleSheet.create({
   toggleLabel: {
     fontFamily: "OpenSans_600SemiBold",
     fontSize: 13,
-    color: "#475569",
+    color: COLOR.textBody,
   },
   list: {
     gap: 6,
@@ -157,7 +158,7 @@ const styles = StyleSheet.create({
   listHeading: {
     fontFamily: "OpenSans_600SemiBold",
     fontSize: 15,
-    color: "#334155",
+    color: COLOR.textSecondary,
     marginBottom: 2,
   },
   row: {
@@ -166,7 +167,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 8,
     borderLeftWidth: 4,
-    backgroundColor: "#f8fafc",
+    backgroundColor: COLOR.surfaceSubtle,
   },
   rowMap: {
     height: 192,
@@ -174,7 +175,7 @@ const styles = StyleSheet.create({
     marginBottom: 6,
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: "#e5e7eb",
+    borderColor: COLOR.border,
   },
   rowBadges: {
     marginBottom: 2,
@@ -193,7 +194,7 @@ const styles = StyleSheet.create({
     flexShrink: 1,
     fontFamily: "OpenSans_400Regular",
     fontSize: 12,
-    color: "#64748b",
+    color: COLOR.textMuted,
   },
   link: {
     flexDirection: "row",
@@ -206,7 +207,7 @@ const styles = StyleSheet.create({
   linkLabel: {
     fontFamily: "OpenSans_600SemiBold",
     fontSize: 12,
-    color: "#0369a1",
+    color: COLOR.accent,
   },
 });
 

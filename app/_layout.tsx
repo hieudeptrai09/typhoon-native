@@ -1,3 +1,4 @@
+import { COLOR } from "@/lib/constants/theme";
 import {
   OpenSans_400Regular,
   OpenSans_400Regular_Italic,
@@ -34,9 +35,9 @@ export default function RootLayout() {
       <StatusBar style="light" />
       <Stack
         screenOptions={{
-          contentStyle: { backgroundColor: "#f5f5f4" },
-          headerStyle: { backgroundColor: "#2563eb" },
-          headerTintColor: "#ffffff",
+          contentStyle: { backgroundColor: COLOR.background },
+          headerStyle: { backgroundColor: COLOR.accent },
+          headerTintColor: COLOR.textInverse,
           headerTitleStyle: { fontFamily: "OpenSans_600SemiBold" },
           headerBackButtonDisplayMode: "minimal",
         }}
