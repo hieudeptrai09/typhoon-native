@@ -1,9 +1,12 @@
+import { COLOR } from "@/lib/constants/theme";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   Animated,
+  KeyboardAvoidingView,
   Modal,
   PanResponder,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -101,43 +104,53 @@ const DefModal = ({ open = true, onClose, title, footer, children }: DefModalPro
           />
         </Animated.View>
 
-        <Animated.View
-          style={[styles.sheet, { paddingBottom: insets.bottom + 12, transform: [{ translateY }] }]}
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={styles.avoider}
+          pointerEvents="box-none"
         >
-          <View {...pan.panHandlers}>
-            <View style={styles.grabber} />
-            {title !== undefined && (
-              <View style={styles.header}>
-                {typeof title === "string" ? (
-                  <Text style={styles.title} numberOfLines={2}>
-                    {title}
-                  </Text>
-                ) : (
-                  <View style={styles.titleSlot}>{title}</View>
-                )}
-                <Pressable
-                  onPress={onClose}
-                  hitSlop={12}
-                  style={styles.close}
-                  accessibilityRole="button"
-                  accessibilityLabel="Close"
-                >
-                  <Ionicons name="close" size={22} color="#475569" />
-                </Pressable>
-              </View>
-            )}
-          </View>
-
-          <ScrollView
-            style={styles.body}
-            contentContainerStyle={styles.bodyContent}
-            showsVerticalScrollIndicator={false}
+          <Animated.View
+            style={[
+              styles.sheet,
+              { paddingBottom: insets.bottom + 12, transform: [{ translateY }] },
+            ]}
           >
-            {children}
-          </ScrollView>
+            <View {...pan.panHandlers}>
+              <View style={styles.grabber} />
+              {title !== undefined && (
+                <View style={styles.header}>
+                  {typeof title === "string" ? (
+                    <Text style={styles.title} numberOfLines={2}>
+                      {title}
+                    </Text>
+                  ) : (
+                    <View style={styles.titleSlot}>{title}</View>
+                  )}
+                  <Pressable
+                    onPress={onClose}
+                    hitSlop={12}
+                    style={styles.close}
+                    accessibilityRole="button"
+                    accessibilityLabel="Close"
+                  >
+                    <Ionicons name="close" size={22} color={COLOR.textBody} />
+                  </Pressable>
+                </View>
+              )}
+            </View>
 
-          {footer ? <View style={styles.footer}>{footer}</View> : null}
-        </Animated.View>
+            <ScrollView
+              style={styles.body}
+              contentContainerStyle={styles.bodyContent}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+            >
+              {children}
+            </ScrollView>
+
+            {footer ? <View style={styles.footer}>{footer}</View> : null}
+          </Animated.View>
+        </KeyboardAvoidingView>
       </View>
     </Modal>
   );
@@ -150,11 +163,17 @@ const styles = StyleSheet.create({
   },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(15, 23, 42, 0.5)",
+    backgroundColor: COLOR.overlay,
+  },
+  // flex:1 is load-bearing: without it the sheet's percentage maxHeight has no height to
+  // resolve against and the sheet can grow past the screen.
+  avoider: {
+    flex: 1,
+    justifyContent: "flex-end",
   },
   sheet: {
     maxHeight: "88%",
-    backgroundColor: "#ffffff",
+    backgroundColor: COLOR.surface,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     paddingHorizontal: 20,
@@ -164,7 +183,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 4,
     borderRadius: 2,
-    backgroundColor: "#cbd5e1",
+    backgroundColor: COLOR.borderStrong,
     marginTop: 8,
     marginBottom: 8,
   },
@@ -174,7 +193,7 @@ const styles = StyleSheet.create({
     gap: 12,
     paddingBottom: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#cbd5e1",
+    borderBottomColor: COLOR.borderStrong,
   },
   titleSlot: {
     flex: 1,
@@ -183,7 +202,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontFamily: "OpenSans_700Bold",
     fontSize: 18,
-    color: "#0f172a",
+    color: COLOR.text,
   },
   close: {
     padding: 2,
@@ -198,7 +217,7 @@ const styles = StyleSheet.create({
   footer: {
     paddingTop: 12,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: "#cbd5e1",
+    borderTopColor: COLOR.borderStrong,
   },
 });
 

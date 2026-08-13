@@ -1,6 +1,7 @@
 import { COUNTRY_NAMES } from "@/lib/components/common/CountryFlag";
 import OptionPicker, { type PickerOption } from "@/lib/components/common/OptionPicker";
 import { GRID_ROWS } from "@/lib/constants";
+import { COLOR } from "@/lib/constants/theme";
 import { type PositionValue } from "@/lib/types";
 import { positionColumnLetter } from "@/lib/utils/position";
 import { StyleSheet, Text, View } from "react-native";
@@ -75,12 +76,12 @@ const styles = StyleSheet.create({
     fontFamily: "OpenSans_400Regular",
     fontSize: 12,
     lineHeight: 17,
-    color: "#64748b",
+    color: COLOR.textMuted,
   },
   error: {
     fontFamily: "OpenSans_500Medium",
     fontSize: 12,
-    color: "#dc2626",
+    color: COLOR.danger,
   },
 });
 

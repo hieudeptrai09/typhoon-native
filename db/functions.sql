@@ -66,7 +66,7 @@ LEFT JOIN catfisha_typhoons.imagelicenses il ON tn.imagelicenseid = il.id;
 
 CREATE OR REPLACE FUNCTION public.get_storms(p_position integer DEFAULT NULL)
 RETURNS TABLE (
-    position integer,
+    "position" integer,
     country text,
     name text,
     intensity text,
@@ -94,7 +94,7 @@ AS $$
 $$;
 
 CREATE OR REPLACE FUNCTION public.get_storm_history()
-RETURNS TABLE (name text, position integer, year integer)
+RETURNS TABLE (name text, "position" integer, year integer)
 LANGUAGE sql
 STABLE
 SECURITY DEFINER
@@ -179,7 +179,7 @@ RETURNS TABLE (
     id text,
     name text,
     meaning text,
-    position integer,
+    "position" integer,
     country text,
     "isRetired" boolean,
     "isReplaced" boolean,
@@ -303,7 +303,7 @@ CREATE OR REPLACE FUNCTION public.search_names(p_query text)
 RETURNS TABLE (
     id text,
     name text,
-    position integer,
+    "position" integer,
     country text,
     "isRetired" boolean,
     "retirementReason" text,
@@ -364,7 +364,7 @@ CREATE OR REPLACE FUNCTION public.get_on_this_day(p_day integer, p_month integer
 RETURNS TABLE (
     name text,
     intensity text,
-    position integer,
+    "position" integer,
     year integer,
     "dateStart" text,
     "dateEnd" text
@@ -392,7 +392,7 @@ CREATE OR REPLACE FUNCTION public.get_active_on_this_day(p_day integer, p_month 
 RETURNS TABLE (
     name text,
     intensity text,
-    position integer,
+    "position" integer,
     year integer,
     "dateStart" text,
     "dateEnd" text

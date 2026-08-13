@@ -1,5 +1,6 @@
 import CountryFlag from "@/lib/components/common/CountryFlag";
 import DataList, { DataCard } from "@/lib/components/common/DataList";
+import ScreenScroll from "@/lib/components/common/ScreenScroll";
 import NamesGrid from "@/lib/components/dashboard/grids/NamesGrid";
 import StormsGrid from "@/lib/components/dashboard/grids/StormsGrid";
 import SpecialButtons from "@/lib/components/dashboard/widgets/SpecialButtons";
@@ -48,18 +49,19 @@ const StormsView = ({ params, stormsData, averageValues, onCellClick }: StormsVi
 
   if (filter === "position") {
     return (
-      <View style={styles.stack}>
+      <ScreenScroll>
         <StormsGrid onCellClick={onCellClick} stormsData={stormsData} isClickable />
         <SpecialButtons
           onCellClick={onCellClick}
           isAverageView={false}
           averageValues={averageValues}
         />
-      </View>
+      </ScreenScroll>
     );
   }
 
-  // name + table → names pager with the out-of-grid names listed under it
+  // name + table → names pager with the out-of-grid names listed under it. The pager scrolls its
+  // own pages, so this branch must not use ScreenScroll.
   if (params.mode === "table") {
     return (
       <View style={styles.stack}>

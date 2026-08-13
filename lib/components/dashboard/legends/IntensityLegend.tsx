@@ -6,6 +6,7 @@ import {
   SORTING_RANK,
   TEXT_COLOR_BADGE,
 } from "@/lib/constants";
+import { COLOR } from "@/lib/constants/theme";
 import type { IntensityType } from "@/lib/types";
 import { StyleSheet, Text, View } from "react-native";
 
@@ -50,6 +51,6 @@ const styles = StyleSheet.create({
   label: {
     fontFamily: "OpenSans_400Regular",
     fontSize: 12,
-    color: "#475569",
+    color: COLOR.textBody,
   },
 });

@@ -1,3 +1,4 @@
+import { COLOR, HIT_SIZE, RADIUS, SPACE } from "@/lib/constants/theme";
 import type { IconName } from "@/lib/types";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import * as Haptics from "expo-haptics";
@@ -20,7 +21,7 @@ const QuickActionButton = ({ icon, label, onPress }: QuickActionButtonProps) => 
     accessibilityRole="button"
     accessibilityLabel={label}
   >
-    <Ionicons name={icon} size={18} color="#b45309" />
+    <Ionicons name={icon} size={18} color={COLOR.accent} />
     <Text style={styles.label}>{label}</Text>
   </Pressable>
 );
@@ -30,18 +31,18 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
-    minHeight: 48,
-    paddingHorizontal: 12,
-    borderRadius: 10,
+    minHeight: HIT_SIZE,
+    paddingHorizontal: SPACE.md,
+    borderRadius: RADIUS.sm,
   },
   pressed: {
-    backgroundColor: "#fef3c7",
+    backgroundColor: COLOR.accentSoft,
   },
   label: {
     flex: 1,
     fontFamily: "OpenSans_600SemiBold",
     fontSize: 14,
-    color: "#b45309",
+    color: COLOR.accent,
   },
 });
 

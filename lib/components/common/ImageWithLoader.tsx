@@ -1,4 +1,5 @@
 import TyphoonSpinner from "@/lib/components/common/TyphoonSpinner";
+import { COLOR } from "@/lib/constants/theme";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Image, type ImageContentFit } from "expo-image";
 import { useState } from "react";
@@ -33,7 +34,7 @@ const ImageWithLoader = ({
         accessibilityRole="image"
         accessibilityLabel="No image available"
       >
-        <Ionicons name="image-outline" size={32} color="#9ca3af" />
+        <Ionicons name="image-outline" size={32} color={COLOR.textFaint} />
         {showErrorLabel && <Text style={styles.fallbackLabel}>No image available</Text>}
       </View>
     );
@@ -71,19 +72,19 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#f8fafc",
+    backgroundColor: COLOR.surfaceSubtle,
   },
   fallback: {
     alignItems: "center",
     justifyContent: "center",
     gap: 6,
     padding: 8,
-    backgroundColor: "#f8fafc",
+    backgroundColor: COLOR.surfaceSubtle,
   },
   fallbackLabel: {
     fontFamily: "OpenSans_500Medium",
     fontSize: 12,
-    color: "#9ca3af",
+    color: COLOR.textFaint,
     textAlign: "center",
   },
 });

@@ -1,11 +1,10 @@
 import CountryPager from "@/lib/components/position/CountryPager";
+import { COLOR } from "@/lib/constants/theme";
 import type { IconName, TyphoonName } from "@/lib/types";
 import { getNameStatusColor } from "@/lib/utils/colors";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-
-const DEFAULT_COLOR = "#334155";
 
 const TAG_ICONS: Record<string, IconName> = {
   Animal: "paw-outline",
@@ -22,24 +21,9 @@ const TAG_ICONS: Record<string, IconName> = {
   Thing: "hammer-outline",
 };
 
-const TAG_COLORS: Record<string, string> = {
-  Animal: "#047857",
-  "Celestial body": "#3730a3",
-  Concept: "#6d28d9",
-  Deity: "#b45309",
-  Descriptive: "#be123c",
-  "Food and beverage": "#ef4444",
-  Mineral: "#64748b",
-  Nature: "#0891b2",
-  "People's name": "#db2777",
-  Place: "#2563eb",
-  Plant: "#16a34a",
-  Thing: "#92400e",
-};
-
-const HISTORY_COUNT_COLORS = ["", "#16a34a", "#2563eb", "#d97706"];
+const HISTORY_COUNT_COLORS = ["", COLOR.success, COLOR.accent, COLOR.warning];
 const getHistoryCountColor = (count: number) =>
-  count >= 4 ? "#dc2626" : HISTORY_COUNT_COLORS[count] || DEFAULT_COLOR;
+  count >= 4 ? COLOR.danger : HISTORY_COUNT_COLORS[count] || COLOR.textSecondary;
 
 const TagIcon = ({
   tag,
@@ -52,9 +36,9 @@ const TagIcon = ({
 }) => {
   const icon = TAG_ICONS[tag];
   if (!icon) return null;
-  return (
-    <Ionicons name={icon} size={size} color={colorOverride || TAG_COLORS[tag] || DEFAULT_COLOR} />
-  );
+  // One neutral for every tag: the icon shape and the label beside it already name the category,
+  // so a per-tag hue would only add a colour that says nothing.
+  return <Ionicons name={icon} size={size} color={colorOverride || COLOR.textBody} />;
 };
 
 const sortByOldest = (names: TyphoonName[]) => [...names].sort((a, b) => a.id - b.id);
@@ -165,12 +149,12 @@ const styles = StyleSheet.create({
   tagLabel: {
     fontFamily: "OpenSans_500Medium",
     fontSize: 13,
-    color: "#475569",
+    color: COLOR.textBody,
   },
   empty: {
     fontFamily: "OpenSans_400Regular",
     fontSize: 14,
-    color: "#cbd5e1",
+    color: COLOR.disabled,
   },
   legend: {
     flexDirection: "row",
@@ -187,7 +171,7 @@ const styles = StyleSheet.create({
   legendLabel: {
     fontFamily: "OpenSans_400Regular",
     fontSize: 11,
-    color: "#475569",
+    color: COLOR.textBody,
   },
 });
 

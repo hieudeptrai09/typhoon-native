@@ -1,5 +1,6 @@
 import CountryFlag, { COUNTRY_NAMES } from "@/lib/components/common/CountryFlag";
 import { GRID_COLS, GRID_ROWS } from "@/lib/constants/position";
+import { COLOR, SPACE } from "@/lib/constants/theme";
 import { getPositionTitle, positionColumnLetter } from "@/lib/utils/position";
 import * as Haptics from "expo-haptics";
 import { useRef, useState, type ReactNode } from "react";
@@ -83,7 +84,7 @@ const CountryPager = ({
             onPress={enabled ? () => onPositionPress?.(position) : undefined}
             disabled={!enabled}
             style={({ pressed }) => [styles.row, pressed && enabled && styles.rowPressed]}
-            android_ripple={enabled ? { color: "#e0f2fe" } : undefined}
+            android_ripple={enabled ? { color: COLOR.accentSoft } : undefined}
             accessibilityRole={enabled ? "button" : "text"}
             accessibilityLabel={`Position ${getPositionTitle(position)}`}
           >
@@ -160,8 +161,8 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   tabs: {
-    paddingHorizontal: 12,
-    gap: 4,
+    paddingHorizontal: SPACE.lg,
+    gap: SPACE.xs,
   },
   tab: {
     width: TAB_WIDTH - 4,
@@ -173,16 +174,16 @@ const styles = StyleSheet.create({
     borderColor: "transparent",
   },
   tabActive: {
-    backgroundColor: "#e0f2fe",
-    borderColor: "#0284c7",
+    backgroundColor: COLOR.accentSoft,
+    borderColor: COLOR.accent,
   },
   tabLetter: {
     fontFamily: "OpenSans_600SemiBold",
     fontSize: 11,
-    color: "#94a3b8",
+    color: COLOR.textFaint,
   },
   tabLetterActive: {
-    color: "#0369a1",
+    color: COLOR.accent,
   },
   pageHeader: {
     flexDirection: "row",
@@ -193,7 +194,7 @@ const styles = StyleSheet.create({
   pageHint: {
     fontFamily: "OpenSans_400Regular",
     fontSize: 11,
-    color: "#94a3b8",
+    color: COLOR.textFaint,
   },
   pager: {
     flex: 1,
@@ -211,9 +212,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 10,
     borderRadius: 12,
-    backgroundColor: "#ffffff",
+    backgroundColor: COLOR.surface,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: "#e2e8f0",
+    borderColor: COLOR.border,
   },
   rowPressed: {
     opacity: 0.8,
@@ -223,13 +224,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8,
-    backgroundColor: "#f1f5f9",
+    backgroundColor: COLOR.surfaceMuted,
     alignItems: "center",
   },
   positionText: {
     fontFamily: "OpenSans_700Bold",
     fontSize: 12,
-    color: "#475569",
+    color: COLOR.textBody,
   },
   rowContent: {
     flex: 1,

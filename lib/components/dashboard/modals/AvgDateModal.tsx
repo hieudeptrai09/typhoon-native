@@ -1,6 +1,7 @@
 import DefModal from "@/lib/components/common/DefModal";
 import StatTile from "@/lib/components/common/StatTile";
 import { MONTH_NAMES } from "@/lib/constants";
+import { COLOR } from "@/lib/constants/theme";
 import type { BaseModalProps, Storm } from "@/lib/types";
 import { getAvgDateColor } from "@/lib/utils/colors";
 import { formatStormDateRange, parseStormDate } from "@/lib/utils/date";
@@ -132,7 +133,7 @@ const AvgDateModal = ({ isOpen, onClose, title, storms }: AvgDateModalProps) => 
                     <Ionicons
                       name={isExpanded ? "chevron-up" : "chevron-down"}
                       size={14}
-                      color="#94a3b8"
+                      color={COLOR.textFaint}
                     />
                   </View>
                 </Pressable>
@@ -163,7 +164,7 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: "OpenSans_700Bold",
     fontSize: 22,
-    color: "#075985",
+    color: COLOR.accent,
   },
   tiles: {
     flexDirection: "row",
@@ -173,19 +174,19 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   duration: {
-    color: "#334155",
+    color: COLOR.textSecondary,
   },
   heading: {
     fontFamily: "OpenSans_400Regular",
     fontSize: 14,
-    color: "#475569",
+    color: COLOR.textBody,
     marginTop: 16,
     marginBottom: 8,
   },
   empty: {
     fontFamily: "OpenSans_400Regular",
     fontSize: 13,
-    color: "#64748b",
+    color: COLOR.textMuted,
   },
   groups: {
     gap: 8,
@@ -199,16 +200,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderRadius: 8,
     borderLeftWidth: 4,
-    backgroundColor: "#f8fafc",
+    backgroundColor: COLOR.surfaceSubtle,
   },
   pressed: {
-    backgroundColor: "#e2e8f0",
+    backgroundColor: COLOR.surfaceSunken,
   },
   groupLabel: {
     flexShrink: 1,
     fontFamily: "OpenSans_600SemiBold",
     fontSize: 14,
-    color: "#334155",
+    color: COLOR.textSecondary,
   },
   groupStats: {
     flexShrink: 0,
@@ -223,7 +224,7 @@ const styles = StyleSheet.create({
   count: {
     fontFamily: "OpenSans_600SemiBold",
     fontSize: 13,
-    color: "#475569",
+    color: COLOR.textBody,
     fontVariant: ["tabular-nums"],
   },
   stormList: {
@@ -235,15 +236,15 @@ const styles = StyleSheet.create({
   storm: {
     fontFamily: "OpenSans_400Regular",
     fontSize: 13,
-    color: "#475569",
+    color: COLOR.textBody,
   },
   stormName: {
     fontFamily: "OpenSans_600SemiBold",
-    color: "#075985",
+    color: COLOR.accent,
   },
   stormDates: {
     fontSize: 11,
-    color: "#6b7280",
+    color: COLOR.textMuted,
   },
 });
 

@@ -6,6 +6,7 @@ import {
   SORTING_RANK,
   TEXT_COLOR_WHITE_BACKGROUND,
 } from "@/lib/constants";
+import { COLOR } from "@/lib/constants/theme";
 import type { BaseModalProps, IntensityType, Storm } from "@/lib/types";
 import { getGroupedStorms, getIntensityFromNumber } from "@/lib/utils/storm/aggregate";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -144,7 +145,7 @@ const AverageModal = ({ isOpen, onClose, title, average, storms, criteria }: Ave
             <Ionicons
               name={showFormula ? "information-circle" : "information-circle-outline"}
               size={18}
-              color={showFormula ? "#0369a1" : "#6b7280"}
+              color={showFormula ? COLOR.accent : COLOR.textMuted}
             />
           </Pressable>
         )}
@@ -195,7 +196,7 @@ const AverageModal = ({ isOpen, onClose, title, average, storms, criteria }: Ave
                   <Ionicons
                     name={isExpanded ? "chevron-up" : "chevron-down"}
                     size={14}
-                    color="#94a3b8"
+                    color={COLOR.textFaint}
                   />
                 </View>
               </Pressable>
@@ -229,7 +230,7 @@ const styles = StyleSheet.create({
   summaryLabel: {
     fontFamily: "OpenSans_400Regular",
     fontSize: 14,
-    color: "#475569",
+    color: COLOR.textBody,
   },
   summaryValue: {
     fontFamily: "OpenSans_700Bold",
@@ -239,36 +240,36 @@ const styles = StyleSheet.create({
   scale: {
     fontFamily: "OpenSans_400Regular",
     fontSize: 13,
-    color: "#6b7280",
+    color: COLOR.textMuted,
   },
   formula: {
     marginTop: 10,
     padding: 10,
     borderRadius: 8,
-    backgroundColor: "#f3f4f6",
+    backgroundColor: COLOR.surfaceMuted,
   },
   formulaText: {
     fontFamily: "OpenSans_400Regular",
     fontSize: 13,
     lineHeight: 20,
-    color: "#475569",
+    color: COLOR.textBody,
     fontVariant: ["tabular-nums"],
   },
   formulaResult: {
     fontFamily: "OpenSans_700Bold",
-    color: "#0f172a",
+    color: COLOR.text,
   },
   heading: {
     fontFamily: "OpenSans_400Regular",
     fontSize: 14,
-    color: "#475569",
+    color: COLOR.textBody,
     marginTop: 16,
     marginBottom: 8,
   },
   empty: {
     fontFamily: "OpenSans_400Regular",
     fontSize: 13,
-    color: "#64748b",
+    color: COLOR.textMuted,
   },
   groups: {
     gap: 8,
@@ -282,10 +283,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderRadius: 8,
     borderLeftWidth: 4,
-    backgroundColor: "#f8fafc",
+    backgroundColor: COLOR.surfaceSubtle,
   },
   pressed: {
-    backgroundColor: "#e2e8f0",
+    backgroundColor: COLOR.surfaceSunken,
   },
   groupLabel: {
     flexShrink: 1,
@@ -305,7 +306,7 @@ const styles = StyleSheet.create({
   count: {
     fontFamily: "OpenSans_600SemiBold",
     fontSize: 13,
-    color: "#475569",
+    color: COLOR.textBody,
     fontVariant: ["tabular-nums"],
   },
   stormList: {
@@ -317,7 +318,7 @@ const styles = StyleSheet.create({
   storm: {
     fontFamily: "OpenSans_400Regular",
     fontSize: 13,
-    color: "#475569",
+    color: COLOR.textBody,
   },
   stormName: {
     fontFamily: "OpenSans_600SemiBold",

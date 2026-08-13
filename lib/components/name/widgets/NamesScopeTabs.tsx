@@ -1,3 +1,4 @@
+import { COLOR, RADIUS, SPACE } from "@/lib/constants/theme";
 import type { IconName } from "@/lib/types";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import * as Haptics from "expo-haptics";
@@ -40,7 +41,7 @@ const NamesScopeTabs = ({ activeScope, onChange }: NamesScopeTabsProps) => (
           accessibilityState={{ selected: isActive }}
           accessibilityLabel={label}
         >
-          <Ionicons name={icon} size={15} color={isActive ? "#0369a1" : "#64748b"} />
+          <Ionicons name={icon} size={15} color={isActive ? COLOR.accent : COLOR.textMuted} />
           <Text style={[styles.label, isActive && styles.labelActive]} numberOfLines={1}>
             {label}
           </Text>
@@ -53,11 +54,12 @@ const NamesScopeTabs = ({ activeScope, onChange }: NamesScopeTabsProps) => (
 const styles = StyleSheet.create({
   root: {
     flexDirection: "row",
-    gap: 4,
-    margin: 12,
-    padding: 4,
-    borderRadius: 12,
-    backgroundColor: "#e2e8f0",
+    gap: SPACE.xs,
+    marginHorizontal: SPACE.lg,
+    marginVertical: SPACE.md,
+    padding: SPACE.xs,
+    borderRadius: RADIUS.md,
+    backgroundColor: COLOR.surfaceSunken,
   },
   tab: {
     flex: 1,
@@ -69,7 +71,7 @@ const styles = StyleSheet.create({
     borderRadius: 9,
   },
   tabActive: {
-    backgroundColor: "#ffffff",
+    backgroundColor: COLOR.surface,
   },
   pressed: {
     opacity: 0.6,
@@ -77,10 +79,10 @@ const styles = StyleSheet.create({
   label: {
     fontFamily: "OpenSans_600SemiBold",
     fontSize: 14,
-    color: "#64748b",
+    color: COLOR.textMuted,
   },
   labelActive: {
-    color: "#0369a1",
+    color: COLOR.accent,
   },
 });
 

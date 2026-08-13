@@ -1,6 +1,7 @@
 import CountryFlag, { COUNTRY_NAMES } from "@/lib/components/common/CountryFlag";
 import PositionGrid, { type GridCell } from "@/lib/components/position/PositionGrid";
 import { GRID_COLS } from "@/lib/constants/position";
+import { COLOR } from "@/lib/constants/theme";
 import type { Storm } from "@/lib/types";
 import { getPositionTitle } from "@/lib/utils/position";
 import { useMemo } from "react";
@@ -71,18 +72,18 @@ const styles = StyleSheet.create({
   readoutTitle: {
     fontFamily: "OpenSans_700Bold",
     fontSize: 15,
-    color: "#0f172a",
+    color: COLOR.text,
   },
   readoutValue: {
     fontFamily: "OpenSans_600SemiBold",
     fontSize: 13,
-    color: "#0369a1",
+    color: COLOR.accent,
   },
   readoutNames: {
     fontFamily: "OpenSans_400Regular",
     fontSize: 12,
     lineHeight: 17,
-    color: "#64748b",
+    color: COLOR.textMuted,
   },
 });
 

@@ -1,3 +1,4 @@
+import { COLOR } from "@/lib/constants/theme";
 import * as Haptics from "expo-haptics";
 import type { ReactNode } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
@@ -16,7 +17,7 @@ const SlashToggleButton = ({
   active,
   onPress,
   label,
-  color = "#475569",
+  color = COLOR.textBody,
   children,
 }: SlashToggleButtonProps) => (
   <Pressable

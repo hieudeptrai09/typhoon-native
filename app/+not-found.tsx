@@ -1,3 +1,4 @@
+import { COLOR } from "@/lib/constants/theme";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Stack, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
@@ -49,7 +50,7 @@ export default function NotFoundScreen() {
         <View style={styles.code} accessibilityLabel="404 — Page not found">
           <Text style={styles.digit}>4</Text>
           <Animated.View style={{ transform: [{ rotate }] }}>
-            <Ionicons name="aperture-outline" size={88} color="#0369a1" />
+            <Ionicons name="aperture-outline" size={88} color={COLOR.accent} />
           </Animated.View>
           <Text style={styles.digit}>4</Text>
         </View>
@@ -63,15 +64,15 @@ export default function NotFoundScreen() {
         {/* Link nhẹ thay vì nút to, để ngõ cụt vẫn nhẹ nhàng */}
         <View style={styles.links}>
           <Pressable style={styles.link} onPress={() => router.replace("/")} hitSlop={8}>
-            <Ionicons name="home-outline" size={18} color="#0369a1" />
+            <Ionicons name="home-outline" size={18} color={COLOR.accent} />
             <Text style={styles.linkLabel}>Home</Text>
           </Pressable>
           <Pressable style={styles.link} onPress={() => router.replace("/storms")} hitSlop={8}>
-            <Ionicons name="thunderstorm-outline" size={18} color="#0369a1" />
+            <Ionicons name="thunderstorm-outline" size={18} color={COLOR.accent} />
             <Text style={styles.linkLabel}>Browse storms</Text>
           </Pressable>
           <Pressable style={styles.link} onPress={() => router.replace("/names")} hitSlop={8}>
-            <Ionicons name="pricetag-outline" size={18} color="#0369a1" />
+            <Ionicons name="pricetag-outline" size={18} color={COLOR.accent} />
             <Text style={styles.linkLabel}>Explore names</Text>
           </Pressable>
         </View>
@@ -86,7 +87,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 24,
-    backgroundColor: "#e0f2fe",
+    backgroundColor: COLOR.accentSoft,
   },
   code: {
     flexDirection: "row",
@@ -99,13 +100,13 @@ const styles = StyleSheet.create({
     fontFamily: "OpenSans_700Bold",
     fontSize: 80,
     lineHeight: 92,
-    color: "#075985",
+    color: COLOR.accent,
     fontVariant: ["tabular-nums"],
   },
   headline: {
     fontFamily: "OpenSans_700Bold",
     fontSize: 22,
-    color: "#1e293b",
+    color: COLOR.text,
     textAlign: "center",
     marginBottom: 8,
   },
@@ -113,7 +114,7 @@ const styles = StyleSheet.create({
     fontFamily: "OpenSans_400Regular",
     fontSize: 15,
     lineHeight: 22,
-    color: "#475569",
+    color: COLOR.textBody,
     textAlign: "center",
     marginBottom: 36,
   },
@@ -133,6 +134,6 @@ const styles = StyleSheet.create({
   linkLabel: {
     fontFamily: "OpenSans_600SemiBold",
     fontSize: 15,
-    color: "#0369a1",
+    color: COLOR.accent,
   },
 });

@@ -1,4 +1,5 @@
 import { useApiQuery } from "@/lib/api/client";
+import { COLOR, RADIUS } from "@/lib/constants/theme";
 import type { StormHighlight } from "@/lib/types";
 import { capitalize } from "@/lib/utils/format";
 import { getPositionSlug, getPositionTitle } from "@/lib/utils/position";
@@ -9,7 +10,17 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 // screen, which is why there is no error branch here.
 const StormHighlightBadge = () => {
   const router = useRouter();
-  const { data } = useApiQuery<StormHighlight | null>("/api/v1/storm-highlight");
+  const { data, isLoading } = useApiQuery<StormHighlight | null>("/api/v1/storm-highlight");
+
+  // The hero is vertically centred, so arriving late would shove everything under it down.
+  if (isLoading) {
+    return (
+      <View style={styles.root} accessibilityLabel="Loading storm highlight">
+        <View style={[styles.pill, styles.pillPlaceholder]} />
+        <View style={styles.textPlaceholder} />
+      </View>
+    );
+  }
 
   if (!data) return null;
 
@@ -58,10 +69,20 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
+    minHeight: 26,
     paddingHorizontal: 12,
     paddingVertical: 4,
-    borderRadius: 999,
-    backgroundColor: "rgba(255, 255, 255, 0.7)",
+    borderRadius: RADIUS.pill,
+    backgroundColor: COLOR.onHero,
+  },
+  pillPlaceholder: {
+    width: 96,
+  },
+  textPlaceholder: {
+    width: 72,
+    height: 12,
+    borderRadius: RADIUS.pill,
+    backgroundColor: COLOR.onHero,
   },
   dot: {
     width: 8,
@@ -69,30 +90,30 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   dotActive: {
-    backgroundColor: "#ef4444",
+    backgroundColor: COLOR.danger,
   },
   dotNext: {
-    backgroundColor: "#3b82f6",
+    backgroundColor: COLOR.accent,
   },
   pillLabel: {
     fontFamily: "OpenSans_500Medium",
     fontSize: 13,
   },
   labelActive: {
-    color: "#dc2626",
+    color: COLOR.danger,
   },
   labelNext: {
-    color: "#2563eb",
+    color: COLOR.accent,
   },
   name: {
     fontFamily: "OpenSans_600SemiBold",
     fontSize: 14,
-    color: "#7e22ce",
+    color: COLOR.accent,
   },
   position: {
     fontFamily: "OpenSans_400Regular",
     fontSize: 14,
-    color: "#0f766e",
+    color: COLOR.textBody,
   },
 });
 

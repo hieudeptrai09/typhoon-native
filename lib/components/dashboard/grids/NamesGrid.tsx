@@ -1,4 +1,5 @@
 import CountryPager from "@/lib/components/position/CountryPager";
+import { COLOR } from "@/lib/constants/theme";
 import type { Storm } from "@/lib/types";
 import { sortNamesByFirstYear } from "@/lib/utils/storm/aggregate";
 import { useMemo, type ReactNode } from "react";
@@ -47,7 +48,9 @@ const NamesGrid = ({ stormsData, onCellClick, nameColors, nameSubtitles }: Names
                 accessibilityRole="button"
                 accessibilityLabel={`View details for ${name}`}
               >
-                <Text style={[styles.nameText, { color: nameColors?.[name] ?? "#374151" }]}>
+                <Text
+                  style={[styles.nameText, { color: nameColors?.[name] ?? COLOR.textSecondary }]}
+                >
                   {name}
                 </Text>
                 {nameSubtitles?.[name] !== undefined && (
@@ -80,13 +83,13 @@ const styles = StyleSheet.create({
   subtitle: {
     fontFamily: "OpenSans_400Regular",
     fontSize: 11,
-    color: "#64748b",
+    color: COLOR.textMuted,
     fontVariant: ["tabular-nums"],
   },
   empty: {
     fontFamily: "OpenSans_400Regular",
     fontSize: 14,
-    color: "#cbd5e1",
+    color: COLOR.disabled,
   },
 });
 

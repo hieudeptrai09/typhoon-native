@@ -1,4 +1,5 @@
 import DefModal from "@/lib/components/common/DefModal";
+import { COLOR } from "@/lib/constants/theme";
 import { cycleCriterion, type SortCriterion, type SortField } from "@/lib/utils/table";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import * as Haptics from "expo-haptics";
@@ -73,7 +74,7 @@ const SortSheet = <T,>({ open, onClose, fields, criteria, onChange }: SortSheetP
                 {criterion ? (
                   <Text style={styles.rankText}>{rank + 1}</Text>
                 ) : (
-                  <Ionicons name="ellipse-outline" size={12} color="#cbd5e1" />
+                  <Ionicons name="ellipse-outline" size={12} color={COLOR.disabled} />
                 )}
               </View>
 
@@ -85,10 +86,10 @@ const SortSheet = <T,>({ open, onClose, fields, criteria, onChange }: SortSheetP
                 <Ionicons
                   name={criterion.order === "ascend" ? "arrow-up" : "arrow-down"}
                   size={18}
-                  color="#0369a1"
+                  color={COLOR.accent}
                 />
               ) : (
-                <Ionicons name="swap-vertical" size={18} color="#cbd5e1" />
+                <Ionicons name="swap-vertical" size={18} color={COLOR.disabled} />
               )}
             </Pressable>
           );
@@ -103,7 +104,7 @@ const styles = StyleSheet.create({
     fontFamily: "OpenSans_400Regular",
     fontSize: 12,
     lineHeight: 18,
-    color: "#64748b",
+    color: COLOR.textMuted,
     marginBottom: 12,
   },
   list: {
@@ -116,13 +117,13 @@ const styles = StyleSheet.create({
     minHeight: 52,
     paddingHorizontal: 14,
     borderRadius: 12,
-    backgroundColor: "#f8fafc",
+    backgroundColor: COLOR.surfaceSubtle,
     borderWidth: 1,
-    borderColor: "#e2e8f0",
+    borderColor: COLOR.border,
   },
   rowActive: {
-    backgroundColor: "#e0f2fe",
-    borderColor: "#7dd3fc",
+    backgroundColor: COLOR.accentSoft,
+    borderColor: COLOR.accentBorder,
   },
   rowPressed: {
     opacity: 0.7,
@@ -135,22 +136,22 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   rankActive: {
-    backgroundColor: "#0284c7",
+    backgroundColor: COLOR.accent,
   },
   rankText: {
     fontFamily: "OpenSans_700Bold",
     fontSize: 12,
-    color: "#ffffff",
+    color: COLOR.textInverse,
   },
   label: {
     flex: 1,
     fontFamily: "OpenSans_500Medium",
     fontSize: 15,
-    color: "#334155",
+    color: COLOR.textSecondary,
   },
   labelActive: {
     fontFamily: "OpenSans_600SemiBold",
-    color: "#0c4a6e",
+    color: COLOR.accent,
   },
   footer: {
     flexDirection: "row",
@@ -165,23 +166,23 @@ const styles = StyleSheet.create({
   clearText: {
     fontFamily: "OpenSans_600SemiBold",
     fontSize: 14,
-    color: "#dc2626",
+    color: COLOR.danger,
   },
   clearDisabled: {
-    color: "#cbd5e1",
+    color: COLOR.disabled,
   },
   done: {
     minWidth: 110,
     height: 44,
     borderRadius: 12,
-    backgroundColor: "#2563eb",
+    backgroundColor: COLOR.accent,
     alignItems: "center",
     justifyContent: "center",
   },
   doneText: {
     fontFamily: "OpenSans_600SemiBold",
     fontSize: 15,
-    color: "#ffffff",
+    color: COLOR.textInverse,
   },
 });
 

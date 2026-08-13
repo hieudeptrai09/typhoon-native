@@ -1,8 +1,10 @@
 import CountryFlag from "@/lib/components/common/CountryFlag";
 import DataList, { DataCard } from "@/lib/components/common/DataList";
+import ScreenScroll from "@/lib/components/common/ScreenScroll";
 import AvgDateGrid from "@/lib/components/dashboard/grids/AvgDateGrid";
 import AvgDateNameGrid from "@/lib/components/dashboard/views/AvgDateNameGrid";
 import SpecialButtons from "@/lib/components/dashboard/widgets/SpecialButtons";
+import { COLOR } from "@/lib/constants/theme";
 import type { DashboardParams, Storm } from "@/lib/types";
 import { getAvgDateColor } from "@/lib/utils/colors";
 import { getPositionTitle } from "@/lib/utils/position";
@@ -17,7 +19,7 @@ import {
 } from "@/lib/utils/storm/dates";
 import type { SortField } from "@/lib/utils/table";
 import { useMemo } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text } from "react-native";
 
 interface AvgDateViewProps {
   params: DashboardParams;
@@ -137,7 +139,7 @@ const AvgDateView = ({ params, stormsData, onCellClick }: AvgDateViewProps) => {
 
   if (params.mode === "table" && filterType === "position") {
     return (
-      <View style={styles.stack}>
+      <ScreenScroll>
         <AvgDateGrid
           onCellClick={onCellClick}
           stormsData={stormsData}
@@ -145,7 +147,7 @@ const AvgDateView = ({ params, stormsData, onCellClick }: AvgDateViewProps) => {
           isClickable
         />
         <SpecialButtons onCellClick={onCellClick} avgDateValues={avgDateValuesForGrid} />
-      </View>
+      </ScreenScroll>
     );
   }
 
@@ -197,22 +199,18 @@ const AvgDateView = ({ params, stormsData, onCellClick }: AvgDateViewProps) => {
 };
 
 const styles = StyleSheet.create({
-  stack: {
-    flex: 1,
-    gap: 16,
-  },
   date: {
     fontFamily: "OpenSans_600SemiBold",
     fontSize: 13,
     fontVariant: ["tabular-nums"],
   },
   separator: {
-    color: "#94a3b8",
+    color: COLOR.textFaint,
   },
   duration: {
     fontFamily: "OpenSans_600SemiBold",
     fontSize: 13,
-    color: "#334155",
+    color: COLOR.textSecondary,
     fontVariant: ["tabular-nums"],
   },
 });

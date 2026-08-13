@@ -1,5 +1,6 @@
 import NamesGrid from "@/lib/components/dashboard/grids/NamesGrid";
 import SpecialNamesList from "@/lib/components/dashboard/widgets/SpecialNamesList";
+import { COLOR } from "@/lib/constants/theme";
 import type { Storm } from "@/lib/types";
 import { getAvgDateColor } from "@/lib/utils/colors";
 import { calculateAvgDatesByGroup, formatDayOfYear, getDoyMonth } from "@/lib/utils/storm/dates";
@@ -51,7 +52,7 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   separator: {
-    color: "#94a3b8",
+    color: COLOR.textFaint,
   },
 });
 

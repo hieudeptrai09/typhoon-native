@@ -1,8 +1,9 @@
+import { COLOR } from "@/lib/constants/theme";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 
 const ScreenLoading = () => (
   <View style={styles.root}>
-    <ActivityIndicator size="large" color="#2563eb" />
+    <ActivityIndicator size="large" color={COLOR.accent} />
   </View>
 );
 

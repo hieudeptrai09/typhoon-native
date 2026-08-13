@@ -1,3 +1,4 @@
+import { COLOR } from "@/lib/constants/theme";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useEffect, useRef } from "react";
 import { AccessibilityInfo, Animated, Easing, StyleSheet, View } from "react-native";
@@ -17,7 +18,7 @@ interface TyphoonSpinnerProps {
 
 // The web build drew its own swirl as an SVG path; native reuses the aperture glyph the 404 screen
 // already spins, so the loader needs no vector runtime.
-const TyphoonSpinner = ({ size = "medium", color = "#0369a1" }: TyphoonSpinnerProps) => {
+const TyphoonSpinner = ({ size = "medium", color = COLOR.accent }: TyphoonSpinnerProps) => {
   const px = sizeMap[size];
   const spin = useRef(new Animated.Value(0)).current;
 

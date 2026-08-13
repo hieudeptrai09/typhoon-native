@@ -1,8 +1,9 @@
 import DefModal from "@/lib/components/common/DefModal";
+import { COLOR } from "@/lib/constants/theme";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import * as Haptics from "expo-haptics";
 import { useMemo, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 
 export interface PickerOption<T extends string | number = string> {
   value: T;
@@ -99,10 +100,10 @@ const OptionPicker = <T extends string | number = string>({
             accessibilityRole="button"
             accessibilityLabel={`Clear ${label}`}
           >
-            <Ionicons name="close-circle" size={18} color="#94a3b8" />
+            <Ionicons name="close-circle" size={18} color={COLOR.textFaint} />
           </Pressable>
         ) : (
-          <Ionicons name="chevron-down" size={16} color="#94a3b8" />
+          <Ionicons name="chevron-down" size={16} color={COLOR.textFaint} />
         )}
       </Pressable>
 
@@ -130,12 +131,12 @@ const OptionPicker = <T extends string | number = string>({
       >
         {searchable && (
           <View style={styles.search}>
-            <Ionicons name="search" size={16} color="#94a3b8" />
+            <Ionicons name="search" size={16} color={COLOR.textFaint} />
             <TextInput
               value={query}
               onChangeText={setQuery}
               placeholder={`Search ${label.toLowerCase()}`}
-              placeholderTextColor="#94a3b8"
+              placeholderTextColor={COLOR.textFaint}
               style={styles.searchInput}
               autoCorrect={false}
               returnKeyType="search"
@@ -143,7 +144,9 @@ const OptionPicker = <T extends string | number = string>({
           </View>
         )}
 
-        <ScrollView style={styles.list} keyboardShouldPersistTaps="handled">
+        {/* Plain View, not a scroller: the sheet body already scrolls, and nesting two vertical
+            ScrollViews makes them fight over the drag on Android. */}
+        <View style={styles.list}>
           {visible.length === 0 ? (
             <Text style={styles.empty}>No matches.</Text>
           ) : (
@@ -170,7 +173,7 @@ const OptionPicker = <T extends string | number = string>({
                           : "radio-button-off"
                     }
                     size={20}
-                    color={isSelected ? "#0369a1" : "#cbd5e1"}
+                    color={isSelected ? COLOR.accent : COLOR.disabled}
                   />
                   <Text
                     style={[styles.optionLabel, isSelected && styles.optionLabelActive]}
@@ -183,7 +186,7 @@ const OptionPicker = <T extends string | number = string>({
               );
             })
           )}
-        </ScrollView>
+        </View>
       </DefModal>
     </View>
   );
@@ -196,7 +199,7 @@ const styles = StyleSheet.create({
   label: {
     fontFamily: "OpenSans_600SemiBold",
     fontSize: 13,
-    color: "#334155",
+    color: COLOR.textSecondary,
   },
   control: {
     flexDirection: "row",
@@ -206,34 +209,34 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: "#cbd5e1",
-    backgroundColor: "#ffffff",
+    borderColor: COLOR.borderStrong,
+    backgroundColor: COLOR.surface,
   },
   controlError: {
-    borderColor: "#dc2626",
+    borderColor: COLOR.danger,
   },
   pressed: {
-    backgroundColor: "#f8fafc",
+    backgroundColor: COLOR.surfaceSubtle,
   },
   value: {
     flex: 1,
     fontFamily: "OpenSans_400Regular",
     fontSize: 15,
-    color: "#0f172a",
+    color: COLOR.text,
   },
   placeholder: {
-    color: "#94a3b8",
+    color: COLOR.textFaint,
   },
   help: {
     fontFamily: "OpenSans_400Regular",
     fontSize: 12,
     lineHeight: 17,
-    color: "#64748b",
+    color: COLOR.textMuted,
   },
   error: {
     fontFamily: "OpenSans_500Medium",
     fontSize: 12,
-    color: "#dc2626",
+    color: COLOR.danger,
   },
   search: {
     flexDirection: "row",
@@ -243,21 +246,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     marginBottom: 10,
     borderRadius: 10,
-    backgroundColor: "#f1f5f9",
+    backgroundColor: COLOR.surfaceMuted,
   },
   searchInput: {
     flex: 1,
     fontFamily: "OpenSans_400Regular",
     fontSize: 15,
-    color: "#0f172a",
+    color: COLOR.text,
   },
   list: {
-    maxHeight: 360,
+    gap: 2,
   },
   empty: {
     fontFamily: "OpenSans_400Regular",
     fontSize: 14,
-    color: "#64748b",
+    color: COLOR.textMuted,
     textAlign: "center",
     paddingVertical: 24,
   },
@@ -270,34 +273,34 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   optionPressed: {
-    backgroundColor: "#f1f5f9",
+    backgroundColor: COLOR.surfaceMuted,
   },
   optionLabel: {
     flex: 1,
     fontFamily: "OpenSans_400Regular",
     fontSize: 15,
-    color: "#334155",
+    color: COLOR.textSecondary,
   },
   optionLabelActive: {
     fontFamily: "OpenSans_600SemiBold",
-    color: "#0c4a6e",
+    color: COLOR.accent,
   },
   optionHint: {
     fontFamily: "OpenSans_500Medium",
     fontSize: 12,
-    color: "#94a3b8",
+    color: COLOR.textFaint,
   },
   done: {
     height: 44,
     borderRadius: 12,
-    backgroundColor: "#2563eb",
+    backgroundColor: COLOR.accent,
     alignItems: "center",
     justifyContent: "center",
   },
   doneLabel: {
     fontFamily: "OpenSans_600SemiBold",
     fontSize: 15,
-    color: "#ffffff",
+    color: COLOR.textInverse,
   },
 });
 

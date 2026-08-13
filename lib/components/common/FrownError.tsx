@@ -1,3 +1,4 @@
+import { COLOR } from "@/lib/constants/theme";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
@@ -9,7 +10,7 @@ const FrownError = ({
   onRetry?: () => void;
 } = {}) => (
   <View style={styles.root}>
-    <Ionicons name="sad-outline" size={64} color="#9ca3af" />
+    <Ionicons name="sad-outline" size={64} color={COLOR.textFaint} />
     <Text style={styles.description}>{description}</Text>
 
     {onRetry && (
@@ -20,7 +21,7 @@ const FrownError = ({
         style={({ pressed }) => [styles.retry, pressed && styles.pressed]}
         accessibilityRole="button"
       >
-        <Ionicons name="refresh" size={16} color="#ffffff" />
+        <Ionicons name="refresh" size={16} color={COLOR.textInverse} />
         <Text style={styles.retryLabel}>Try again</Text>
       </Pressable>
     )}
@@ -40,7 +41,7 @@ const styles = StyleSheet.create({
     fontFamily: "OpenSans_400Regular",
     fontSize: 14,
     lineHeight: 21,
-    color: "#64748b",
+    color: COLOR.textMuted,
     textAlign: "center",
   },
   retry: {
@@ -51,7 +52,7 @@ const styles = StyleSheet.create({
     height: 44,
     paddingHorizontal: 28,
     borderRadius: 22,
-    backgroundColor: "#475569",
+    backgroundColor: COLOR.textBody,
   },
   pressed: {
     opacity: 0.85,
@@ -59,7 +60,7 @@ const styles = StyleSheet.create({
   retryLabel: {
     fontFamily: "OpenSans_600SemiBold",
     fontSize: 15,
-    color: "#ffffff",
+    color: COLOR.textInverse,
   },
 });
 

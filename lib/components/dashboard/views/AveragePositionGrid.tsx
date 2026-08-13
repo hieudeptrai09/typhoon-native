@@ -1,7 +1,7 @@
+import ScreenScroll from "@/lib/components/common/ScreenScroll";
 import AverageGrid from "@/lib/components/dashboard/grids/AverageGrid";
 import SpecialButtons from "@/lib/components/dashboard/widgets/SpecialButtons";
 import type { Storm } from "@/lib/types";
-import { StyleSheet, View } from "react-native";
 
 interface AveragePositionGridProps {
   stormsData: Storm[];
@@ -14,7 +14,7 @@ const AveragePositionGrid = ({
   averageValues,
   onCellClick,
 }: AveragePositionGridProps) => (
-  <View style={styles.root}>
+  <ScreenScroll>
     <AverageGrid
       onCellClick={onCellClick}
       stormsData={stormsData}
@@ -22,13 +22,7 @@ const AveragePositionGrid = ({
       isClickable
     />
     <SpecialButtons onCellClick={onCellClick} isAverageView averageValues={averageValues} />
-  </View>
+  </ScreenScroll>
 );
-
-const styles = StyleSheet.create({
-  root: {
-    gap: 16,
-  },
-});
 
 export default AveragePositionGrid;

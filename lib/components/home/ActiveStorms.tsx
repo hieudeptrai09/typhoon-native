@@ -4,6 +4,7 @@ import FrownError from "@/lib/components/common/FrownError";
 import TyphoonSpinner from "@/lib/components/common/TyphoonSpinner";
 import QuickActionButton from "@/lib/components/home/QuickActionButton";
 import { INTENSITY_LABEL, TEXT_COLOR_WHITE_BACKGROUND } from "@/lib/constants";
+import { COLOR } from "@/lib/constants/theme";
 import type { ActiveOnThisDayStorm } from "@/lib/types";
 import { formatStormDateRange } from "@/lib/utils/date";
 import { useRouter } from "expo-router";
@@ -145,13 +146,13 @@ const styles = StyleSheet.create({
   empty: {
     fontFamily: "OpenSans_400Regular",
     fontSize: 14,
-    color: "#475569",
+    color: COLOR.textBody,
     paddingVertical: 12,
   },
   caption: {
     fontFamily: "OpenSans_600SemiBold",
     fontSize: 14,
-    color: "#334155",
+    color: COLOR.textSecondary,
   },
   years: {
     gap: 16,
@@ -162,7 +163,7 @@ const styles = StyleSheet.create({
   yearLabel: {
     fontFamily: "OpenSans_700Bold",
     fontSize: 14,
-    color: "#334155",
+    color: COLOR.textSecondary,
     fontVariant: ["tabular-nums"],
   },
   item: {
@@ -173,7 +174,7 @@ const styles = StyleSheet.create({
   ordinal: {
     fontFamily: "OpenSans_400Regular",
     fontSize: 14,
-    color: "#94a3b8",
+    color: COLOR.textFaint,
     fontVariant: ["tabular-nums"],
   },
   itemBody: {
@@ -184,7 +185,7 @@ const styles = StyleSheet.create({
     fontFamily: "OpenSans_400Regular",
     fontSize: 14,
     lineHeight: 21,
-    color: "#475569",
+    color: COLOR.textBody,
   },
   name: {
     fontFamily: "OpenSans_700Bold",
@@ -192,11 +193,11 @@ const styles = StyleSheet.create({
   progress: {
     fontFamily: "OpenSans_400Regular",
     fontSize: 13,
-    color: "#64748b",
+    color: COLOR.textMuted,
   },
   progressValue: {
     fontFamily: "OpenSans_600SemiBold",
-    color: "#334155",
+    color: COLOR.textSecondary,
     fontVariant: ["tabular-nums"],
   },
 });

@@ -10,6 +10,7 @@ import {
   RETIRED_REASON_COLOR,
   RETIRED_REASON_FALLBACK_COLOR,
 } from "@/lib/constants/colors";
+import { COLOR } from "@/lib/constants/theme";
 import type { RetirementReason } from "@/lib/types";
 
 // A negative gap means there is nothing to measure against, so 0 stays free to mean a real same-year gap.
@@ -33,17 +34,17 @@ interface NameStatus {
 }
 
 export const getNameStatusColor = (name: NameStatus): string => {
-  if (name.isExternal) return "#475569";
-  if (name.retirementReason === "misspell") return "#d97706";
-  if (name.isRetired) return "#dc2626";
-  return "#059669";
+  if (name.isExternal) return COLOR.textBody;
+  if (name.retirementReason === "misspell") return COLOR.warning;
+  if (name.isRetired) return COLOR.danger;
+  return COLOR.success;
 };
 
 export const getNameStatusBgColor = (name: NameStatus): string => {
-  if (name.isExternal) return "#f1f5f9";
-  if (name.retirementReason === "misspell") return "#fef3c7";
-  if (name.isRetired) return "#fee2e2";
-  return "#d1fae5";
+  if (name.isExternal) return COLOR.surfaceMuted;
+  if (name.retirementReason === "misspell") return COLOR.warningSoft;
+  if (name.isRetired) return COLOR.dangerSoft;
+  return COLOR.successSoft;
 };
 
 export const getRetiredReasonColor = (reason?: RetirementReason): string =>

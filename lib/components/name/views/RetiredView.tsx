@@ -4,6 +4,7 @@ import RetiredFilterModal from "@/lib/components/name/modals/RetiredFilterModal"
 import RetiredNameDetailsModal from "@/lib/components/name/modals/RetiredNameDetailsModal";
 import RetiredNamesTable from "@/lib/components/name/tables/RetiredNamesTable";
 import { defaultRetiredName } from "@/lib/constants";
+import { COLOR, SPACE } from "@/lib/constants/theme";
 import type {
   RetiredFilterParams,
   RetiredName,
@@ -158,7 +159,7 @@ const RetiredView = ({ retiredNames, suggestedNames, displayPrefs }: RetiredView
     const isActive = currentLetter === target;
     return {
       isAvailable,
-      color: !isAvailable ? "#cbd5e1" : isActive ? "#991b1b" : "#dc2626",
+      color: isAvailable ? COLOR.danger : COLOR.disabled,
       isActive: isAvailable && isActive,
     };
   };
@@ -171,7 +172,7 @@ const RetiredView = ({ retiredNames, suggestedNames, displayPrefs }: RetiredView
           onPress={handleToggleLetterNav}
           label={showLetterNav ? "Letter navigation is on" : "Letter navigation is off"}
         >
-          <Ionicons name="text-outline" size={24} color="#334155" />
+          <Ionicons name="text-outline" size={24} color={COLOR.textSecondary} />
         </SlashToggleButton>
 
         <Pressable
@@ -184,7 +185,7 @@ const RetiredView = ({ retiredNames, suggestedNames, displayPrefs }: RetiredView
           accessibilityRole="button"
           accessibilityLabel={`Open filters${activeFilterCount > 0 ? `, ${activeFilterCount} active` : ""}`}
         >
-          <Ionicons name="funnel-outline" size={24} color="#334155" />
+          <Ionicons name="funnel-outline" size={24} color={COLOR.textSecondary} />
           {activeFilterCount > 0 && (
             <View style={styles.badge}>
               <Text style={styles.badgeLabel}>{activeFilterCount}</Text>
@@ -254,18 +255,18 @@ const styles = StyleSheet.create({
     height: 16,
     paddingHorizontal: 4,
     borderRadius: 8,
-    backgroundColor: "#3b82f6",
+    backgroundColor: COLOR.accent,
     alignItems: "center",
     justifyContent: "center",
   },
   badgeLabel: {
     fontFamily: "OpenSans_700Bold",
     fontSize: 10,
-    color: "#ffffff",
+    color: COLOR.textInverse,
   },
   letters: {
-    paddingHorizontal: 12,
-    paddingBottom: 8,
+    paddingHorizontal: SPACE.lg,
+    paddingBottom: SPACE.sm,
   },
 });
 

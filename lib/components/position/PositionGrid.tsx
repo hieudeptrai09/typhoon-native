@@ -1,5 +1,6 @@
 import CountryFlag, { COUNTRY_NAMES } from "@/lib/components/common/CountryFlag";
 import { GRID_COLS, GRID_ROWS } from "@/lib/constants/position";
+import { COLOR } from "@/lib/constants/theme";
 import { positionColumnLetter } from "@/lib/utils/position";
 import * as Haptics from "expo-haptics";
 import { useMemo, useRef, useState, type ReactNode } from "react";
@@ -106,6 +107,9 @@ const PositionGrid = ({ renderCell, renderReadout, onPositionPress }: PositionGr
         const cell = latest.current.cells[start.position - 1];
         if (cell?.clickable) latest.current.onPositionPress?.(start.position);
       },
+      // The page scroller claims a clear vertical drag off the grid; without this the readout
+      // would stay frozen on whichever cell the finger last crossed.
+      onPanResponderTerminate: () => peek(null),
     }),
   ).current;
 
@@ -165,7 +169,7 @@ const PositionGrid = ({ renderCell, renderReadout, onPositionPress }: PositionGr
                       adjustsFontSizeToFit
                       style={[
                         styles.cellLabel,
-                        { fontSize: cellSize * 0.38, color: cell.labelColor ?? "#0f172a" },
+                        { fontSize: cellSize * 0.38, color: cell.labelColor ?? COLOR.text },
                       ]}
                     >
                       {cell.label}
@@ -208,7 +212,7 @@ const styles = StyleSheet.create({
   columnLetter: {
     fontFamily: "OpenSans_600SemiBold",
     fontSize: 9,
-    color: "#94a3b8",
+    color: COLOR.textFaint,
   },
   body: {
     flexDirection: "row",
@@ -223,7 +227,7 @@ const styles = StyleSheet.create({
   rowLabel: {
     fontFamily: "OpenSans_600SemiBold",
     fontSize: 10,
-    color: "#94a3b8",
+    color: COLOR.textFaint,
   },
   plot: {
     flex: 1,
@@ -241,7 +245,7 @@ const styles = StyleSheet.create({
   },
   cellPeeked: {
     borderWidth: 2,
-    borderColor: "#0f172a",
+    borderColor: COLOR.text,
   },
   cellLabel: {
     fontFamily: "OpenSans_600SemiBold",
@@ -252,14 +256,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 10,
     borderRadius: 12,
-    backgroundColor: "#ffffff",
+    backgroundColor: COLOR.surface,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: "#e2e8f0",
+    borderColor: COLOR.border,
   },
   readoutHint: {
     fontFamily: "OpenSans_400Regular",
     fontSize: 12,
-    color: "#94a3b8",
+    color: COLOR.textFaint,
     textAlign: "center",
   },
 });

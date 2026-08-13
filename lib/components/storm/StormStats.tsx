@@ -1,5 +1,6 @@
 import StatTile from "@/lib/components/common/StatTile";
 import { INTENSITY_LABEL, TEXT_COLOR_WHITE_BACKGROUND } from "@/lib/constants";
+import { COLOR } from "@/lib/constants/theme";
 import type { Storm } from "@/lib/types";
 import { getAvgDateColor, getDistanceColor } from "@/lib/utils/colors";
 import {
@@ -86,13 +87,13 @@ const styles = StyleSheet.create({
   unit: {
     fontFamily: "OpenSans_400Regular",
     fontSize: 12,
-    color: "#64748b",
+    color: COLOR.textMuted,
   },
   separator: {
-    color: "#9ca3af",
+    color: COLOR.textFaint,
   },
   plain: {
-    color: "#334155",
+    color: COLOR.textSecondary,
   },
 });
 

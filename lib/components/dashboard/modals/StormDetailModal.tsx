@@ -1,6 +1,7 @@
 import DefModal from "@/lib/components/common/DefModal";
 import IntensityBadge from "@/lib/components/storm/IntensityBadge";
 import { TEXT_COLOR_WHITE_BACKGROUND } from "@/lib/constants";
+import { COLOR } from "@/lib/constants/theme";
 import type { BaseModalProps, Storm } from "@/lib/types";
 import { StyleSheet, Text, View } from "react-native";
 
@@ -63,7 +64,7 @@ const styles = StyleSheet.create({
   divider: {
     marginVertical: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#cbd5e1",
+    borderBottomColor: COLOR.borderStrong,
   },
 });
 

@@ -1,6 +1,7 @@
 import ActiveStorms from "@/lib/components/home/ActiveStorms";
 import FunFacts from "@/lib/components/home/FunFacts";
 import OnThisDay from "@/lib/components/home/OnThisDay";
+import { COLOR, RADIUS, SPACE } from "@/lib/constants/theme";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { StyleSheet, Text, View } from "react-native";
 
@@ -10,7 +11,7 @@ import { StyleSheet, Text, View } from "react-native";
 const QuickActionsMenu = () => (
   <View style={styles.root}>
     <View style={styles.header}>
-      <Ionicons name="sparkles-outline" size={16} color="#b45309" />
+      <Ionicons name="sparkles-outline" size={16} color={COLOR.accent} />
       <Text style={styles.title}>Discover</Text>
     </View>
 
@@ -25,26 +26,26 @@ const QuickActionsMenu = () => (
 const styles = StyleSheet.create({
   root: {
     width: "100%",
-    gap: 4,
+    gap: SPACE.xs,
     padding: 10,
-    borderRadius: 14,
+    borderRadius: RADIUS.lg,
     borderWidth: 1,
-    borderColor: "rgba(180, 83, 9, 0.35)",
-    backgroundColor: "rgba(255, 255, 255, 0.7)",
+    borderColor: COLOR.accentBorder,
+    backgroundColor: COLOR.onHero,
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
-    paddingHorizontal: 12,
-    paddingTop: 4,
+    gap: SPACE.sm,
+    paddingHorizontal: SPACE.md,
+    paddingTop: SPACE.xs,
   },
   title: {
     fontFamily: "OpenSans_700Bold",
     fontSize: 12,
     letterSpacing: 1,
     textTransform: "uppercase",
-    color: "#b45309",
+    color: COLOR.accent,
   },
   actions: {
     gap: 2,

@@ -1,3 +1,4 @@
+import { COLOR } from "@/lib/constants/theme";
 import type { ImageCredit as ImageCreditType } from "@/lib/types";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import * as WebBrowser from "expo-web-browser";
@@ -22,7 +23,7 @@ const ImageCredit = ({ credit, align = "start" }: ImageCreditProps) => {
 
   return (
     <View style={[styles.root, { justifyContent: alignStyle[align] }]}>
-      <Ionicons name="camera-outline" size={12} color="#9ca3af" />
+      <Ionicons name="camera-outline" size={12} color={COLOR.textFaint} />
       <Text style={styles.text} numberOfLines={1}>
         {sourceUrl ? (
           <Text style={styles.link} onPress={() => open(sourceUrl)}>
@@ -60,11 +61,11 @@ const styles = StyleSheet.create({
     fontFamily: "OpenSans_400Regular",
     fontSize: 11,
     lineHeight: 16,
-    color: "#9ca3af",
+    color: COLOR.textFaint,
   },
   link: {
     fontFamily: "OpenSans_600SemiBold",
-    color: "#94a3b8",
+    color: COLOR.textFaint,
     textDecorationLine: "underline",
   },
 });

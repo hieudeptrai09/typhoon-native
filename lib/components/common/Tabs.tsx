@@ -1,3 +1,4 @@
+import { COLOR } from "@/lib/constants/theme";
 import * as Haptics from "expo-haptics";
 import { type ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
@@ -65,7 +66,7 @@ const styles = StyleSheet.create({
     gap: 4,
     padding: 4,
     borderRadius: 12,
-    backgroundColor: "#e2e8f0",
+    backgroundColor: COLOR.surfaceSunken,
   },
   tab: {
     flex: 1,
@@ -75,7 +76,7 @@ const styles = StyleSheet.create({
     borderRadius: 9,
   },
   tabActive: {
-    backgroundColor: "#ffffff",
+    backgroundColor: COLOR.surface,
   },
   pressed: {
     opacity: 0.6,
@@ -83,10 +84,10 @@ const styles = StyleSheet.create({
   label: {
     fontFamily: "OpenSans_600SemiBold",
     fontSize: 14,
-    color: "#64748b",
+    color: COLOR.textMuted,
   },
   labelActive: {
-    color: "#0369a1",
+    color: COLOR.accent,
   },
   panel: {
     marginTop: 16,

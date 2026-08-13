@@ -4,6 +4,7 @@ import FrownError from "@/lib/components/common/FrownError";
 import TyphoonSpinner from "@/lib/components/common/TyphoonSpinner";
 import QuickActionButton from "@/lib/components/home/QuickActionButton";
 import { INTENSITY_LABEL, MONTH_NAMES, TEXT_COLOR_WHITE_BACKGROUND } from "@/lib/constants";
+import { COLOR } from "@/lib/constants/theme";
 import type { IconName, OnThisDayStorm } from "@/lib/types";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRouter } from "expo-router";
@@ -19,21 +20,21 @@ const getReasonIcon = (storm: OnThisDayStorm): { icon: IconName; color: string; 
     if (storm.reason === "both") {
       return {
         icon: "refresh",
-        color: "#d97706",
+        color: COLOR.warning,
         label: "Entered and exited the West Pacific basin",
       };
     }
     return storm.reason === "started"
-      ? { icon: "log-in-outline", color: "#16a34a", label: "Entered the West Pacific basin" }
-      : { icon: "log-out-outline", color: "#dc2626", label: "Exited the West Pacific basin" };
+      ? { icon: "log-in-outline", color: COLOR.success, label: "Entered the West Pacific basin" }
+      : { icon: "log-out-outline", color: COLOR.danger, label: "Exited the West Pacific basin" };
   }
 
   if (storm.reason === "both") {
-    return { icon: "refresh", color: "#d97706", label: "Formed and dissipated" };
+    return { icon: "refresh", color: COLOR.warning, label: "Formed and dissipated" };
   }
   return storm.reason === "started"
-    ? { icon: "play", color: "#16a34a", label: "Formed" }
-    : { icon: "stop", color: "#dc2626", label: "Dissipated" };
+    ? { icon: "play", color: COLOR.success, label: "Formed" }
+    : { icon: "stop", color: COLOR.danger, label: "Dissipated" };
 };
 
 const getVerb = (storm: OnThisDayStorm) => {
@@ -135,13 +136,13 @@ const styles = StyleSheet.create({
   empty: {
     fontFamily: "OpenSans_400Regular",
     fontSize: 14,
-    color: "#475569",
+    color: COLOR.textBody,
     paddingVertical: 12,
   },
   date: {
     fontFamily: "OpenSans_600SemiBold",
     fontSize: 14,
-    color: "#334155",
+    color: COLOR.textSecondary,
     marginBottom: 12,
   },
   list: {
@@ -157,7 +158,7 @@ const styles = StyleSheet.create({
     fontFamily: "OpenSans_400Regular",
     fontSize: 14,
     lineHeight: 21,
-    color: "#475569",
+    color: COLOR.textBody,
   },
   name: {
     fontFamily: "OpenSans_700Bold",

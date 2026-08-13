@@ -2,6 +2,7 @@ import DefModal from "@/lib/components/common/DefModal";
 import Tabs, { type Tab } from "@/lib/components/common/Tabs";
 import NameDetailsContent from "@/lib/components/name/NameDetailsContent";
 import SuggestionCard from "@/lib/components/name/widgets/SuggestionCard";
+import { COLOR } from "@/lib/constants/theme";
 import type { BaseModalProps, RetiredName, Suggestion } from "@/lib/types";
 import { getRetiredReasonColor } from "@/lib/utils/colors";
 import { useState } from "react";
@@ -73,7 +74,7 @@ const styles = StyleSheet.create({
   empty: {
     fontFamily: "OpenSans_400Regular",
     fontSize: 14,
-    color: "#64748b",
+    color: COLOR.textMuted,
     textAlign: "center",
     paddingVertical: 20,
   },

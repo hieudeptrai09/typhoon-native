@@ -7,6 +7,7 @@ import ImageWithLoader from "@/lib/components/common/ImageWithLoader";
 import Tabs, { type Tab } from "@/lib/components/common/Tabs";
 import StormStats from "@/lib/components/storm/StormStats";
 import { BACKGROUND_BADGE, INTENSITY_LABEL, TEXT_COLOR_WHITE_BACKGROUND } from "@/lib/constants";
+import { COLOR } from "@/lib/constants/theme";
 import type { BaseModalProps, PositionDetail, Storm, TyphoonName } from "@/lib/types";
 import { getDistanceColor, getNameStatusColor } from "@/lib/utils/colors";
 import { formatStormDateRange } from "@/lib/utils/date";
@@ -128,7 +129,7 @@ function StormGridCard({ storm }: { storm: Storm }) {
         />
       ) : (
         <View style={styles.cardNoImage}>
-          <Ionicons name="image-outline" size={16} color="#94a3b8" />
+          <Ionicons name="image-outline" size={16} color={COLOR.textFaint} />
         </View>
       )}
 
@@ -138,7 +139,7 @@ function StormGridCard({ storm }: { storm: Storm }) {
         </Text>
 
         <View style={styles.cardDate}>
-          <Ionicons name="calendar-outline" size={12} color="#334155" />
+          <Ionicons name="calendar-outline" size={12} color={COLOR.textSecondary} />
           <Text style={styles.cardDateText} numberOfLines={1}>
             {formatStormDateRange(storm.dateStart, storm.dateEnd)}
           </Text>
@@ -152,7 +153,7 @@ function StormGridCard({ storm }: { storm: Storm }) {
           accessibilityLabel={`View ${storm.name} ${storm.year} on Zoom Earth`}
         >
           <Text style={styles.linkLabel}>Zoom Earth</Text>
-          <Ionicons name="open-outline" size={12} color="#0369a1" />
+          <Ionicons name="open-outline" size={12} color={COLOR.accent} />
         </Pressable>
       </View>
     </View>
@@ -177,7 +178,7 @@ export default function PositionModal({
   const titleColor =
     storms.length > 0
       ? TEXT_COLOR_WHITE_BACKGROUND[getIntensityFromNumber(calculateAverage(storms))]
-      : "#64748b";
+      : COLOR.textMuted;
 
   const title: ReactNode = (
     <View style={styles.title}>
@@ -313,10 +314,10 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: "#cbd5e1",
+    backgroundColor: COLOR.borderStrong,
   },
   dotActive: {
-    backgroundColor: "#0369a1",
+    backgroundColor: COLOR.accent,
   },
   slide: {
     gap: 12,
@@ -327,13 +328,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 21,
     textAlign: "center",
-    color: "#475569",
+    color: COLOR.textBody,
   },
   slideName: {
     fontFamily: "OpenSans_700Bold",
   },
   slideMeta: {
-    color: "#475569",
+    color: COLOR.textBody,
   },
   slideMeaning: {
     fontFamily: "OpenSans_400Regular_Italic",
@@ -343,8 +344,8 @@ const styles = StyleSheet.create({
     aspectRatio: 4 / 3,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: "#e2e8f0",
-    backgroundColor: "#f8fafc",
+    borderColor: COLOR.border,
+    backgroundColor: COLOR.surfaceSubtle,
   },
   panel: {
     gap: 20,
@@ -352,7 +353,7 @@ const styles = StyleSheet.create({
   empty: {
     fontFamily: "OpenSans_400Regular",
     fontSize: 14,
-    color: "#64748b",
+    color: COLOR.textMuted,
     textAlign: "center",
     paddingVertical: 16,
   },
@@ -365,12 +366,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderRadius: 8,
     borderLeftWidth: 4,
-    backgroundColor: "#f8fafc",
+    backgroundColor: COLOR.surfaceSubtle,
   },
   groupName: {
     fontFamily: "OpenSans_600SemiBold",
     fontSize: 15,
-    color: "#334155",
+    color: COLOR.textSecondary,
   },
   groupStats: {
     flexDirection: "row",
@@ -381,11 +382,11 @@ const styles = StyleSheet.create({
   stat: {
     fontFamily: "OpenSans_400Regular",
     fontSize: 13,
-    color: "#475569",
+    color: COLOR.textBody,
   },
   statValue: {
     fontFamily: "OpenSans_700Bold",
-    color: "#334155",
+    color: COLOR.textSecondary,
   },
   cards: {
     gap: 10,
@@ -394,20 +395,20 @@ const styles = StyleSheet.create({
     gap: 8,
     padding: 8,
     borderRadius: 10,
-    backgroundColor: "#f8fafc",
+    backgroundColor: COLOR.surfaceSubtle,
   },
   cardImage: {
     width: "100%",
     aspectRatio: 4 / 3,
     borderRadius: 6,
-    backgroundColor: "#ffffff",
+    backgroundColor: COLOR.surface,
   },
   cardNoImage: {
     height: 80,
     alignItems: "center",
     justifyContent: "center",
     borderRadius: 6,
-    backgroundColor: "#f1f5f9",
+    backgroundColor: COLOR.surfaceMuted,
   },
   cardBody: {
     gap: 4,
@@ -426,7 +427,7 @@ const styles = StyleSheet.create({
     flexShrink: 1,
     fontFamily: "OpenSans_400Regular",
     fontSize: 12,
-    color: "#475569",
+    color: COLOR.textBody,
   },
   link: {
     flexDirection: "row",
@@ -439,6 +440,6 @@ const styles = StyleSheet.create({
   linkLabel: {
     fontFamily: "OpenSans_600SemiBold",
     fontSize: 12,
-    color: "#0369a1",
+    color: COLOR.accent,
   },
 });

@@ -3,6 +3,7 @@ import DefModal from "@/lib/components/common/DefModal";
 import FrownError from "@/lib/components/common/FrownError";
 import TyphoonSpinner from "@/lib/components/common/TyphoonSpinner";
 import QuickActionButton from "@/lib/components/home/QuickActionButton";
+import { COLOR } from "@/lib/constants/theme";
 import { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
@@ -44,7 +45,7 @@ const styles = StyleSheet.create({
     fontFamily: "OpenSans_400Regular",
     fontSize: 15,
     lineHeight: 23,
-    color: "#475569",
+    color: COLOR.textBody,
     paddingVertical: 4,
   },
 });
