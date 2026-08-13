@@ -1,7 +1,7 @@
 import type { IconName } from "@/lib/types";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { Empty } from "antd";
 import type { ReactNode } from "react";
+import { StyleSheet, Text, View } from "react-native";
 
 const EmptyResults = ({
   description = "No typhoon names match your current filters. Try adjusting your search criteria.",
@@ -11,18 +11,32 @@ const EmptyResults = ({
   description?: string;
   icon?: IconName;
   action?: ReactNode;
-}) => {
-  return (
-    <div className="mx-auto max-w-4xl p-8">
-      <Empty
-        image={<Ionicons name={icon} size={64} color="#9ca3af" />}
-        imageStyle={{ height: 64, display: "flex", justifyContent: "center" }}
-        description={<span className="text-foreground">{description}</span>}
-      >
-        {action}
-      </Empty>
-    </div>
-  );
-};
+}) => (
+  <View style={styles.root}>
+    <Ionicons name={icon} size={56} color="#94a3b8" />
+    <Text style={styles.description}>{description}</Text>
+    {action ? <View style={styles.action}>{action}</View> : null}
+  </View>
+);
+
+const styles = StyleSheet.create({
+  root: {
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 14,
+    paddingHorizontal: 32,
+    paddingVertical: 48,
+  },
+  description: {
+    fontFamily: "OpenSans_400Regular",
+    fontSize: 14,
+    lineHeight: 21,
+    color: "#64748b",
+    textAlign: "center",
+  },
+  action: {
+    marginTop: 4,
+  },
+});
 
 export default EmptyResults;

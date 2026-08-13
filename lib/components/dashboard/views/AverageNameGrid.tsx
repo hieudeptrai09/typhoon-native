@@ -8,6 +8,7 @@ import {
   getIntensityFromNumber,
 } from "@/lib/utils/storm/aggregate";
 import { useMemo } from "react";
+import { StyleSheet, View } from "react-native";
 
 interface AverageNameGridProps {
   stormsData: Storm[];
@@ -24,15 +25,22 @@ const AverageNameGrid = ({ stormsData, onCellClick }: AverageNameGridProps) => {
   }, [stormsData]);
 
   return (
-    <div className="flex flex-col gap-6">
+    <View style={styles.root}>
       <NamesGrid stormsData={stormsData} onCellClick={onCellClick} nameColors={nameColors} />
       <SpecialNamesListDiv
         stormsData={stormsData}
         nameColors={nameColors}
         onNameClick={(name) => onCellClick(name, "name")}
       />
-    </div>
+    </View>
   );
 };
+
+const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+    gap: 16,
+  },
+});
 
 export default AverageNameGrid;

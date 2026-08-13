@@ -1,21 +1,31 @@
+import { StyleSheet, Text, type StyleProp, type TextStyle } from "react-native";
+
 const HighlightedName = ({
   name,
   query,
-  className,
+  style,
 }: {
   name: string;
   query: string;
-  className?: string;
+  style?: StyleProp<TextStyle>;
 }) => {
   const idx = query.trim() ? name.toLowerCase().indexOf(query.toLowerCase()) : -1;
-  if (idx === -1) return <span className={className}>{name}</span>;
+  if (idx === -1) return <Text style={style}>{name}</Text>;
+
   return (
-    <span className={className}>
-      <span className="font-normal">{name.slice(0, idx)}</span>
-      <span className="font-bold">{name.slice(idx, idx + query.length)}</span>
-      <span className="font-normal">{name.slice(idx + query.length)}</span>
-    </span>
+    <Text style={style}>
+      {name.slice(0, idx)}
+      <Text style={styles.match}>{name.slice(idx, idx + query.length)}</Text>
+      {name.slice(idx + query.length)}
+    </Text>
   );
 };
+
+const styles = StyleSheet.create({
+  match: {
+    fontFamily: "OpenSans_700Bold",
+    color: "#0369a1",
+  },
+});
 
 export default HighlightedName;

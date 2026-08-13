@@ -1,10 +1,9 @@
-"use client";
-
-import PositionGrid from "@/lib/components/position/PositionGrid";
+import CountryPager from "@/lib/components/position/CountryPager";
 import type { IconName, TyphoonName } from "@/lib/types";
-import { onEnterKeyDown } from "@/lib/utils/a11y";
 import { getNameStatusColor } from "@/lib/utils/colors";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import { useMemo } from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 const DEFAULT_COLOR = "#334155";
 
@@ -44,7 +43,7 @@ const getHistoryCountColor = (count: number) =>
 
 const TagIcon = ({
   tag,
-  size = 20,
+  size = 18,
   colorOverride,
 }: {
   tag: string;
@@ -59,97 +58,6 @@ const TagIcon = ({
 };
 
 const sortByOldest = (names: TyphoonName[]) => [...names].sort((a, b) => a.id - b.id);
-
-const CELL_SIZE = {
-  current: { name: 14, icon: 20 },
-  history: { name: 12, icon: 15 },
-} as const;
-
-const NameButton = ({
-  name,
-  size,
-  showName,
-  onNameClick,
-  colorOverride,
-}: {
-  name: TyphoonName;
-  size: { name: number; icon: number };
-  showName: boolean;
-  onNameClick: (n: TyphoonName) => void;
-  colorOverride?: string;
-}) => (
-  <button
-    title={name.name}
-    aria-label={`View details for ${name.name}`}
-    onClick={(e) => {
-      e.stopPropagation();
-      onNameClick(name);
-    }}
-    className="flex min-h-11 cursor-pointer items-center justify-center rounded border-0 bg-transparent p-0.5 hover:bg-stone-100 md:min-h-0"
-  >
-    {showName ? (
-      <span
-        className="leading-tight font-semibold hover:underline"
-        style={{ fontSize: size.name, color: colorOverride || getNameStatusColor(name) }}
-      >
-        {name.name}
-      </span>
-    ) : (
-      <TagIcon tag={name.tag} size={size.icon} colorOverride={colorOverride} />
-    )}
-  </button>
-);
-
-const CellContent = ({
-  names,
-  showHistory,
-  showName,
-  colorfulHistory,
-  onNameClick,
-}: {
-  names: TyphoonName[];
-  showHistory: boolean;
-  showName: boolean;
-  colorfulHistory: boolean;
-  onNameClick: (n: TyphoonName) => void;
-}) => {
-  if (showHistory) {
-    const colorOverride = colorfulHistory ? getHistoryCountColor(names.length) : undefined;
-    return (
-      <div className="flex min-h-16 flex-col items-center justify-center gap-0 py-4 md:py-1 md:gap-0.5">
-        {names.length === 0 ? (
-          <span className="text-xs text-gray-300">—</span>
-        ) : (
-          sortByOldest(names).map((n) => (
-            <NameButton
-              key={n.id}
-              name={n}
-              size={CELL_SIZE.history}
-              showName={showName}
-              onNameClick={onNameClick}
-              colorOverride={colorOverride}
-            />
-          ))
-        )}
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex min-h-16 items-center justify-center p-1">
-      {names.length > 0 ? (
-        <NameButton
-          name={names[0]}
-          size={CELL_SIZE.current}
-          showName={showName}
-          onNameClick={onNameClick}
-        />
-      ) : (
-        <span className="text-xs text-gray-300">—</span>
-      )}
-    </div>
-  );
-};
 
 interface PositionNameGridProps {
   names: TyphoonName[];
@@ -168,64 +76,119 @@ const PositionNameGrid = ({
   onNameClick,
   onCellClick,
 }: PositionNameGridProps) => {
-  const namesByPosition = names.reduce<Record<number, TyphoonName[]>>((acc, n) => {
-    if (n.retirementReason === "misspell") return acc;
-    if (!acc[n.position]) acc[n.position] = [];
-    acc[n.position].push(n);
-    return acc;
-  }, {});
+  const namesByPosition = useMemo(
+    () =>
+      names.reduce<Record<number, TyphoonName[]>>((acc, name) => {
+        if (name.retirementReason === "misspell") return acc;
+        (acc[name.position] ??= []).push(name);
+        return acc;
+      }, {}),
+    [names],
+  );
+
+  const renderName = (name: TyphoonName, colorOverride?: string) => (
+    <Pressable
+      key={name.id}
+      onPress={() => onNameClick(name)}
+      style={({ pressed }) => [styles.name, pressed && styles.namePressed]}
+      accessibilityRole="button"
+      accessibilityLabel={`View details for ${name.name}`}
+    >
+      {showName ? (
+        <Text style={[styles.nameText, { color: colorOverride || getNameStatusColor(name) }]}>
+          {name.name}
+        </Text>
+      ) : (
+        <View style={styles.tagRow}>
+          <TagIcon tag={name.tag} colorOverride={colorOverride} />
+          <Text style={styles.tagLabel}>{name.tag}</Text>
+        </View>
+      )}
+    </Pressable>
+  );
 
   return (
-    <div>
-      <PositionGrid
-        renderCell={(position, _row, col) => {
-          const positionNames = namesByPosition[position] ?? [];
-          const isEmpty = positionNames.length === 0;
+    <CountryPager
+      positionEnabled={(position) => (namesByPosition[position]?.length ?? 0) > 0}
+      onPositionPress={(position) => onCellClick(position, namesByPosition[position] ?? [])}
+      renderPosition={(position) => {
+        const positionNames = namesByPosition[position] ?? [];
+        if (positionNames.length === 0) return <Text style={styles.empty}>—</Text>;
 
-          return (
-            <td
-              key={col}
-              className={`border border-stone-300 p-0 transition-colors ${
-                isEmpty ? "cursor-default bg-gray-100" : "cursor-pointer hover:bg-stone-100"
-              }`}
-              role={!isEmpty ? "button" : ""}
-              tabIndex={!isEmpty ? 0 : -1}
-              aria-label={`Position ${position}`}
-              onClick={() => {
-                if (positionNames.length === 0) return;
-                onCellClick(position, positionNames);
-              }}
-              onKeyDown={onEnterKeyDown(() => {
-                if (positionNames.length === 0) return;
-                onCellClick(position, positionNames);
-              })}
-            >
-              <CellContent
-                names={positionNames}
-                showHistory={showHistory}
-                showName={showName}
-                colorfulHistory={showHistory && colorfulHistory}
-                onNameClick={onNameClick}
-              />
-            </td>
-          );
-        }}
-      />
+        if (!showHistory) return <View>{renderName(positionNames[0])}</View>;
 
-      {!showName && (
-        <div className="max-w-8xl mx-auto mt-6">
-          <div className="flex flex-wrap justify-center gap-3">
-            {Object.entries(TAG_ICONS).map(([tag]) => (
-              <div key={tag} className="flex items-center gap-1.5">
+        const colorOverride = colorfulHistory
+          ? getHistoryCountColor(positionNames.length)
+          : undefined;
+        return (
+          <View style={styles.history}>
+            {sortByOldest(positionNames).map((name) => renderName(name, colorOverride))}
+          </View>
+        );
+      }}
+      footer={
+        showName ? null : (
+          <View style={styles.legend}>
+            {Object.keys(TAG_ICONS).map((tag) => (
+              <View key={tag} style={styles.legendItem}>
                 <TagIcon tag={tag} size={14} />
-                <span className="text-xs text-foreground">{tag}</span>
-              </div>
+                <Text style={styles.legendLabel}>{tag}</Text>
+              </View>
             ))}
-          </div>
-        </div>
-      )}
-    </div>
+          </View>
+        )
+      }
+    />
   );
 };
+
+const styles = StyleSheet.create({
+  history: {
+    gap: 4,
+  },
+  name: {
+    minHeight: 32,
+    justifyContent: "center",
+  },
+  namePressed: {
+    opacity: 0.6,
+  },
+  nameText: {
+    fontFamily: "OpenSans_600SemiBold",
+    fontSize: 15,
+  },
+  tagRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  tagLabel: {
+    fontFamily: "OpenSans_500Medium",
+    fontSize: 13,
+    color: "#475569",
+  },
+  empty: {
+    fontFamily: "OpenSans_400Regular",
+    fontSize: 14,
+    color: "#cbd5e1",
+  },
+  legend: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+    rowGap: 8,
+    justifyContent: "center",
+  },
+  legendItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+  },
+  legendLabel: {
+    fontFamily: "OpenSans_400Regular",
+    fontSize: 11,
+    color: "#475569",
+  },
+});
 
 export default PositionNameGrid;

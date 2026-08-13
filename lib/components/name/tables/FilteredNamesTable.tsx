@@ -1,96 +1,72 @@
-import DefTable from "@/lib/components/common/DefTable";
+import CountryFlag from "@/lib/components/common/CountryFlag";
+import DataList, { DataCard } from "@/lib/components/common/DataList";
 import EmptyResults from "@/lib/components/common/EmptyResults";
 import NameStatusIcon from "@/lib/components/name/NameStatusIcon";
 import type { TyphoonName } from "@/lib/types";
-import { clickableRowProps } from "@/lib/utils/a11y";
-import { getNameStatusColorClass } from "@/lib/utils/colors";
+import { getNameStatusColor } from "@/lib/utils/colors";
 import { getPositionTitle } from "@/lib/utils/position";
-import type { ColumnsType } from "antd/es/table";
+import type { SortField } from "@/lib/utils/table";
 
 interface FilteredNamesTableProps {
   filteredNames: TyphoonName[];
   onNameClick: (name: TyphoonName) => void;
 }
 
-const columns: ColumnsType<TyphoonName> = [
+const sortFields: SortField<TyphoonName>[] = [
+  { key: "name", label: "Name", compare: (a, b) => a.name.localeCompare(b.name) },
   {
-    title: "#",
-    key: "order",
-    width: 52,
-    fixed: "left" as const,
-    render: (_: unknown, __: TyphoonName, index: number) => (
-      <span className="text-sm font-semibold text-sky-700">{index + 1}</span>
-    ),
-  },
-  {
-    title: "Name",
-    dataIndex: "name",
-    key: "name",
-    width: 100,
-    fixed: "left" as const,
-    sorter: (a, b) => a.name.localeCompare(b.name),
-    render: (_: unknown, record: TyphoonName) => (
-      <span className={`font-semibold ${getNameStatusColorClass(record)}`}>{record.name}</span>
-    ),
-  },
-  {
-    title: "Retired",
-    dataIndex: "isRetired",
     key: "isRetired",
-    sorter: (a, b) => Number(a.isRetired) - Number(b.isRetired),
-    render: (_: unknown, record: TyphoonName) => (
-      <NameStatusIcon
-        isRetired={record.isRetired}
-        retirementReason={record.retirementReason}
-        size={20}
-      />
-    ),
+    label: "Retired",
+    compare: (a, b) => Number(a.isRetired) - Number(b.isRetired),
   },
   {
-    title: "Contributed By",
-    dataIndex: "country",
     key: "country",
-    sorter: (a, b) => a.country.localeCompare(b.country),
+    label: "Contributed by",
+    compare: (a, b) => a.country.localeCompare(b.country),
   },
   {
-    title: "Language",
-    dataIndex: "language",
     key: "language",
-    sorter: (a, b) => (a.language ?? "").localeCompare(b.language ?? ""),
+    label: "Language",
+    compare: (a, b) => (a.language ?? "").localeCompare(b.language ?? ""),
   },
-  {
-    title: "Position",
-    dataIndex: "position",
-    key: "position",
-    sorter: (a, b) => a.position - b.position,
-    render: (_: unknown, record: TyphoonName) => <span>{getPositionTitle(record.position)}</span>,
-  },
-  {
-    title: "Meaning",
-    dataIndex: "meaning",
-    key: "meaning",
-    render: (_: unknown, record: TyphoonName) => (
-      <span className="block max-w-[200px] wrap-break-word whitespace-normal">
-        {record.meaning || "-"}
-      </span>
-    ),
-  },
+  { key: "position", label: "Position", compare: (a, b) => a.position - b.position },
 ];
 
 const FilteredNamesTable = ({ filteredNames, onNameClick }: FilteredNamesTableProps) => {
-  if (filteredNames.length === 0) {
-    return <EmptyResults />;
-  }
+  if (filteredNames.length === 0) return <EmptyResults />;
 
   return (
-    <DefTable<TyphoonName>
-      maxWidth="max-w-4xl"
-      dataSource={filteredNames}
-      columns={columns}
-      rowKey="id"
-      onRow={(record) =>
-        clickableRowProps(`View details for ${record.name}`, () => onNameClick(record))
-      }
+    <DataList<TyphoonName>
+      data={filteredNames}
+      keyExtractor={(name) => String(name.id)}
+      sortFields={sortFields}
+      countLabel={(count) => `${count} name${count === 1 ? "" : "s"}`}
+      onRowPress={onNameClick}
+      renderCard={(name, index) => (
+        <DataCard
+          ordinal={index + 1}
+          title={name.name}
+          titleColor={getNameStatusColor(name)}
+          accentColor={getNameStatusColor(name)}
+          trailing={
+            <NameStatusIcon
+              isRetired={name.isRetired}
+              retirementReason={name.retirementReason}
+              size={20}
+            />
+          }
+          fields={[
+            {
+              label: "Contributed by",
+              value: <CountryFlag country={name.country} size={16} showName />,
+            },
+            { label: "Language", value: name.language || "—" },
+            { label: "Position", value: getPositionTitle(name.position) },
+            { label: "Meaning", value: name.meaning || "—", wide: true },
+          ]}
+          pressable
+        />
+      )}
     />
   );
 };

@@ -4,6 +4,7 @@ import type { Storm } from "@/lib/types";
 import { getDistanceColor } from "@/lib/utils/colors";
 import { calculateDistances } from "@/lib/utils/storm/aggregate";
 import { useMemo } from "react";
+import { StyleSheet, View } from "react-native";
 
 interface DistanceNameGridProps {
   stormsData: Storm[];
@@ -20,15 +21,22 @@ const DistanceNameGrid = ({ stormsData, onCellClick }: DistanceNameGridProps) =>
   }, [stormsData]);
 
   return (
-    <div className="flex flex-col gap-6">
+    <View style={styles.root}>
       <NamesGrid stormsData={stormsData} onCellClick={onCellClick} nameColors={nameColors} />
       <SpecialNamesListDiv
         stormsData={stormsData}
         nameColors={nameColors}
         onNameClick={(name) => onCellClick(name, "name")}
       />
-    </div>
+    </View>
   );
 };
+
+const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+    gap: 16,
+  },
+});
 
 export default DistanceNameGrid;

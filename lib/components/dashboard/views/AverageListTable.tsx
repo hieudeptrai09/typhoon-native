@@ -1,8 +1,7 @@
 import CountryFlag from "@/lib/components/common/CountryFlag";
-import DefTable from "@/lib/components/common/DefTable";
+import DataList, { DataCard, type DataField } from "@/lib/components/common/DataList";
 import { MONTH_NAMES, TEXT_COLOR_WHITE_BACKGROUND } from "@/lib/constants";
 import type { Storm } from "@/lib/types";
-import { clickableRowProps } from "@/lib/utils/a11y";
 import { getPositionTitle } from "@/lib/utils/position";
 import {
   calculateAverage,
@@ -10,7 +9,7 @@ import {
   getIntensityFromNumber,
 } from "@/lib/utils/storm/aggregate";
 import { getEffectiveMonth } from "@/lib/utils/storm/highlights";
-import type { ColumnsType } from "antd/es/table";
+import type { SortField } from "@/lib/utils/table";
 import { useMemo } from "react";
 
 interface AverageListTableProps {
@@ -44,170 +43,102 @@ const transformData = (dataMap: Record<string, Storm[]>, filterType: string): Av
       case "country":
         return { country: key, ...base };
       case "name":
-        return {
-          name: key,
-          country: storms[0].country,
-          position: storms[0].position,
-          ...base,
-        };
+        return { name: key, country: storms[0].country, position: storms[0].position, ...base };
       case "position":
       default:
-        return {
-          position: parseInt(key),
-          country: storms[0].country,
-          ...base,
-        };
+        return { position: parseInt(key), country: storms[0].country, ...base };
     }
   });
 
-const AvgIntensityCell = ({ avgNumber, average }: { avgNumber: number; average: string }) => {
-  const textColor = TEXT_COLOR_WHITE_BACKGROUND[getIntensityFromNumber(avgNumber)];
-  return (
-    <span className="font-semibold" style={{ color: textColor }}>
-      {average}
-    </span>
-  );
+const countField: SortField<AverageData> = {
+  key: "count",
+  label: "Count",
+  compare: (a, b) => a.count - b.count,
 };
 
-const makeColumns = (filterType: string): ColumnsType<AverageData> => {
-  const orderCol: ColumnsType<AverageData>[number] = {
-    title: "#",
-    key: "order",
-    width: 52,
-    fixed: "left" as const,
-    render: (_: unknown, __: AverageData, index: number) => (
-      <span className="text-sm font-semibold text-sky-700">{index + 1}</span>
-    ),
-  };
+const avgField: SortField<AverageData> = {
+  key: "average",
+  label: "Average intensity",
+  compare: (a, b) => a.avgNumber - b.avgNumber,
+};
 
-  const countCol: ColumnsType<AverageData>[number] = {
-    title: "Count",
-    dataIndex: "count",
-    key: "count",
-    sorter: (a, b) => a.count - b.count,
-  };
+const countryField: SortField<AverageData> = {
+  key: "country",
+  label: "Contributed by",
+  compare: (a, b) => (a.country ?? "").localeCompare(b.country ?? ""),
+};
 
-  const avgCol: ColumnsType<AverageData>[number] = {
-    title: "Average Intensity",
-    dataIndex: "average",
-    key: "average",
-    sorter: (a, b) => a.avgNumber - b.avgNumber,
-    render: (_: unknown, row: AverageData) => (
-      <AvgIntensityCell avgNumber={row.avgNumber} average={row.average} />
-    ),
-  };
+const positionField: SortField<AverageData> = {
+  key: "position",
+  label: "Position",
+  compare: (a, b) => (a.position ?? 0) - (b.position ?? 0),
+};
 
-  const countryCol: ColumnsType<AverageData>[number] = {
-    title: "Contributed By",
-    dataIndex: "country",
-    key: "country",
-    sorter: (a, b) => (a.country ?? "").localeCompare(b.country ?? ""),
-    render: (_: unknown, row: AverageData) => <CountryFlag country={row.country ?? ""} />,
-  };
-
+const makeSortFields = (filterType: string): SortField<AverageData>[] => {
   switch (filterType) {
     case "year":
       return [
-        orderCol,
-        {
-          title: "Year",
-          dataIndex: "year",
-          key: "year",
-          width: 80,
-          fixed: "left" as const,
-          sorter: (a, b) => (a.year ?? 0) - (b.year ?? 0),
-        },
-        countCol,
-        avgCol,
+        { key: "year", label: "Year", compare: (a, b) => (a.year ?? 0) - (b.year ?? 0) },
+        countField,
+        avgField,
       ];
-
     case "month":
       return [
-        orderCol,
-        {
-          title: "Month",
-          dataIndex: "monthName",
-          key: "month",
-          width: 120,
-          fixed: "left" as const,
-          sorter: (a, b) => (a.month ?? 0) - (b.month ?? 0),
-        },
-        countCol,
-        avgCol,
+        { key: "month", label: "Month", compare: (a, b) => (a.month ?? 0) - (b.month ?? 0) },
+        countField,
+        avgField,
       ];
-
     case "country":
-      return [
-        orderCol,
-        {
-          title: "Contributed By",
-          dataIndex: "country",
-          key: "country",
-          width: 150,
-          fixed: "left" as const,
-          sorter: (a, b) => (a.country ?? "").localeCompare(b.country ?? ""),
-          render: (_: unknown, row: AverageData) => <CountryFlag country={row.country ?? ""} />,
-        },
-        countCol,
-        avgCol,
-      ];
-
+      return [countryField, countField, avgField];
     case "name":
       return [
-        orderCol,
         {
-          title: "Name",
-          dataIndex: "name",
           key: "name",
-          width: 100,
-          fixed: "left" as const,
-          sorter: (a, b) => (a.name ?? "").localeCompare(b.name ?? ""),
-          render: (_: unknown, row: AverageData) => (
-            <span className="font-semibold">{row.name}</span>
-          ),
+          label: "Name",
+          compare: (a, b) => (a.name ?? "").localeCompare(b.name ?? ""),
         },
-        countryCol,
-        countCol,
-        {
-          title: "Position",
-          dataIndex: "position",
-          key: "position",
-          sorter: (a, b) => (a.position ?? 0) - (b.position ?? 0),
-          render: (_: unknown, row: AverageData) => (
-            <span>{row.position !== undefined ? getPositionTitle(row.position) : ""}</span>
-          ),
-        },
-        avgCol,
+        countryField,
+        positionField,
+        countField,
+        avgField,
       ];
-
     case "position":
     default:
-      return [
-        orderCol,
-        {
-          title: "Position",
-          dataIndex: "position",
-          key: "position",
-          width: 100,
-          fixed: "left" as const,
-          sorter: (a, b) => (a.position ?? 0) - (b.position ?? 0),
-          render: (_: unknown, row: AverageData) => (
-            <span>{row.position !== undefined ? getPositionTitle(row.position) : ""}</span>
-          ),
-        },
-        countryCol,
-        countCol,
-        avgCol,
-      ];
+      return [positionField, countryField, countField, avgField];
   }
 };
 
-const WIDTH_CLASS: Record<string, string> = {
-  position: "max-w-2xl",
-  name: "max-w-2xl",
-  country: "max-w-lg",
-  year: "max-w-lg",
-  month: "max-w-lg",
+// Each filter groups by a different thing, so the card's headline changes with it.
+const titleOf = (row: AverageData, filterType: string): string => {
+  switch (filterType) {
+    case "year":
+      return String(row.year);
+    case "month":
+      return row.monthName ?? "";
+    case "country":
+      return row.country ?? "";
+    case "name":
+      return row.name ?? "";
+    case "position":
+    default:
+      return row.position !== undefined ? getPositionTitle(row.position) : "";
+  }
+};
+
+const fieldsOf = (row: AverageData, filterType: string): DataField[] => {
+  const fields: DataField[] = [{ label: "Storm count", value: String(row.count) }];
+
+  if (filterType === "name" && row.position !== undefined) {
+    fields.push({ label: "Position", value: getPositionTitle(row.position) });
+  }
+  if (filterType !== "country" && filterType !== "year" && filterType !== "month" && row.country) {
+    fields.push({
+      label: "Contributed by",
+      value: <CountryFlag country={row.country} size={16} showName />,
+      wide: true,
+    });
+  }
+  return fields;
 };
 
 const groupByEffectiveMonth = (stormsData: Storm[]): Record<string, Storm[]> => {
@@ -220,46 +151,66 @@ const groupByEffectiveMonth = (stormsData: Storm[]): Record<string, Storm[]> => 
   return grouped;
 };
 
+const rowKey = (row: AverageData, filterType: string): string => {
+  switch (filterType) {
+    case "year":
+      return String(row.year);
+    case "month":
+      return String(row.month);
+    case "country":
+      return row.country ?? "";
+    case "name":
+      return `${row.name}-${row.country}`;
+    default:
+      return String(row.position);
+  }
+};
+
 const AverageListTable = ({ filter, stormsData, onCellClick }: AverageListTableProps) => {
   const groupedStorms = useMemo(() => {
     if (filter === "month") return groupByEffectiveMonth(stormsData);
     const filtered =
       filter === "year"
-        ? stormsData.filter((s) => parseInt(s.year.toString()) >= 2000)
+        ? stormsData.filter((storm) => parseInt(storm.year.toString()) >= 2000)
         : stormsData;
     return getGroupedStorms(filtered, filter);
   }, [stormsData, filter]);
 
-  const data = transformData(groupedStorms, filter);
-  if (filter === "month") data.sort((a, b) => (a.month ?? 0) - (b.month ?? 0));
+  const data = useMemo(() => {
+    const rows = transformData(groupedStorms, filter);
+    if (filter === "month") rows.sort((a, b) => (a.month ?? 0) - (b.month ?? 0));
+    return rows;
+  }, [groupedStorms, filter]);
+
+  const sortFields = useMemo(() => makeSortFields(filter), [filter]);
 
   return (
-    <DefTable<AverageData>
-      maxWidth={WIDTH_CLASS[filter] ?? "max-w-2xl"}
-      tableKey={filter}
-      dataSource={data}
-      columns={makeColumns(filter)}
-      rowKey={(row) => {
-        switch (filter) {
-          case "year":
-            return String(row.year);
-          case "month":
-            return String(row.month);
-          case "country":
-            return row.country ?? "";
-          case "name":
-            return `${row.name}-${row.country}`;
-          case "position":
-            return String(row.position);
-          default:
-            return String(Math.random());
-        }
-      }}
-      onRow={(row) => {
+    <DataList<AverageData>
+      data={data}
+      keyExtractor={(row) => rowKey(row, filter)}
+      sortFields={sortFields}
+      onRowPress={(row) => {
         const value = row[filter as keyof AverageData];
-        if (value === undefined) return {};
-        return clickableRowProps(`View details for ${value}`, () =>
-          onCellClick(value as number | string, filter),
+        if (value === undefined) return;
+        onCellClick(value as number | string, filter);
+      }}
+      renderCard={(row, index) => {
+        const color = TEXT_COLOR_WHITE_BACKGROUND[getIntensityFromNumber(row.avgNumber)];
+        return (
+          <DataCard
+            ordinal={index + 1}
+            title={
+              filter === "country" && row.country ? (
+                <CountryFlag country={row.country} size={20} showName />
+              ) : (
+                titleOf(row, filter)
+              )
+            }
+            accentColor={color}
+            trailing={row.average}
+            fields={fieldsOf(row, filter)}
+            pressable
+          />
         );
       }}
     />

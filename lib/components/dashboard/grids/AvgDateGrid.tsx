@@ -1,4 +1,5 @@
 import PositionCellGrid from "@/lib/components/position/PositionCellGrid";
+import { GRID_EMPTY_CELL_COLOR } from "@/lib/constants";
 import type { Storm } from "@/lib/types";
 import { getAvgDateColor } from "@/lib/utils/colors";
 import { formatDayOfYear, getDoyMonth, type AvgDates } from "@/lib/utils/storm/dates";
@@ -10,6 +11,9 @@ interface AvgDateGridProps {
   isClickable?: boolean;
 }
 
+const hasDates = (dates?: AvgDates): dates is AvgDates =>
+  dates !== undefined && (dates.startDoy >= 0 || dates.endDoy >= 0);
+
 const AvgDateGrid = ({
   stormsData,
   avgDateValues,
@@ -18,26 +22,19 @@ const AvgDateGrid = ({
 }: AvgDateGridProps) => (
   <PositionCellGrid
     stormsData={stormsData}
-    gridCellViewType="storms"
-    onPositionClick={(position) => onCellClick(position, "position")}
+    onPositionPress={(position) => onCellClick(position, "position")}
+    renderValue={(position) => {
+      const dates = avgDateValues?.[position];
+      if (!hasDates(dates)) return undefined;
+      return `${formatDayOfYear(dates.startDoy)} – ${formatDayOfYear(dates.endDoy)}`;
+    }}
     renderCell={(position) => {
       const dates = avgDateValues?.[position];
-      const hasData = dates && (dates.startDoy >= 0 || dates.endDoy >= 0);
+      // The season's start month is what the colour scale reads; the readout carries both dates.
       return {
-        content: !hasData ? (
-          <span className="text-sm font-bold text-gray-400">—</span>
-        ) : (
-          <div className="flex flex-col items-center text-xs leading-tight font-bold tabular-nums">
-            <span style={{ color: getAvgDateColor(getDoyMonth(dates.startDoy)) }}>
-              {formatDayOfYear(dates.startDoy)}
-            </span>
-            <span className="text-[10px] font-normal text-gray-400">–</span>
-            <span style={{ color: getAvgDateColor(getDoyMonth(dates.endDoy)) }}>
-              {formatDayOfYear(dates.endDoy)}
-            </span>
-          </div>
-        ),
-        className: "",
+        color: hasDates(dates)
+          ? getAvgDateColor(getDoyMonth(dates.startDoy))
+          : GRID_EMPTY_CELL_COLOR,
         clickable: isClickable,
       };
     }}

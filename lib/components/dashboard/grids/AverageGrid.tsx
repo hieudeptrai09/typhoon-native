@@ -1,7 +1,11 @@
 import PositionCellGrid from "@/lib/components/position/PositionCellGrid";
-import { TEXT_COLOR_WHITE_BACKGROUND } from "@/lib/constants";
+import {
+  BACKGROUND_BADGE,
+  GRID_EMPTY_CELL_COLOR,
+  INTENSITY_LABEL,
+  TEXT_COLOR_BADGE,
+} from "@/lib/constants";
 import type { Storm } from "@/lib/types";
-import { getPositionTitle } from "@/lib/utils/position";
 import { getIntensityFromNumber } from "@/lib/utils/storm/aggregate";
 
 interface AverageGridProps {
@@ -19,21 +23,21 @@ const AverageGrid = ({
 }: AverageGridProps) => (
   <PositionCellGrid
     stormsData={stormsData}
-    gridCellViewType="average"
-    onPositionClick={(position) => onCellClick(position, "position")}
+    onPositionPress={(position) => onCellClick(position, "position")}
+    renderValue={(position) => {
+      const avg = averageValues?.[position];
+      if (avg === undefined) return undefined;
+      return `Avg ${avg.toFixed(2)} — ${INTENSITY_LABEL[getIntensityFromNumber(avg)]}`;
+    }}
     renderCell={(position) => {
-      const avgNumber = averageValues?.[position];
-      const textColor =
-        avgNumber !== undefined
-          ? TEXT_COLOR_WHITE_BACKGROUND[getIntensityFromNumber(avgNumber)]
-          : "#374151";
+      const avg = averageValues?.[position];
+      if (avg === undefined) return { color: GRID_EMPTY_CELL_COLOR, clickable: isClickable };
+
+      const intensity = getIntensityFromNumber(avg);
       return {
-        content: (
-          <div className="text-center text-base font-semibold" style={{ color: textColor }}>
-            {getPositionTitle(position)}
-          </div>
-        ),
-        className: "",
+        color: BACKGROUND_BADGE[intensity],
+        label: intensity,
+        labelColor: TEXT_COLOR_BADGE[intensity],
         clickable: isClickable,
       };
     }}

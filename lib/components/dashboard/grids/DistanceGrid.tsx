@@ -1,4 +1,5 @@
 import PositionCellGrid from "@/lib/components/position/PositionCellGrid";
+import { GRID_EMPTY_CELL_COLOR } from "@/lib/constants";
 import type { Storm } from "@/lib/types";
 import { getDistanceColor } from "@/lib/utils/colors";
 
@@ -17,19 +18,17 @@ const DistanceGrid = ({
 }: DistanceGridProps) => (
   <PositionCellGrid
     stormsData={stormsData}
-    gridCellViewType="storms"
-    onPositionClick={(position) => onCellClick(position, "position")}
+    onPositionPress={(position) => onCellClick(position, "position")}
+    renderValue={(position) => {
+      const dist = distanceValues?.[position];
+      if (dist === undefined) return undefined;
+      // A negative gap means there was nothing to measure against.
+      return dist < 0 ? "Recurrence not measurable" : `Avg recurrence ${dist.toFixed(2)} years`;
+    }}
     renderCell={(position) => {
       const dist = distanceValues?.[position];
-      const color = dist !== undefined ? getDistanceColor(dist) : "#9ca3af";
-      const label = dist === undefined ? "—" : dist < 0 ? "N/A" : `${dist.toFixed(2)}y`;
       return {
-        content: (
-          <div className="text-center text-sm font-bold" style={{ color }}>
-            {label}
-          </div>
-        ),
-        className: "",
+        color: dist === undefined ? GRID_EMPTY_CELL_COLOR : getDistanceColor(dist),
         clickable: isClickable,
       };
     }}

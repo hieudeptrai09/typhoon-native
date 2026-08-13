@@ -6,6 +6,10 @@ import {
   DISTANCE_SHORT_COLOR,
   DISTANCE_STANDARD_COLOR,
   HIGHLIGHT_CELL_CLASS,
+  HIGHLIGHT_CELL_COLOR,
+  HIGHLIGHT_FALLBACK_COLOR,
+  RETIRED_REASON_COLOR,
+  RETIRED_REASON_FALLBACK_COLOR,
 } from "@/lib/constants/colors";
 import type { RetirementReason } from "@/lib/types";
 
@@ -22,6 +26,9 @@ export const getAvgDateColor = (month: number): string =>
 
 export const getHighlightCellClass = (highlightType: string): string =>
   HIGHLIGHT_CELL_CLASS[highlightType] ?? "bg-green-300";
+
+export const getHighlightCellColor = (highlightType: string): string =>
+  HIGHLIGHT_CELL_COLOR[highlightType] ?? HIGHLIGHT_FALLBACK_COLOR;
 
 interface NameStatus {
   isRetired: boolean;
@@ -49,6 +56,9 @@ export const getNameStatusBgClass = (name: NameStatus): string => {
   if (name.isRetired) return "bg-red-100";
   return "bg-emerald-100";
 };
+
+export const getRetiredReasonColor = (reason?: RetirementReason): string =>
+  (reason && RETIRED_REASON_COLOR[reason]) ?? RETIRED_REASON_FALLBACK_COLOR;
 
 export const getRetiredReasonColorClass = (reason?: RetirementReason): string => {
   switch (reason) {

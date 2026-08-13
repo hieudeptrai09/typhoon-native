@@ -1,19 +1,19 @@
 import CountryFlag from "@/lib/components/common/CountryFlag";
-import DefTable from "@/lib/components/common/DefTable";
+import DataList, { DataCard } from "@/lib/components/common/DataList";
 import NamesGrid from "@/lib/components/dashboard/grids/NamesGrid";
 import StormsGrid from "@/lib/components/dashboard/grids/StormsGrid";
 import SpecialButtons from "@/lib/components/dashboard/widgets/SpecialButtons";
 import SpecialNamesListDiv from "@/lib/components/dashboard/widgets/SpecialNamesListDiv";
 import { TEXT_COLOR_WHITE_BACKGROUND } from "@/lib/constants";
 import type { DashboardParams, Storm } from "@/lib/types";
-import { clickableRowProps } from "@/lib/utils/a11y";
 import { getPositionTitle } from "@/lib/utils/position";
 import {
   calculateAverage,
   getGroupedStorms,
   getIntensityFromNumber,
 } from "@/lib/utils/storm/aggregate";
-import type { ColumnsType } from "antd/es/table";
+import type { SortField } from "@/lib/utils/table";
+import { StyleSheet, View } from "react-native";
 
 interface StormsViewProps {
   params: DashboardParams;
@@ -31,59 +31,16 @@ interface NameData {
   year: number;
 }
 
-const makeNameColumns = (): ColumnsType<NameData> => [
+const sortFields: SortField<NameData>[] = [
+  { key: "name", label: "Name", compare: (a, b) => a.name.localeCompare(b.name) },
   {
-    title: "#",
-    key: "order",
-    width: 52,
-    fixed: "left" as const,
-    render: (_: unknown, __: NameData, index: number) => (
-      <span className="text-sm font-semibold text-sky-700">{index + 1}</span>
-    ),
-  },
-  {
-    title: "Name",
-    dataIndex: "name",
-    key: "name",
-    width: 100,
-    fixed: "left" as const,
-    sorter: (a, b) => a.name.localeCompare(b.name),
-    render: (_: unknown, row: NameData) => {
-      const intensityLabel = getIntensityFromNumber(row.avgIntensity);
-      const textColor = TEXT_COLOR_WHITE_BACKGROUND[intensityLabel];
-      return (
-        <span className="font-semibold" style={{ color: textColor }}>
-          {row.name}
-        </span>
-      );
-    },
-  },
-  {
-    title: "Contributed By",
-    dataIndex: "country",
     key: "country",
-    sorter: (a, b) => a.country.localeCompare(b.country),
-    render: (_: unknown, row: NameData) => <CountryFlag country={row.country} />,
+    label: "Contributed by",
+    compare: (a, b) => a.country.localeCompare(b.country),
   },
-  {
-    title: "Position",
-    dataIndex: "position",
-    key: "position",
-    sorter: (a, b) => a.position - b.position,
-    render: (_: unknown, row: NameData) => <span>{getPositionTitle(row.position)}</span>,
-  },
-  {
-    title: "Storm Count",
-    dataIndex: "count",
-    key: "count",
-    sorter: (a, b) => a.count - b.count,
-  },
-  {
-    title: "Last Year",
-    dataIndex: "year",
-    key: "year",
-    sorter: (a, b) => a.year - b.year,
-  },
+  { key: "position", label: "Position", compare: (a, b) => a.position - b.position },
+  { key: "count", label: "Storm count", compare: (a, b) => a.count - b.count },
+  { key: "year", label: "Last year", compare: (a, b) => a.year - b.year },
 ];
 
 const StormsView = ({ params, stormsData, averageValues, onCellClick }: StormsViewProps) => {
@@ -91,31 +48,30 @@ const StormsView = ({ params, stormsData, averageValues, onCellClick }: StormsVi
 
   if (filter === "position") {
     return (
-      <div className="flex flex-col gap-6">
+      <View style={styles.stack}>
         <StormsGrid onCellClick={onCellClick} stormsData={stormsData} isClickable />
         <SpecialButtons
           onCellClick={onCellClick}
           isAverageView={false}
           averageValues={averageValues}
         />
-      </div>
+      </View>
     );
   }
 
-  // name + table → names grid with special names list above
+  // name + table → names pager with the out-of-grid names listed under it
   if (params.mode === "table") {
     return (
-      <div className="flex flex-col gap-6">
+      <View style={styles.stack}>
         <NamesGrid stormsData={stormsData} onCellClick={onCellClick} />
         <SpecialNamesListDiv
           stormsData={stormsData}
           onNameClick={(name) => onCellClick(name, "name")}
         />
-      </div>
+      </View>
     );
   }
 
-  // name + list
   const nameGroups = getGroupedStorms(stormsData, "name");
   const nameData: NameData[] = Object.entries(nameGroups).map(([name, storms]) => ({
     name,
@@ -127,16 +83,43 @@ const StormsView = ({ params, stormsData, averageValues, onCellClick }: StormsVi
   }));
 
   return (
-    <DefTable<NameData>
-      maxWidth="max-w-2xl"
-      dataSource={nameData}
-      columns={makeNameColumns()}
-      rowKey="name"
-      onRow={(row) =>
-        clickableRowProps(`View details for ${row.name}`, () => onCellClick(row.name, "name"))
-      }
+    <DataList<NameData>
+      data={nameData}
+      keyExtractor={(row) => row.name}
+      sortFields={sortFields}
+      countLabel={(count) => `${count} name${count === 1 ? "" : "s"}`}
+      onRowPress={(row) => onCellClick(row.name, "name")}
+      renderCard={(row, index) => {
+        const color = TEXT_COLOR_WHITE_BACKGROUND[getIntensityFromNumber(row.avgIntensity)];
+        return (
+          <DataCard
+            ordinal={index + 1}
+            title={row.name}
+            titleColor={color}
+            accentColor={color}
+            trailing={`×${row.count}`}
+            fields={[
+              { label: "Position", value: getPositionTitle(row.position) },
+              { label: "Last year", value: String(row.year) },
+              {
+                label: "Contributed by",
+                value: <CountryFlag country={row.country} size={16} showName />,
+                wide: true,
+              },
+            ]}
+            pressable
+          />
+        );
+      }}
     />
   );
 };
+
+const styles = StyleSheet.create({
+  stack: {
+    flex: 1,
+    gap: 16,
+  },
+});
 
 export default StormsView;

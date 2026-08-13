@@ -1,7 +1,8 @@
 import PositionCellGrid from "@/lib/components/position/PositionCellGrid";
-import { HIGHLIGHT_EMPTY_CELL_CLASS } from "@/lib/constants";
+import { HIGHLIGHT_EMPTY_CELL_COLOR } from "@/lib/constants";
 import type { Storm } from "@/lib/types";
-import { getHighlightCellClass } from "@/lib/utils/colors";
+import { getHighlightCellColor } from "@/lib/utils/colors";
+import { useMemo } from "react";
 
 interface HighlightsGridProps {
   stormsData: Storm[];
@@ -9,35 +10,31 @@ interface HighlightsGridProps {
   highlightType: string;
 }
 
-const HighlightsGrid = ({ stormsData, highlightedStorms, highlightType }: HighlightsGridProps) => (
-  <PositionCellGrid
-    stormsData={stormsData}
-    gridCellViewType="highlights"
-    renderCell={(position) => {
-      const positionStorms = highlightedStorms.filter((s) => s.position === position);
-      if (positionStorms.length === 0) {
-        return {
-          content: <span className="text-sm text-gray-300">—</span>,
-          className: HIGHLIGHT_EMPTY_CELL_CLASS,
-          clickable: false,
-        };
-      }
-      return {
-        content: (
-          <div className="flex flex-col items-center gap-1">
-            {positionStorms.map((storm, idx) => (
-              <div key={idx} className="flex flex-col items-center">
-                <div className="text-xs font-bold text-foreground">{storm.name}</div>
-                <div className="text-[10px] text-foreground">({storm.year})</div>
-              </div>
-            ))}
-          </div>
-        ),
-        className: getHighlightCellClass(highlightType),
+const HighlightsGrid = ({ stormsData, highlightedStorms, highlightType }: HighlightsGridProps) => {
+  const byPosition = useMemo(() => {
+    const map = new Map<number, Storm[]>();
+    highlightedStorms.forEach((storm) => {
+      map.set(storm.position, [...(map.get(storm.position) ?? []), storm]);
+    });
+    return map;
+  }, [highlightedStorms]);
+
+  return (
+    <PositionCellGrid
+      stormsData={stormsData}
+      renderValue={(position) => {
+        const storms = byPosition.get(position);
+        if (!storms || storms.length === 0) return undefined;
+        return storms.map((storm) => `${storm.name} (${storm.year})`).join(", ");
+      }}
+      renderCell={(position) => ({
+        color: byPosition.has(position)
+          ? getHighlightCellColor(highlightType)
+          : HIGHLIGHT_EMPTY_CELL_COLOR,
         clickable: false,
-      };
-    }}
-  />
-);
+      })}
+    />
+  );
+};
 
 export default HighlightsGrid;

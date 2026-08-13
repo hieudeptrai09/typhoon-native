@@ -4,6 +4,7 @@ import type { Storm } from "@/lib/types";
 import { getAvgDateColor } from "@/lib/utils/colors";
 import { calculateAvgDatesByGroup, formatDayOfYear, getDoyMonth } from "@/lib/utils/storm/dates";
 import { useMemo, type ReactNode } from "react";
+import { StyleSheet, Text, View } from "react-native";
 
 interface AvgDateNameGridProps {
   stormsData: Storm[];
@@ -11,7 +12,7 @@ interface AvgDateNameGridProps {
 }
 
 const DatePart = ({ doy }: { doy: number }) => (
-  <span style={{ color: getAvgDateColor(getDoyMonth(doy)) }}>{formatDayOfYear(doy)}</span>
+  <Text style={{ color: getAvgDateColor(getDoyMonth(doy)) }}>{formatDayOfYear(doy)}</Text>
 );
 
 const AvgDateNameGrid = ({ stormsData, onCellClick }: AvgDateNameGridProps) => {
@@ -23,7 +24,7 @@ const AvgDateNameGrid = ({ stormsData, onCellClick }: AvgDateNameGridProps) => {
         result[name] = (
           <>
             <DatePart doy={startDoy} />
-            <span className="text-gray-400">–</span>
+            <Text style={styles.separator}> – </Text>
             <DatePart doy={endDoy} />
           </>
         );
@@ -33,15 +34,25 @@ const AvgDateNameGrid = ({ stormsData, onCellClick }: AvgDateNameGridProps) => {
   }, [stormsData]);
 
   return (
-    <div className="flex flex-col gap-6">
+    <View style={styles.root}>
       <NamesGrid stormsData={stormsData} onCellClick={onCellClick} nameSubtitles={nameSubtitles} />
       <SpecialNamesListDiv
         stormsData={stormsData}
         nameSubtitles={nameSubtitles}
         onNameClick={(name) => onCellClick(name, "name")}
       />
-    </div>
+    </View>
   );
 };
+
+const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+    gap: 16,
+  },
+  separator: {
+    color: "#94a3b8",
+  },
+});
 
 export default AvgDateNameGrid;

@@ -1,7 +1,5 @@
-"use client";
-
 import CountryFlag from "@/lib/components/common/CountryFlag";
-import DefTable from "@/lib/components/common/DefTable";
+import DataList, { DataCard } from "@/lib/components/common/DataList";
 import EmptyResults from "@/lib/components/common/EmptyResults";
 import FrownError from "@/lib/components/common/FrownError";
 import HighlightedName from "@/lib/components/common/HighlightedName";
@@ -9,78 +7,20 @@ import PageHeader from "@/lib/components/common/PageHeader";
 import NameStatusIcon from "@/lib/components/name/NameStatusIcon";
 import DidYouMean from "@/lib/components/search/DidYouMean";
 import type { SearchResult } from "@/lib/types";
-import { clickableRowProps } from "@/lib/utils/a11y";
-import Ionicons from "@expo/vector-icons/Ionicons";
-import { Empty } from "antd";
-import type { ColumnsType } from "antd/es/table";
-import { useRouter } from "next/navigation";
-import { useMemo } from "react";
+import { getPositionTitle } from "@/lib/utils/position";
+import type { SortField } from "@/lib/utils/table";
+import { useRouter } from "expo-router";
+import { StyleSheet } from "react-native";
 
-const getColumns = (query: string): ColumnsType<SearchResult> => [
+const sortFields: SortField<SearchResult>[] = [
+  { key: "name", label: "Name", compare: (a, b) => a.name.localeCompare(b.name) },
   {
-    title: "#",
-    key: "order",
-    width: 52,
-    fixed: "left" as const,
-    render: (_: unknown, __: SearchResult, index: number) => (
-      <span className="text-sm font-semibold text-sky-700">{index + 1}</span>
-    ),
-  },
-  {
-    title: "Name",
-    dataIndex: "name",
-    key: "name",
-    width: 100,
-    fixed: "left" as const,
-    sorter: (a, b) => a.name.localeCompare(b.name),
-    render: (_: unknown, record: SearchResult) => (
-      <span className="text-sky-700">
-        <HighlightedName name={record.name} query={query} />
-      </span>
-    ),
-  },
-  {
-    title: "Contributed By",
-    dataIndex: "country",
     key: "country",
-    sorter: (a, b) => a.country.localeCompare(b.country),
-    render: (_: unknown, record: SearchResult) => <CountryFlag country={record.country} />,
+    label: "Contributed by",
+    compare: (a, b) => a.country.localeCompare(b.country),
   },
-  {
-    title: "Status",
-    key: "status",
-    sorter: (a, b) => Number(a.isRetired) - Number(b.isRetired),
-    render: (_: unknown, record: SearchResult) => (
-      <NameStatusIcon
-        isRetired={record.isRetired}
-        retirementReason={record.retirementReason ?? undefined}
-        position={record.position}
-        size={20}
-      />
-    ),
-  },
-  {
-    title: "Storms",
-    dataIndex: "stormCount",
-    key: "stormCount",
-    sorter: (a, b) => a.stormCount - b.stormCount,
-    render: (count: number) => <span>x{count}</span>,
-  },
-  {
-    title: "Replacement",
-    dataIndex: "replacementName",
-    key: "replacementName",
-    render: (name: string | null) => (name ? <span>{name}</span> : null),
-  },
-  {
-    title: "Note",
-    dataIndex: "note",
-    key: "note",
-    render: (note: string | null) =>
-      note ? (
-        <span className="block max-w-[300px] wrap-break-word whitespace-normal">{note}</span>
-      ) : null,
-  },
+  { key: "status", label: "Status", compare: (a, b) => Number(a.isRetired) - Number(b.isRetired) },
+  { key: "stormCount", label: "Storms", compare: (a, b) => a.stormCount - b.stormCount },
 ];
 
 interface SearchPageContentProps {
@@ -100,54 +40,77 @@ export default function SearchPageContent({
 }: SearchPageContentProps) {
   const router = useRouter();
 
-  const columns = useMemo(() => getColumns(query), [query]);
-
   if (query.trim() && isError) {
-    return <FrownError onRetry={() => router.refresh()} />;
+    return <FrownError onRetry={() => router.replace(`/search?q=${encodeURIComponent(query)}`)} />;
+  }
+
+  if (!query.trim()) {
+    return (
+      <PageHeader title="Search Typhoon Names">
+        <EmptyResults icon="search-outline" description="Type a name to search" />
+      </PageHeader>
+    );
+  }
+
+  if (count === 0) {
+    return (
+      <PageHeader title="Search Typhoon Names">
+        <EmptyResults
+          icon="search-outline"
+          description={`No typhoon names match "${query}". Check the spelling or try a shorter name.`}
+          action={<DidYouMean names={similarNames} />}
+        />
+      </PageHeader>
+    );
   }
 
   return (
     <PageHeader title="Search Typhoon Names">
-      <div className="mx-auto max-w-4xl">
-        {!query.trim() ? (
-          <div className="p-8">
-            <Empty
-              image={<Ionicons name="search-outline" size={64} color="#9ca3af" />}
-              imageStyle={{ height: 64, display: "flex", justifyContent: "center" }}
-              description={<span className="text-foreground">Type a name to search</span>}
-            />
-          </div>
-        ) : count === 0 ? (
-          <EmptyResults
-            icon="search-outline"
-            description={`No typhoon names match "${query}". Check the spelling or try a shorter name.`}
-            action={<DidYouMean names={similarNames} />}
-          />
-        ) : (
-          <>
-            <div id="search-result-count" className="mb-4 text-sm text-foreground">
-              {count} result{count !== 1 ? "s" : ""} found
-            </div>
-            <div aria-describedby="search-result-count">
-              <DefTable<SearchResult>
-                maxWidth="max-w-4xl"
-                dataSource={results}
-                columns={columns}
-                rowKey={(record) =>
-                  record.id !== null ? String(record.id) : `storm-${record.name}`
-                }
-                onRow={(record) =>
-                  clickableRowProps(`View details for ${record.name}`, () =>
-                    router.push(`/info/${encodeURIComponent(record.name.toLowerCase())}/`, {
-                      scroll: false,
-                    }),
-                  )
-                }
+      <DataList<SearchResult>
+        data={results}
+        keyExtractor={(record) => (record.id !== null ? String(record.id) : `storm-${record.name}`)}
+        sortFields={sortFields}
+        countLabel={(total) => `${total} result${total === 1 ? "" : "s"} found`}
+        onRowPress={(record) =>
+          router.push(`/info/${encodeURIComponent(record.name.toLowerCase())}`)
+        }
+        renderCard={(record, index) => (
+          <DataCard
+            ordinal={index + 1}
+            title={<HighlightedName name={record.name} query={query} style={styles.name} />}
+            trailing={
+              <NameStatusIcon
+                isRetired={record.isRetired}
+                retirementReason={record.retirementReason ?? undefined}
+                position={record.position}
+                size={20}
               />
-            </div>
-          </>
+            }
+            fields={[
+              { label: "Storms", value: `×${record.stormCount}` },
+              { label: "Position", value: getPositionTitle(record.position) },
+              {
+                label: "Contributed by",
+                value: <CountryFlag country={record.country} size={16} showName />,
+                wide: true,
+              },
+              ...(record.replacementName
+                ? [{ label: "Replacement", value: record.replacementName }]
+                : []),
+              ...(record.note ? [{ label: "Note", value: record.note, wide: true }] : []),
+            ]}
+            pressable
+          />
         )}
-      </div>
+      />
     </PageHeader>
   );
 }
+
+const styles = StyleSheet.create({
+  name: {
+    fontFamily: "OpenSans_700Bold",
+    fontSize: 16,
+    color: "#0369a1",
+  },
+});

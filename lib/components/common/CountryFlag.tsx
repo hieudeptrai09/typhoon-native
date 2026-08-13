@@ -1,59 +1,82 @@
-import CN from "country-flag-icons/react/3x2/CN";
-import FM from "country-flag-icons/react/3x2/FM";
-import HK from "country-flag-icons/react/3x2/HK";
-import JP from "country-flag-icons/react/3x2/JP";
-import KH from "country-flag-icons/react/3x2/KH";
-import KP from "country-flag-icons/react/3x2/KP";
-import KR from "country-flag-icons/react/3x2/KR";
-import LA from "country-flag-icons/react/3x2/LA";
-import MO from "country-flag-icons/react/3x2/MO";
-import MY from "country-flag-icons/react/3x2/MY";
-import PH from "country-flag-icons/react/3x2/PH";
-import TH from "country-flag-icons/react/3x2/TH";
-import US from "country-flag-icons/react/3x2/US";
-import VN from "country-flag-icons/react/3x2/VN";
+import { StyleSheet, Text, View } from "react-native";
 
-export const COUNTRY_FLAG_COMPONENTS: Record<
-  string,
-  React.ComponentType<{ className?: string }>
-> = {
-  Cambodia: KH,
-  China: CN,
-  "DPR Korea": KP,
-  "HK, China": HK,
-  Japan: JP,
-  "Laos PDR": LA,
-  "Macao, China": MO,
-  Malaysia: MY,
-  Micronesia: FM,
-  Philippines: PH,
-  "RO Korea": KR,
-  Thailand: TH,
-  "U.S.A.": US,
-  Vietnam: VN,
+// The grid's 14 columns are these countries in this order, so the map doubles as
+// the column definition — keep insertion order.
+export const COUNTRY_CODES: Record<string, string> = {
+  Cambodia: "KH",
+  China: "CN",
+  "DPR Korea": "KP",
+  "HK, China": "HK",
+  Japan: "JP",
+  "Laos PDR": "LA",
+  "Macao, China": "MO",
+  Malaysia: "MY",
+  Micronesia: "FM",
+  Philippines: "PH",
+  "RO Korea": "KR",
+  Thailand: "TH",
+  "U.S.A.": "US",
+  Vietnam: "VN",
 };
 
-export const COUNTRY_NAMES = Object.keys(COUNTRY_FLAG_COMPONENTS);
+export const COUNTRY_NAMES = Object.keys(COUNTRY_CODES);
+
+const REGIONAL_INDICATOR_A = 0x1f1e6;
+
+// Regional indicator pairs render as a flag on both platforms; no SVG dependency
+// and no 14 bundled images.
+const toFlagEmoji = (code: string): string =>
+  code
+    .split("")
+    .map((char) => String.fromCodePoint(REGIONAL_INDICATOR_A + char.charCodeAt(0) - 65))
+    .join("");
 
 interface CountryFlagProps {
   country: string;
-  className?: string;
+  size?: number;
+  /** Show the country name next to the flag. */
+  showName?: boolean;
 }
 
-const CountryFlag = ({ country, className = "h-7 w-10" }: CountryFlagProps) => {
-  const FlagComponent = COUNTRY_FLAG_COMPONENTS[country];
-  if (!FlagComponent) return <span className="text-foreground">{country}</span>;
+const CountryFlag = ({ country, size = 20, showName = false }: CountryFlagProps) => {
+  const code = COUNTRY_CODES[country];
+
+  if (!code) {
+    return (
+      <Text style={[styles.fallback, { fontSize: size * 0.6 }]} numberOfLines={1}>
+        {country || "—"}
+      </Text>
+    );
+  }
 
   return (
-    <span
-      className={`inline-block overflow-hidden rounded border border-gray-300 shadow-sm ${className}`}
-      title={country}
-      role="img"
-      aria-label={`Flag of ${country}`}
-    >
-      <FlagComponent className="h-full w-full object-cover" />
-    </span>
+    <View style={styles.row} accessible accessibilityLabel={country}>
+      {/* No fontFamily: the emoji has to fall through to the system emoji font */}
+      <Text style={{ fontSize: size }}>{toFlagEmoji(code)}</Text>
+      {showName && (
+        <Text style={styles.name} numberOfLines={1}>
+          {country}
+        </Text>
+      )}
+    </View>
   );
 };
+
+const styles = StyleSheet.create({
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  name: {
+    fontFamily: "OpenSans_500Medium",
+    fontSize: 13,
+    color: "#334155",
+  },
+  fallback: {
+    fontFamily: "OpenSans_500Medium",
+    color: "#64748b",
+  },
+});
 
 export default CountryFlag;

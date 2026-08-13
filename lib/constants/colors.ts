@@ -59,3 +59,26 @@ export const HIGHLIGHT_CELL_CLASS: Record<string, string> = {
 };
 
 export const HIGHLIGHT_EMPTY_CELL_CLASS = "bg-gray-100";
+
+// Native paints cell fills directly, so the classes above need hex twins.
+export const HIGHLIGHT_CELL_COLOR: Record<string, string> = {
+  strongest: "#fda4af",
+  first: "#93c5fd",
+  last: "#fdba74",
+  untracked: "#cbd5e1",
+};
+
+export const HIGHLIGHT_FALLBACK_COLOR = "#86efac";
+export const HIGHLIGHT_EMPTY_CELL_COLOR = "#f1f5f9";
+
+/** A position with no value at all, on any of the heatmaps. */
+export const GRID_EMPTY_CELL_COLOR = "#e2e8f0";
+
+export const RETIRED_REASON_COLOR: Record<string, string> = {
+  destructive: "#dc2626",
+  language: "#9333ea",
+  misspell: "#d97706",
+  special: "#334155",
+};
+
+export const RETIRED_REASON_FALLBACK_COLOR = "#dc2626";
