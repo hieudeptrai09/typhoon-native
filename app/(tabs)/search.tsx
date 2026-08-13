@@ -1,3 +1,5 @@
+// Chuyển từ app/(navbar)/search/page.tsx — convert tại chỗ.
+
 import { getSimilarNames } from "@/be/api/getSimilarNames";
 import { search } from "@/be/api/search";
 import SearchPageContent from "@/lib/components/search/SearchPageContent";

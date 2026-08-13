@@ -1,3 +1,5 @@
+// Chuyển từ app/(navbar)/info/[name]/page.tsx — convert tại chỗ.
+
 import { getNameList } from "@/be/api/getNameList";
 import { getSimilarNames } from "@/be/api/getSimilarNames";
 import { getTyphoonNameByName, isNameNotFound } from "@/be/api/getTyphoonNameByName";

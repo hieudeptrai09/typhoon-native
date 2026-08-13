@@ -1,3 +1,5 @@
+// Chuyển từ app/(navbar)/positions/[position]/page.tsx — convert tại chỗ.
+
 import { getPositionDetails } from "@/be/api/getPositionDetails";
 import PositionPageContent from "@/lib/components/position/PositionPageContent";
 import { getPositionFromSlug, getPositionSlug, getPositionTitle } from "@/lib/utils/position";

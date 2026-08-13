@@ -1,3 +1,5 @@
+// Chuyển từ app/(navbar)/storms/[...slug]/page.tsx — convert tại chỗ.
+
 import { getStorms } from "@/be/api/getStorms";
 import DashboardPageContent from "@/lib/components/dashboard/DashboardPageContent";
 import { getDashboardDescription, getDashboardTitle } from "@/lib/utils/storm/metadata";

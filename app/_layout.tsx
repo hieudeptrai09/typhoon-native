@@ -8,6 +8,7 @@ import {
 } from "@expo-google-fonts/open-sans";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
+import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 
 SplashScreen.preventAutoHideAsync();
@@ -28,5 +29,23 @@ export default function RootLayout() {
   // Giữ splash cho tới khi font sẵn sàng, tránh frame đầu render bằng font hệ thống rồi nhảy
   if (!loaded && !error) return null;
 
-  return <Stack />;
+  return (
+    <>
+      <StatusBar style="light" />
+      <Stack
+        screenOptions={{
+          contentStyle: { backgroundColor: "#f5f5f4" },
+          headerStyle: { backgroundColor: "#2563eb" },
+          headerTintColor: "#ffffff",
+          headerTitleStyle: { fontFamily: "OpenSans_600SemiBold" },
+          headerBackButtonDisplayMode: "minimal",
+        }}
+      >
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="info/[name]" />
+        <Stack.Screen name="positions/[position]" />
+        <Stack.Screen name="about" options={{ title: "About" }} />
+      </Stack>
+    </>
+  );
 }

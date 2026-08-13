@@ -1,3 +1,5 @@
+// Chuyển từ app/(navbar)/names/[...slug]/page.tsx — convert tại chỗ.
+
 import { getAllStormHistory } from "@/be/api/getStormHistory";
 import { getAllSuggestedNames } from "@/be/api/getSuggestedNames";
 import { getTyphoonNames } from "@/be/api/getTyphoonNames";
