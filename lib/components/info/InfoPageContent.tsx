@@ -5,9 +5,11 @@ import NameStatusIcon from "@/lib/components/name/NameStatusIcon";
 import StormCard from "@/lib/components/storm/StormCard";
 import StormStats from "@/lib/components/storm/StormStats";
 import type { RetiredName, RetirementReason, SearchDetail, Storm, TyphoonName } from "@/lib/types";
-import { getNameStatusBgClass, getNameStatusColorClass } from "@/lib/utils/colors";
+import { getNameStatusBgColor, getNameStatusColor } from "@/lib/utils/colors";
 import { isExternalPosition } from "@/lib/utils/position";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import { useRouter } from "expo-router";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 interface InfoPageContentProps {
   detail: SearchDetail | null;
@@ -33,32 +35,26 @@ function StatusBadge({
       : isRetired
         ? "Retired"
         : "Active";
+
   return (
-    <span
-      className={`rounded-full px-3 py-1 text-sm font-semibold ${getNameStatusBgClass(status)} ${getNameStatusColorClass(status)}`}
-    >
-      {label}
-    </span>
+    <View style={[styles.badge, { backgroundColor: getNameStatusBgColor(status) }]}>
+      <Text style={[styles.badgeLabel, { color: getNameStatusColor(status) }]}>{label}</Text>
+    </View>
   );
 }
 
-function NameDetailsSection({
-  name,
-  correctSpelling,
-}: {
-  name: TyphoonName | RetiredName;
-  correctSpelling?: string;
-}) {
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-      <h2 className="mb-4 text-lg font-bold text-foreground">Name Details</h2>
-      {/* The page header already carries the status badge. */}
-      <NameDetailsContent name={name} correctSpelling={correctSpelling} hideStatus />
-    </section>
+    <View style={styles.section}>
+      <Text style={styles.sectionTitle}>{title}</Text>
+      {children}
+    </View>
   );
 }
 
 function InfoPagination({ names, currentIndex }: { names: string[]; currentIndex: number }) {
+  const router = useRouter();
+
   if (names.length === 0 || currentIndex === -1) return null;
 
   const isFirst = currentIndex === 0;
@@ -66,46 +62,35 @@ function InfoPagination({ names, currentIndex }: { names: string[]; currentIndex
   const prevName = names[isFirst ? names.length - 1 : currentIndex - 1];
   const nextName = names[isLast ? 0 : currentIndex + 1];
 
-  const linkClass =
-    "flex items-center gap-1 rounded-lg border border-sky-700 bg-sky-700 px-4 py-2 text-sm font-semibold text-white transition-colors hover:border-sky-800 hover:bg-sky-800";
+  // replace, not push: paging through names should not build a back stack to unwind.
+  const go = (target: string) => router.replace(`/info/${target.toLowerCase()}`);
 
   return (
-    <nav
-      className="mt-6 flex items-center justify-between border-t border-slate-200 pt-6"
-      aria-label="Name pagination"
-    >
-      <a href={`/info/${prevName.toLowerCase()}`} className={linkClass}>
+    <View style={styles.pagination} accessibilityLabel="Name pagination">
+      <Pressable
+        onPress={() => go(prevName)}
+        style={({ pressed }) => [styles.pageButton, pressed && styles.pressed]}
+        accessibilityRole="button"
+        accessibilityLabel={`Previous name, ${prevName}`}
+      >
         <Ionicons name="chevron-back" size={16} color="#ffffff" />
-        <span className="capitalize">{prevName.toLowerCase()}</span>
-      </a>
-      <span className="text-sm text-foreground">{names[currentIndex]}</span>
-      <a href={`/info/${nextName.toLowerCase()}`} className={linkClass}>
-        <span className="capitalize">{nextName.toLowerCase()}</span>
+        <Text style={styles.pageLabel} numberOfLines={1}>
+          {prevName.toLowerCase()}
+        </Text>
+      </Pressable>
+
+      <Pressable
+        onPress={() => go(nextName)}
+        style={({ pressed }) => [styles.pageButton, pressed && styles.pressed]}
+        accessibilityRole="button"
+        accessibilityLabel={`Next name, ${nextName}`}
+      >
+        <Text style={styles.pageLabel} numberOfLines={1}>
+          {nextName.toLowerCase()}
+        </Text>
         <Ionicons name="chevron-forward" size={16} color="#ffffff" />
-      </a>
-    </nav>
-  );
-}
-
-function StormsSection({ storms }: { storms: Storm[] }) {
-  return (
-    <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-      <h2 className="mb-4 text-lg font-bold text-foreground">All Storms ({storms.length})</h2>
-
-      {storms.length === 0 ? (
-        <p className="py-4 text-center text-foreground">No storms found for this name.</p>
-      ) : (
-        <div className="space-y-6">
-          <StormStats storms={storms} />
-
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {storms.map((storm, idx) => (
-              <StormCard key={idx} storm={storm} />
-            ))}
-          </div>
-        </div>
-      )}
-    </section>
+      </Pressable>
+    </View>
   );
 }
 
@@ -119,15 +104,15 @@ export default function InfoPageContent({
     return <FrownError />;
   }
 
-  const nameData = detail?.name ?? null;
-  const storms = detail?.storms ?? [];
+  const nameData: TyphoonName | RetiredName | null = detail?.name ?? null;
+  const storms: Storm[] = detail?.storms ?? [];
   const isInPosition = nameData ? !isExternalPosition(nameData.position) : false;
   const displayName = nameData?.name ?? name;
-
-  const titleColorClass = nameData
-    ? getNameStatusColorClass({ ...nameData, isExternal: !isInPosition })
-    : "text-foreground";
   const isRetired = nameData?.isRetired ?? false;
+
+  const titleColor = nameData
+    ? getNameStatusColor({ ...nameData, isExternal: !isInPosition })
+    : "#334155";
 
   const correctSpelling = storms[0]?.correctSpelling;
   const metaCountry = nameData?.country ?? storms[0]?.country;
@@ -135,44 +120,164 @@ export default function InfoPageContent({
   const currentIndex = allNames.findIndex((n) => n.toLowerCase() === displayName.toLowerCase());
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8 md:px-8">
-      <div className="mb-3 flex items-center gap-3">
+    <ScrollView
+      style={styles.screen}
+      contentContainerStyle={styles.content}
+      showsVerticalScrollIndicator={false}
+    >
+      <View style={styles.heading}>
         <NameStatusIcon
           isRetired={isRetired}
           retirementReason={nameData?.retirementReason}
           position={isInPosition ? nameData?.position : 0}
-          size={28}
+          size={26}
         />
-        <h1 className={`text-3xl font-bold capitalize ${titleColorClass}`}>
+        <Text style={[styles.title, { color: titleColor }]} numberOfLines={1}>
           {displayName.toLowerCase()}
-        </h1>
-      </div>
+        </Text>
+      </View>
 
-      <div className="mb-8 flex flex-wrap items-center gap-3">
-        {metaCountry &&
-          (isInPosition ? (
-            <CountryFlag country={metaCountry} className="h-5 w-8" />
+      <View style={styles.meta}>
+        {metaCountry ? (
+          isInPosition ? (
+            <CountryFlag country={metaCountry} size={18} showName />
           ) : (
-            <span className="text-base font-semibold text-foreground">{metaCountry}</span>
-          ))}
+            <Text style={styles.metaText}>{metaCountry}</Text>
+          )
+        ) : null}
         {isInPosition && metaPosition != null && (
-          <span className="text-base text-foreground">#{metaPosition}</span>
+          <Text style={styles.metaPosition}>#{metaPosition}</Text>
         )}
         <StatusBadge
           isInPosition={isInPosition}
           isRetired={isRetired}
           retirementReason={nameData?.retirementReason}
         />
-      </div>
+      </View>
 
-      <div className="space-y-6">
-        {isInPosition && nameData && (
-          <NameDetailsSection name={nameData} correctSpelling={correctSpelling} />
+      {isInPosition && nameData && (
+        <Section title="Name Details">
+          {/* The page header already carries the status badge. */}
+          <NameDetailsContent name={nameData} correctSpelling={correctSpelling} hideStatus />
+        </Section>
+      )}
+
+      <Section title={`All Storms (${storms.length})`}>
+        {storms.length === 0 ? (
+          <Text style={styles.empty}>No storms found for this name.</Text>
+        ) : (
+          <View style={styles.storms}>
+            <StormStats storms={storms} />
+            {/* One card per row: a track map at half a phone's width is unreadable. */}
+            {storms.map((storm, index) => (
+              <StormCard key={index} storm={storm} />
+            ))}
+          </View>
         )}
-        <StormsSection storms={storms} />
-      </div>
+      </Section>
 
       <InfoPagination names={allNames} currentIndex={currentIndex} />
-    </div>
+    </ScrollView>
   );
 }
+
+const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+  },
+  content: {
+    padding: 16,
+    paddingBottom: 32,
+    gap: 16,
+  },
+  heading: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  title: {
+    flexShrink: 1,
+    fontFamily: "OpenSans_700Bold",
+    fontSize: 28,
+    textTransform: "capitalize",
+  },
+  meta: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    alignItems: "center",
+    gap: 10,
+  },
+  metaText: {
+    fontFamily: "OpenSans_600SemiBold",
+    fontSize: 15,
+    color: "#334155",
+  },
+  metaPosition: {
+    fontFamily: "OpenSans_400Regular",
+    fontSize: 15,
+    color: "#475569",
+  },
+  badge: {
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 999,
+  },
+  badgeLabel: {
+    fontFamily: "OpenSans_600SemiBold",
+    fontSize: 13,
+  },
+  section: {
+    gap: 14,
+    padding: 16,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    backgroundColor: "#ffffff",
+  },
+  sectionTitle: {
+    fontFamily: "OpenSans_700Bold",
+    fontSize: 17,
+    color: "#334155",
+  },
+  empty: {
+    fontFamily: "OpenSans_400Regular",
+    fontSize: 14,
+    color: "#64748b",
+    textAlign: "center",
+    paddingVertical: 12,
+  },
+  storms: {
+    gap: 16,
+  },
+  pagination: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+    marginTop: 4,
+    paddingTop: 16,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: "#cbd5e1",
+  },
+  pageButton: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 4,
+    minHeight: 44,
+    paddingHorizontal: 14,
+    borderRadius: 10,
+    backgroundColor: "#0369a1",
+  },
+  pressed: {
+    opacity: 0.8,
+  },
+  pageLabel: {
+    flexShrink: 1,
+    fontFamily: "OpenSans_600SemiBold",
+    fontSize: 14,
+    color: "#ffffff",
+    textTransform: "capitalize",
+  },
+});

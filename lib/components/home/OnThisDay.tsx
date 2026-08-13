@@ -1,19 +1,20 @@
-"use client";
-
-import { fetchOnThisDay } from "@/be/actions/home";
-import type { OnThisDayStorm } from "@/be/api/getOnThisDay";
+import { useApiQuery } from "@/lib/api/client";
+import DefModal from "@/lib/components/common/DefModal";
+import FrownError from "@/lib/components/common/FrownError";
 import TyphoonSpinner from "@/lib/components/common/TyphoonSpinner";
+import QuickActionButton from "@/lib/components/home/QuickActionButton";
 import { INTENSITY_LABEL, MONTH_NAMES, TEXT_COLOR_WHITE_BACKGROUND } from "@/lib/constants";
-import type { IconName } from "@/lib/types";
+import type { IconName, OnThisDayStorm } from "@/lib/types";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { App, Button } from "antd";
-import Link from "next/link";
+import { useRouter } from "expo-router";
 import { useState } from "react";
+import { StyleSheet, Text, View } from "react-native";
 
 const EXTERNAL_POSITIONS = [141, 142, 143];
 
 const getReasonIcon = (storm: OnThisDayStorm): { icon: IconName; color: string; label: string } => {
   const isExternal = EXTERNAL_POSITIONS.includes(storm.position);
+
   if (isExternal) {
     if (storm.reason === "both") {
       return {
@@ -26,6 +27,7 @@ const getReasonIcon = (storm: OnThisDayStorm): { icon: IconName; color: string; 
       ? { icon: "log-in-outline", color: "#16a34a", label: "Entered the West Pacific basin" }
       : { icon: "log-out-outline", color: "#dc2626", label: "Exited the West Pacific basin" };
   }
+
   if (storm.reason === "both") {
     return { icon: "refresh", color: "#d97706", label: "Formed and dissipated" };
   }
@@ -36,6 +38,7 @@ const getReasonIcon = (storm: OnThisDayStorm): { icon: IconName; color: string; 
 
 const getVerb = (storm: OnThisDayStorm) => {
   const isExternal = EXTERNAL_POSITIONS.includes(storm.position);
+
   if (isExternal) {
     return storm.reason === "both"
       ? "entered and later exited the West Pacific basin or dissipated"
@@ -55,108 +58,110 @@ const getEventYear = (storm: OnThisDayStorm) => {
   return date ? Number(date.slice(0, 4)) : storm.year;
 };
 
+// The web build fetched on click and pushed the result into an antd modal. Here the sheet opens
+// straight away and shows the fetch inline, so the tap never sits with no feedback.
 const OnThisDay = () => {
-  const [loading, setLoading] = useState(false);
-  const { modal } = App.useApp();
+  const router = useRouter();
+  const [isOpen, setIsOpen] = useState(false);
 
-  const fetchStorms = async () => {
-    setLoading(true);
-    try {
-      const today = new Date();
-      const storms = await fetchOnThisDay(today.getDate(), today.getMonth() + 1);
+  const today = new Date();
+  const { data, isLoading, isError, refetch } = useApiQuery<OnThisDayStorm[]>(
+    isOpen ? `/api/v1/on-this-day?day=${today.getDate()}&month=${today.getMonth() + 1}` : null,
+  );
 
-      if (storms.length === 0) {
-        modal.info({
-          title: "On this day",
-          icon: null,
-          centered: true,
-          okText: "Got it",
-          content: <p className="text-foreground">No storms formed or dissipated on this day.</p>,
-        });
-        return;
-      }
-
-      const dateStr = `${MONTH_NAMES[today.getMonth() + 1]} ${today.getDate()}`;
-
-      modal.info({
-        title: "On this day",
-        icon: null,
-        centered: true,
-        okText: "Got it",
-        content: (
-          <div className="max-h-[70vh] overflow-y-auto">
-            <p className="mb-3 text-sm font-semibold text-foreground">{dateStr}</p>
-            <ul className="m-0 list-none space-y-1.5 p-0">
-              {storms.map((storm, i) => {
-                const eventYear = getEventYear(storm);
-                const label = INTENSITY_LABEL[storm.intensity];
-                const color = TEXT_COLOR_WHITE_BACKGROUND[storm.intensity];
-                const verb = getVerb(storm);
-                const {
-                  icon: reasonIcon,
-                  color: reasonColor,
-                  label: reasonLabel,
-                } = getReasonIcon(storm);
-
-                return (
-                  <li
-                    key={i}
-                    className="flex items-baseline gap-1.5 text-sm leading-relaxed text-foreground"
-                  >
-                    <Ionicons
-                      name={reasonIcon}
-                      size={14}
-                      color={reasonColor}
-                      aria-label={reasonLabel}
-                    />
-                    <span>
-                      {eventYear}: {label}{" "}
-                      <Link
-                        href={`/info/${encodeURIComponent(storm.name.toLowerCase())}`}
-                        className="font-bold"
-                        style={{ color }}
-                      >
-                        {storm.name}
-                      </Link>{" "}
-                      {verb}
-                    </span>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        ),
-      });
-    } catch {
-      modal.info({
-        title: "Oops!",
-        icon: null,
-        centered: true,
-        okText: "Close",
-        content: <p className="text-foreground">Could not load storms for this day.</p>,
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+  const storms = data ?? [];
+  const dateLabel = `${MONTH_NAMES[today.getMonth() + 1]} ${today.getDate()}`;
 
   return (
-    <Button
-      type="text"
-      icon={
-        loading ? (
-          <TyphoonSpinner colorClass="text-amber-700" size="small" />
+    <>
+      <QuickActionButton
+        icon="calendar-outline"
+        label="On this day"
+        onPress={() => setIsOpen(true)}
+      />
+
+      <DefModal open={isOpen} onClose={() => setIsOpen(false)} title="On this day">
+        {isLoading ? (
+          <View style={styles.center}>
+            <TyphoonSpinner />
+          </View>
+        ) : isError ? (
+          <FrownError onRetry={refetch} />
+        ) : storms.length === 0 ? (
+          <Text style={styles.empty}>No storms formed or dissipated on this day.</Text>
         ) : (
-          <Ionicons name="calendar-outline" size={16} color="#b45309" />
-        )
-      }
-      onClick={fetchStorms}
-      disabled={loading}
-      className="w-full! justify-start! text-sm! font-semibold! text-amber-700! hover:text-amber-800!"
-    >
-      On this day
-    </Button>
+          <View>
+            <Text style={styles.date}>{dateLabel}</Text>
+
+            <View style={styles.list}>
+              {storms.map((storm, index) => {
+                const { icon, color, label } = getReasonIcon(storm);
+
+                return (
+                  <View key={index} style={styles.item}>
+                    <Ionicons name={icon} size={14} color={color} accessibilityLabel={label} />
+                    <Text style={styles.text}>
+                      {getEventYear(storm)}: {INTENSITY_LABEL[storm.intensity]}{" "}
+                      <Text
+                        style={[
+                          styles.name,
+                          { color: TEXT_COLOR_WHITE_BACKGROUND[storm.intensity] },
+                        ]}
+                        onPress={() => {
+                          setIsOpen(false);
+                          router.push(`/info/${storm.name.toLowerCase()}`);
+                        }}
+                      >
+                        {storm.name}
+                      </Text>{" "}
+                      {getVerb(storm)}
+                    </Text>
+                  </View>
+                );
+              })}
+            </View>
+          </View>
+        )}
+      </DefModal>
+    </>
   );
 };
+
+const styles = StyleSheet.create({
+  center: {
+    alignItems: "center",
+    paddingVertical: 32,
+  },
+  empty: {
+    fontFamily: "OpenSans_400Regular",
+    fontSize: 14,
+    color: "#475569",
+    paddingVertical: 12,
+  },
+  date: {
+    fontFamily: "OpenSans_600SemiBold",
+    fontSize: 14,
+    color: "#334155",
+    marginBottom: 12,
+  },
+  list: {
+    gap: 8,
+  },
+  item: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 8,
+  },
+  text: {
+    flex: 1,
+    fontFamily: "OpenSans_400Regular",
+    fontSize: 14,
+    lineHeight: 21,
+    color: "#475569",
+  },
+  name: {
+    fontFamily: "OpenSans_700Bold",
+  },
+});
 
 export default OnThisDay;

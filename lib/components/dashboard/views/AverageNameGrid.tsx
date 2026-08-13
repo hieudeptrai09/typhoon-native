@@ -1,5 +1,5 @@
 import NamesGrid from "@/lib/components/dashboard/grids/NamesGrid";
-import SpecialNamesListDiv from "@/lib/components/dashboard/widgets/SpecialNamesListDiv";
+import SpecialNamesList from "@/lib/components/dashboard/widgets/SpecialNamesList";
 import { TEXT_COLOR_WHITE_BACKGROUND } from "@/lib/constants";
 import type { Storm } from "@/lib/types";
 import {
@@ -27,7 +27,7 @@ const AverageNameGrid = ({ stormsData, onCellClick }: AverageNameGridProps) => {
   return (
     <View style={styles.root}>
       <NamesGrid stormsData={stormsData} onCellClick={onCellClick} nameColors={nameColors} />
-      <SpecialNamesListDiv
+      <SpecialNamesList
         stormsData={stormsData}
         nameColors={nameColors}
         onNameClick={(name) => onCellClick(name, "name")}

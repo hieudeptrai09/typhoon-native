@@ -5,76 +5,114 @@ import type { Storm } from "@/lib/types";
 import { formatStormDateRange } from "@/lib/utils/date";
 import { getZoomEarthUrl } from "@/lib/utils/format";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import * as WebBrowser from "expo-web-browser";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 const StormCard = ({ storm }: { storm: Storm }) => {
   const bgColor = BACKGROUND_BADGE[storm.intensity];
   const textColor = TEXT_COLOR_BADGE[storm.intensity];
   const label = INTENSITY_LABEL[storm.intensity];
-  const hasMap = storm.map && storm.map.trim() !== "";
   const dateRange = formatStormDateRange(storm.dateStart, storm.dateEnd);
 
   return (
-    <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
-      <div className="flex h-28 flex-col justify-center px-4" style={{ backgroundColor: bgColor }}>
+    <View style={styles.card}>
+      <View style={[styles.header, { backgroundColor: bgColor }]}>
         {hasHighlight(storm) && (
-          <div className="mb-1.5">
+          <View style={styles.badges}>
             <StormHighlightBadges storm={storm} />
-          </div>
+          </View>
         )}
-        <span className="text-sm leading-tight font-bold" style={{ color: textColor }}>
+
+        <Text style={[styles.title, { color: textColor }]}>
           {label} {storm.name}
-        </span>
-        {storm.jtwcDesignation && (
-          <div className="mt-1 flex items-center gap-1.5">
+        </Text>
+
+        {storm.jtwcDesignation ? (
+          <View style={styles.meta}>
             <Ionicons name="pricetag-outline" size={12} color={textColor} />
-            <span className="text-xs font-semibold" style={{ color: textColor }}>
-              {storm.jtwcDesignation}
-            </span>
-          </div>
-        )}
-        <div className="mt-1 flex items-center gap-1.5">
+            <Text style={[styles.metaText, { color: textColor }]}>{storm.jtwcDesignation}</Text>
+          </View>
+        ) : null}
+
+        <View style={styles.meta}>
           <Ionicons name="calendar-outline" size={12} color={textColor} />
-          <span className="text-xs font-semibold" style={{ color: textColor }}>
-            {dateRange}
-          </span>
-        </div>
-      </div>
-      <div className="relative h-44 w-full bg-slate-50">
-        {hasMap ? (
-          <ImageWithLoader
-            src={storm.map}
-            alt={`${storm.name} ${storm.year} track`}
-            fill
-            className="object-contain"
-            unoptimized
-          />
-        ) : (
-          <div
-            role="img"
-            aria-label="No image available"
-            className="@container flex h-full w-full flex-col items-center justify-center gap-1.5 p-2 text-center text-gray-400"
-          >
-            <Ionicons name="image-outline" size={32} color="#9ca3af" aria-hidden />
-            <span aria-hidden className="hidden text-xs font-medium @[7rem]:block">
-              No track map
-            </span>
-          </div>
-        )}
-      </div>
-      <div className="border-t border-slate-100 px-4 py-2">
-        <a
-          href={getZoomEarthUrl(storm.name, storm.year)}
-          target="_blank"
-          rel="noopener noreferrer"
-          title={`View ${storm.name} ${storm.year} on Zoom Earth`}
-          className="inline-flex items-center gap-1 text-xs font-semibold text-sky-700 hover:underline"
-        >
-          Zoom Earth
-          <Ionicons name="open-outline" size={12} color="#0369a1" />
-        </a>
-      </div>
-    </div>
+          <Text style={[styles.metaText, { color: textColor }]}>{dateRange}</Text>
+        </View>
+      </View>
+
+      <ImageWithLoader
+        source={storm.map?.trim() || null}
+        label={`${storm.name} ${storm.year} track`}
+        style={styles.map}
+      />
+
+      <Pressable
+        onPress={() => WebBrowser.openBrowserAsync(getZoomEarthUrl(storm.name, storm.year))}
+        style={({ pressed }) => [styles.link, pressed && styles.pressed]}
+        accessibilityRole="link"
+        accessibilityLabel={`View ${storm.name} ${storm.year} on Zoom Earth`}
+      >
+        <Text style={styles.linkLabel}>Zoom Earth</Text>
+        <Ionicons name="open-outline" size={12} color="#0369a1" />
+      </Pressable>
+    </View>
   );
 };
+
+const styles = StyleSheet.create({
+  card: {
+    overflow: "hidden",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    backgroundColor: "#ffffff",
+  },
+  header: {
+    minHeight: 104,
+    justifyContent: "center",
+    gap: 4,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  badges: {
+    marginBottom: 2,
+  },
+  title: {
+    fontFamily: "OpenSans_700Bold",
+    fontSize: 14,
+    lineHeight: 19,
+  },
+  meta: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  metaText: {
+    fontFamily: "OpenSans_600SemiBold",
+    fontSize: 12,
+  },
+  map: {
+    height: 176,
+    width: "100%",
+    backgroundColor: "#f8fafc",
+  },
+  link: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    minHeight: 44,
+    paddingHorizontal: 16,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: "#e2e8f0",
+  },
+  pressed: {
+    backgroundColor: "#f1f5f9",
+  },
+  linkLabel: {
+    fontFamily: "OpenSans_600SemiBold",
+    fontSize: 12,
+    color: "#0369a1",
+  },
+});
 
 export default StormCard;

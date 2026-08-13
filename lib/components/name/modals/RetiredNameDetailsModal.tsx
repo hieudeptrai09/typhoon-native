@@ -3,8 +3,9 @@ import Tabs, { type Tab } from "@/lib/components/common/Tabs";
 import NameDetailsContent from "@/lib/components/name/NameDetailsContent";
 import SuggestionCard from "@/lib/components/name/widgets/SuggestionCard";
 import type { BaseModalProps, RetiredName, Suggestion } from "@/lib/types";
-import { getRetiredReasonColorClass } from "@/lib/utils/colors";
+import { getRetiredReasonColor } from "@/lib/utils/colors";
 import { useState } from "react";
+import { StyleSheet, Text, View } from "react-native";
 
 export interface RetiredNameDetailsModalProps extends BaseModalProps {
   selectedName: RetiredName;
@@ -15,17 +16,15 @@ type TabType = "info" | "suggestions";
 
 const SuggestionsList = ({ suggestions }: { suggestions: Suggestion[] }) => {
   if (suggestions.length === 0) {
-    return (
-      <div className="py-4 text-center text-foreground">No suggested replacements available</div>
-    );
+    return <Text style={styles.empty}>No suggested replacements available</Text>;
   }
 
   return (
-    <div className="flex flex-col items-center space-y-3">
-      {suggestions.map((suggestion, sidx) => (
-        <SuggestionCard key={sidx} suggestion={suggestion} />
+    <View style={styles.suggestions}>
+      {suggestions.map((suggestion, index) => (
+        <SuggestionCard key={index} suggestion={suggestion} />
       ))}
-    </div>
+    </View>
   );
 };
 
@@ -40,10 +39,10 @@ const RetiredNameDetailsModal = ({
   if (!selectedName) return null;
 
   const tabs: Tab<TabType>[] = [
-    { key: "info", label: "Name Information", content: <NameDetailsContent name={selectedName} /> },
+    { key: "info", label: "Information", content: <NameDetailsContent name={selectedName} /> },
     {
       key: "suggestions",
-      label: "Suggested Replacements",
+      label: "Replacements",
       content: <SuggestionsList suggestions={suggestions} />,
     },
   ];
@@ -52,26 +51,35 @@ const RetiredNameDetailsModal = ({
     <DefModal
       open={isOpen}
       onClose={onClose}
-      width={600}
       title={
-        <span
-          className={`text-2xl font-bold ${getRetiredReasonColorClass(selectedName.retirementReason)}`}
+        <Text
+          style={[styles.title, { color: getRetiredReasonColor(selectedName.retirementReason) }]}
+          numberOfLines={1}
         >
           {selectedName.name}
-        </span>
+        </Text>
       }
     >
-      <div className="pt-4">
-        <Tabs
-          tabs={tabs}
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-          ariaLabel="Name details tabs"
-          idPrefix="tabpanel"
-        />
-      </div>
+      <Tabs tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
     </DefModal>
   );
 };
+
+const styles = StyleSheet.create({
+  title: {
+    fontFamily: "OpenSans_700Bold",
+    fontSize: 22,
+  },
+  empty: {
+    fontFamily: "OpenSans_400Regular",
+    fontSize: 14,
+    color: "#64748b",
+    textAlign: "center",
+    paddingVertical: 20,
+  },
+  suggestions: {
+    gap: 12,
+  },
+});
 
 export default RetiredNameDetailsModal;

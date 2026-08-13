@@ -1,49 +1,91 @@
-"use client";
-
 import TyphoonSpinner from "@/lib/components/common/TyphoonSpinner";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import Image from "next/image";
-import { useState, type ComponentProps } from "react";
+import { Image, type ImageContentFit } from "expo-image";
+import { useState } from "react";
+import { StyleSheet, Text, View, type StyleProp, type ViewStyle } from "react-native";
 
-type ImageWithLoaderProps = ComponentProps<typeof Image>;
+interface ImageWithLoaderProps {
+  source?: string | null;
+  label: string;
+  contentFit?: ImageContentFit;
+  /** Applied to the wrapper, which the image fills — give it the size or let a parent size it. */
+  style?: StyleProp<ViewStyle>;
+  spinnerSize?: "small" | "medium" | "large";
+  /** Hidden when the box is too small for the caption to read as anything but noise. */
+  showErrorLabel?: boolean;
+}
 
-const ImageWithLoader = ({ className, ...props }: ImageWithLoaderProps) => {
+const ImageWithLoader = ({
+  source,
+  label,
+  contentFit = "contain",
+  style,
+  spinnerSize = "medium",
+  showErrorLabel = true,
+}: ImageWithLoaderProps) => {
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
 
-  return (
-    <div className="relative h-full w-full">
-      {isLoading && !hasError && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gray-50">
-          <TyphoonSpinner size="medium" />
-        </div>
-      )}
+  if (!source || hasError) {
+    return (
+      <View
+        style={[styles.root, styles.fallback, style]}
+        accessibilityRole="image"
+        accessibilityLabel="No image available"
+      >
+        <Ionicons name="image-outline" size={32} color="#9ca3af" />
+        {showErrorLabel && <Text style={styles.fallbackLabel}>No image available</Text>}
+      </View>
+    );
+  }
 
-      {hasError ? (
-        <div
-          role="img"
-          aria-label="No image available"
-          className="@container flex h-full w-full flex-col items-center justify-center gap-1.5 p-2 text-center text-gray-400"
-        >
-          <Ionicons name="image-outline" size={32} color="#9ca3af" aria-hidden />
-          <span aria-hidden className="hidden text-xs font-medium @[7rem]:block">
-            No image available
-          </span>
-        </div>
-      ) : (
-        <Image
-          {...props}
-          alt={props.alt || ""}
-          className={`transition-opacity duration-300 ${isLoading ? "opacity-0" : "opacity-100"} ${className ?? ""}`}
-          onLoad={() => setIsLoading(false)}
-          onError={() => {
-            setIsLoading(false);
-            setHasError(true);
-          }}
-        />
+  return (
+    <View style={[styles.root, style]}>
+      <Image
+        source={{ uri: source }}
+        style={StyleSheet.absoluteFill}
+        contentFit={contentFit}
+        transition={200}
+        accessible
+        accessibilityLabel={label}
+        onLoadEnd={() => setIsLoading(false)}
+        onError={() => {
+          setIsLoading(false);
+          setHasError(true);
+        }}
+      />
+      {isLoading && (
+        <View style={styles.overlay} pointerEvents="none">
+          <TyphoonSpinner size={spinnerSize} />
+        </View>
       )}
-    </div>
+    </View>
   );
 };
+
+const styles = StyleSheet.create({
+  root: {
+    overflow: "hidden",
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#f8fafc",
+  },
+  fallback: {
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    padding: 8,
+    backgroundColor: "#f8fafc",
+  },
+  fallbackLabel: {
+    fontFamily: "OpenSans_500Medium",
+    fontSize: 12,
+    color: "#9ca3af",
+    textAlign: "center",
+  },
+});
 
 export default ImageWithLoader;

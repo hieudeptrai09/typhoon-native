@@ -1,19 +1,14 @@
+import SegmentedControl from "@/lib/components/common/SegmentedControl";
 import {
   DASHBOARD_ICON_MAP,
   FILTER_OPTIONS,
   MODE_OPTIONS,
 } from "@/lib/components/dashboard/options";
 import type { DashboardParams } from "@/lib/types";
-import {
-  isGridOnly,
-  isListOnly,
-  paramsForFilter,
-  paramsForView,
-  paramsToPath,
-} from "@/lib/utils/storm/routing";
+import { isGridOnly, isListOnly, paramsForFilter, paramsForView } from "@/lib/utils/storm/routing";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { Segmented } from "antd";
-import Link from "next/link";
+import * as Haptics from "expo-haptics";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 const VIEW_TABS: { key: string; label: string }[] = [
   { key: "all", label: "Storms" },
@@ -28,73 +23,139 @@ interface DashboardControlBarProps {
   onChange: (params: DashboardParams) => void;
 }
 
+// On web each view was a <Link> so it could be indexed; here the dashboard owns its params as
+// state, so these are plain buttons that swap the view in place.
 const DashboardControlBar = ({ params, onChange }: DashboardControlBarProps) => {
   const { view, filter, mode } = params;
   const filterOptions = FILTER_OPTIONS[view] ?? [];
 
+  const modeOptions = MODE_OPTIONS.map((option) => ({
+    ...option,
+    disabled:
+      (option.value === "table" && isListOnly(view, filter)) ||
+      (option.value === "list" && isGridOnly(view, filter)),
+  }));
+
   return (
-    <div className="mx-auto mb-6 flex max-w-4xl flex-col gap-4">
-      <nav
-        aria-label="Dashboard view"
-        className="mx-auto grid w-full max-w-2xl grid-cols-5 border-b border-gray-200"
+    <View style={styles.root}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.tabs}
+        accessibilityRole="tablist"
       >
         {VIEW_TABS.map(({ key, label }) => {
-          const iconName = DASHBOARD_ICON_MAP.view[key];
           const isActive = view === key;
+
           return (
-            <Link
+            <Pressable
               key={key}
-              href={paramsToPath(paramsForView(key))}
-              aria-current={isActive ? "page" : undefined}
-              className={`flex min-w-0 flex-col items-center justify-end gap-1 px-0.5 pb-2.5 text-center text-[11px] leading-tight font-semibold transition-colors sm:flex-row sm:justify-center sm:gap-1.5 sm:px-4 sm:pb-3 sm:text-sm ${
-                isActive
-                  ? "border-b-2 border-sky-700 text-sky-700"
-                  : "text-foreground hover:text-highlight"
-              }`}
+              onPress={() => {
+                if (isActive) return;
+                Haptics.selectionAsync();
+                onChange(paramsForView(key));
+              }}
+              style={({ pressed }) => [
+                styles.tab,
+                isActive && styles.tabActive,
+                pressed && !isActive && styles.pressed,
+              ]}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: isActive }}
+              accessibilityLabel={label}
             >
-              <Ionicons name={iconName} size={15} color={isActive ? "#0369a1" : "#334155"} />
-              <span className="sm:whitespace-nowrap">{label}</span>
-            </Link>
+              <Ionicons
+                name={DASHBOARD_ICON_MAP.view[key]}
+                size={15}
+                color={isActive ? "#ffffff" : "#475569"}
+              />
+              <Text style={[styles.tabLabel, isActive && styles.tabLabelActive]} numberOfLines={1}>
+                {label}
+              </Text>
+            </Pressable>
           );
         })}
-      </nav>
+      </ScrollView>
 
-      <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:justify-center sm:gap-x-8 sm:gap-y-3">
-        <div className="flex flex-col items-center justify-center gap-1.5 sm:flex-row sm:gap-2.5">
-          <span className="shrink-0 text-xs font-semibold tracking-widest text-foreground uppercase">
-            Group by
-          </span>
-          <div className="max-w-full overflow-x-auto sm:min-w-0">
-            <Segmented
-              options={filterOptions}
-              value={filter || filterOptions[0]?.value}
-              onChange={(v) => onChange(paramsForFilter(view, String(v), mode))}
-              aria-label="Select grouping option"
-            />
-          </div>
-        </div>
+      <View style={styles.controls}>
+        <View style={styles.control}>
+          <Text style={styles.controlLabel}>Group by</Text>
+          <SegmentedControl
+            scrollable
+            options={filterOptions}
+            value={filter || filterOptions[0]?.value}
+            onChange={(next) => onChange(paramsForFilter(view, next, mode))}
+            accessibilityLabel="Select grouping option"
+          />
+        </View>
 
-        <div className="flex flex-col items-center justify-center gap-1.5 sm:flex-row sm:gap-2.5">
-          <span className="shrink-0 text-xs font-semibold tracking-widest text-foreground uppercase">
-            Display as
-          </span>
-          <div className="max-w-full overflow-x-auto sm:min-w-0">
-            <Segmented
-              options={MODE_OPTIONS.map((opt) => ({
-                ...opt,
-                disabled:
-                  (opt.value === "table" && isListOnly(view, filter)) ||
-                  (opt.value === "list" && isGridOnly(view, filter)),
-              }))}
-              value={mode}
-              onChange={(v) => onChange({ view, filter, mode: String(v) })}
-              aria-label="Select display mode"
-            />
-          </div>
-        </div>
-      </div>
-    </div>
+        <View style={styles.control}>
+          <Text style={styles.controlLabel}>Display as</Text>
+          <SegmentedControl
+            options={modeOptions}
+            value={mode}
+            onChange={(next) => onChange({ view, filter, mode: next })}
+            accessibilityLabel="Select display mode"
+          />
+        </View>
+      </View>
+    </View>
   );
 };
+
+const styles = StyleSheet.create({
+  root: {
+    gap: 12,
+    paddingTop: 12,
+    paddingBottom: 14,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: "#cbd5e1",
+  },
+  tabs: {
+    flexDirection: "row",
+    gap: 8,
+    paddingHorizontal: 16,
+  },
+  tab: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    height: 36,
+    paddingHorizontal: 14,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: "#cbd5e1",
+    backgroundColor: "#ffffff",
+  },
+  tabActive: {
+    backgroundColor: "#0369a1",
+    borderColor: "#0369a1",
+  },
+  pressed: {
+    opacity: 0.6,
+  },
+  tabLabel: {
+    fontFamily: "OpenSans_600SemiBold",
+    fontSize: 13,
+    color: "#475569",
+  },
+  tabLabelActive: {
+    color: "#ffffff",
+  },
+  controls: {
+    gap: 10,
+    paddingHorizontal: 16,
+  },
+  control: {
+    gap: 6,
+  },
+  controlLabel: {
+    fontFamily: "OpenSans_600SemiBold",
+    fontSize: 11,
+    letterSpacing: 1,
+    textTransform: "uppercase",
+    color: "#64748b",
+  },
+});
 
 export default DashboardControlBar;

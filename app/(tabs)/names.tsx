@@ -3,8 +3,8 @@ import FrownError from "@/lib/components/common/FrownError";
 import ScreenLoading from "@/lib/components/common/ScreenLoading";
 import NamesPageContent from "@/lib/components/name/NamesPageContent";
 import type { RetiredName, StormHistoryEntry, SuggestionWithNameId } from "@/lib/types";
-import { defaultDisplayPrefs } from "@/lib/utils/name/displayPrefs";
 import { isHistoryScope, type NamesSlugParams } from "@/lib/utils/name/routing";
+import { useDisplayPrefs } from "@/lib/utils/name/useDisplayPrefs";
 import { useState } from "react";
 
 // Same reasoning as the storms tab: the scope/layout toggles were URL segments on web only so the
@@ -16,6 +16,8 @@ export default function NamesScreen() {
     showHistory: false,
   });
 
+  const { isLoaded, ...displayPrefs } = useDisplayPrefs();
+
   const names = useApiQuery<RetiredName[]>("/api/v1/typhoon-names");
 
   // Both are only read by one scope each, so they stay unfetched until that scope is opened.
@@ -26,7 +28,9 @@ export default function NamesScreen() {
     params.view === "retired" ? "/api/v1/suggestions" : null,
   );
 
-  if (names.isLoading) return <ScreenLoading />;
+  // The views seed their toggle state from displayPrefs on mount, so rendering before storage
+  // answers would lock in the default and ignore what the user last chose.
+  if (names.isLoading || !isLoaded) return <ScreenLoading />;
   if (names.isError) return <FrownError onRetry={names.refetch} />;
 
   return (
@@ -34,7 +38,7 @@ export default function NamesScreen() {
       allNames={names.data}
       stormHistory={history.data ?? []}
       suggestedNames={suggested.data ?? []}
-      displayPrefs={defaultDisplayPrefs}
+      displayPrefs={displayPrefs}
       params={params}
       onParamsChange={setParams}
     />

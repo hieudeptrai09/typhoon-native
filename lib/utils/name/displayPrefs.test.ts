@@ -1,11 +1,13 @@
 import {
   defaultDisplayPrefs,
   parseDisplayPrefs,
-  type NamesDisplayPrefs,
+  readDisplayPrefs,
+  writeDisplayPrefs,
 } from "@/lib/utils/name/displayPrefs";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 describe("parseDisplayPrefs", () => {
-  it("falls back to the defaults when the cookie is missing or empty", () => {
+  it("falls back to the defaults when nothing is stored", () => {
     expect(parseDisplayPrefs(undefined)).toEqual(defaultDisplayPrefs);
     expect(parseDisplayPrefs("")).toEqual(defaultDisplayPrefs);
   });
@@ -43,16 +45,20 @@ describe("parseDisplayPrefs", () => {
   });
 });
 
-describe("round-trip", () => {
-  // writeDisplayPrefs still writes document.cookie, which does not exist on
-  // native — the writer stays uncovered until it moves onto device storage.
-  const encode = (prefs: NamesDisplayPrefs) => encodeURIComponent(JSON.stringify(prefs));
+describe("round-trip through device storage", () => {
+  beforeEach(() => AsyncStorage.clear());
 
-  it("reads back what the writer encodes", () => {
-    expect(parseDisplayPrefs(encode({ showLetterNav: true }))).toEqual({ showLetterNav: true });
+  it("reads back what the writer stored", async () => {
+    writeDisplayPrefs({ showLetterNav: true });
+    await expect(readDisplayPrefs()).resolves.toEqual({ showLetterNav: true });
   });
 
-  it("round-trips the defaults too", () => {
-    expect(parseDisplayPrefs(encode(defaultDisplayPrefs))).toEqual(defaultDisplayPrefs);
+  it("round-trips the defaults too", async () => {
+    writeDisplayPrefs(defaultDisplayPrefs);
+    await expect(readDisplayPrefs()).resolves.toEqual(defaultDisplayPrefs);
+  });
+
+  it("falls back to the defaults when nothing has been written", async () => {
+    await expect(readDisplayPrefs()).resolves.toEqual(defaultDisplayPrefs);
   });
 });

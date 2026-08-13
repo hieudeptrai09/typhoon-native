@@ -1,4 +1,7 @@
 import DefModal from "@/lib/components/common/DefModal";
+import OptionPicker from "@/lib/components/common/OptionPicker";
+import SegmentedControl from "@/lib/components/common/SegmentedControl";
+import TextField from "@/lib/components/common/TextField";
 import PositionSelect from "@/lib/components/name/widgets/PositionSelect";
 import { type BaseModalProps, type FilterParams, type PositionValue } from "@/lib/types";
 import { toOpts } from "@/lib/utils/name/selectOptions";
@@ -9,7 +12,8 @@ import {
   positionFromValue,
   positionToValue,
 } from "@/lib/utils/position";
-import { Button, Form, Input, Radio, Select } from "antd";
+import { useEffect, useState } from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 export interface ListFilterModalProps extends BaseModalProps {
   onApply: (filters: FilterParams) => void;
@@ -27,8 +31,14 @@ interface FormValues {
   language: string[];
   tag: string[];
   position: PositionValue;
-  status: string | undefined;
+  status: string;
 }
+
+const STATUS_OPTIONS = [
+  { value: "", label: "All" },
+  { value: "active", label: "Active" },
+  { value: "retired", label: "Retired" },
+];
 
 const toFilters = (values: FormValues): FilterParams => {
   const position = positionFromValue(values.position);
@@ -54,34 +64,28 @@ const ListFilterModal = ({
   showHistory,
   matchCount,
 }: ListFilterModalProps) => {
-  const [form] = Form.useForm<FormValues>();
-
-  const openValues: FormValues = {
+  const buildOpenValues = (): FormValues => ({
     name: initialFilters.name,
     country: toArr(initialFilters.country),
     language: toArr(initialFilters.language),
     tag: toArr(initialFilters.tag),
     position: positionToValue(initialFilters.position ? Number(initialFilters.position) : null),
     status: showHistory ? initialFilters.status || "" : "current",
-  };
+  });
 
-  const clearedValues: FormValues = {
-    name: "",
-    country: [],
-    language: [],
-    tag: [],
-    position: positionToValue(null),
-    status: showHistory ? "" : "current",
-  };
+  const [values, setValues] = useState<FormValues>(buildOpenValues);
 
-  const handleClearAll = () => {
-    form.setFieldsValue(clearedValues);
-    form.setFields([{ name: "position", errors: [] }]);
-  };
+  // antd's Form re-seeded itself from initialValues on every open; plain state has to be told.
+  useEffect(() => {
+    if (isOpen) setValues(buildOpenValues());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
 
-  const watched = Form.useWatch([], form);
-  const values = watched ?? openValues;
+  const update = <K extends keyof FormValues>(key: K, value: FormValues[K]) =>
+    setValues((current) => ({ ...current, [key]: value }));
+
   const position = positionFromValue(values.position);
+  const isIncomplete = isPartialPosition(values.position);
   const pending = toFilters(values);
   const hasFilters = Boolean(
     pending.name ||
@@ -93,97 +97,171 @@ const ListFilterModal = ({
   );
   const count = hasFilters ? matchCount(pending) : null;
 
+  const handleClearAll = () =>
+    setValues({
+      name: "",
+      country: [],
+      language: [],
+      tag: [],
+      position: positionToValue(null),
+      status: showHistory ? "" : "current",
+    });
+
   return (
     <DefModal
       open={isOpen}
       onClose={onClose}
-      width={480}
-      title={<span className="text-xl font-bold text-foreground">Filter Options</span>}
-      footer={[
-        <Button key="clear" onClick={handleClearAll} aria-label="Clear all filters">
-          Clear All
-        </Button>,
-        <Button
-          key="apply"
-          type="primary"
-          onClick={() => form.submit()}
-          aria-label={
-            count == null
-              ? "Apply filters"
-              : `Apply filters, ${count} ${count === 1 ? "name" : "names"} match`
-          }
-        >
-          {count == null ? "Apply" : `Apply (${count})`}
-        </Button>,
-      ]}
+      title="Filter Options"
+      footer={
+        <View style={styles.footer}>
+          <Pressable
+            onPress={handleClearAll}
+            style={({ pressed }) => [styles.clear, pressed && styles.pressed]}
+            accessibilityRole="button"
+            accessibilityLabel="Clear all filters"
+          >
+            <Text style={styles.clearLabel}>Clear All</Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() => onApply(toFilters(values))}
+            disabled={isIncomplete}
+            style={({ pressed }) => [
+              styles.apply,
+              isIncomplete && styles.applyDisabled,
+              pressed && !isIncomplete && styles.pressed,
+            ]}
+            accessibilityRole="button"
+            accessibilityState={{ disabled: isIncomplete }}
+            accessibilityLabel={
+              count == null
+                ? "Apply filters"
+                : `Apply filters, ${count} ${count === 1 ? "name" : "names"} match`
+            }
+          >
+            <Text style={styles.applyLabel}>{count == null ? "Apply" : `Apply (${count})`}</Text>
+          </Pressable>
+        </View>
+      }
     >
-      <Form
-        form={form}
-        layout="vertical"
-        onFinish={(formValues: FormValues) => onApply(toFilters(formValues))}
-        className="py-4"
-        initialValues={openValues}
-      >
-        <Form.Item label="Name" name="name">
-          <Input placeholder="Enter typhoon name..." allowClear />
-        </Form.Item>
+      <View style={styles.form}>
+        <TextField
+          label="Name"
+          placeholder="Enter typhoon name..."
+          value={values.name}
+          onChangeText={(name) => update("name", name)}
+        />
 
-        <Form.Item label="Contributed By" name="country">
-          <Select
-            mode="multiple"
-            placeholder="All Countries"
-            options={toOpts(countries)}
-            allowClear
-          />
-        </Form.Item>
+        <OptionPicker
+          multiple
+          searchable
+          label="Contributed By"
+          placeholder="All Countries"
+          options={toOpts(countries)}
+          value={values.country}
+          onChange={(country) => update("country", country)}
+        />
 
-        <Form.Item label="Language" name="language">
-          <Select
-            mode="multiple"
-            placeholder="All Languages"
-            options={toOpts(languages)}
-            allowClear
-          />
-        </Form.Item>
+        <OptionPicker
+          multiple
+          searchable
+          label="Language"
+          placeholder="All Languages"
+          options={toOpts(languages)}
+          value={values.language}
+          onChange={(language) => update("language", language)}
+        />
 
-        <Form.Item label="Tag" name="tag">
-          <Select mode="multiple" placeholder="All Tags" options={toOpts(tags)} allowClear />
-        </Form.Item>
+        <OptionPicker
+          multiple
+          searchable
+          label="Tag"
+          placeholder="All Tags"
+          options={toOpts(tags)}
+          value={values.tag}
+          onChange={(tag) => update("tag", tag)}
+        />
 
-        <Form.Item
-          label="Position"
-          name="position"
-          extra={
-            <span id="filter-position-help">
-              {position != null
+        <View style={styles.group}>
+          <Text style={styles.groupLabel}>Position</Text>
+          <PositionSelect
+            value={values.position}
+            onChange={(next) => update("position", next)}
+            error={isIncomplete ? "Pick both a row and a country" : undefined}
+            help={
+              position != null
                 ? `Cell ${getPositionTitle(position)} — position #${position} in the naming table`
-                : "Pick the row and the contributing country of the cell in the naming table"}
-            </span>
-          }
-          rules={[
-            {
-              validator: (_, value: PositionValue) =>
-                isPartialPosition(value)
-                  ? Promise.reject(new Error("Pick both a row and a country"))
-                  : Promise.resolve(),
-            },
-          ]}
-        >
-          <PositionSelect />
-        </Form.Item>
+                : "Pick the row and the contributing country of the cell in the naming table"
+            }
+          />
+        </View>
 
         {showHistory && (
-          <Form.Item label="Status" name="status" className="mb-0">
-            <Radio.Group>
-              <Radio value="">All</Radio>
-              <Radio value="active">Active</Radio>
-              <Radio value="retired">Retired</Radio>
-            </Radio.Group>
-          </Form.Item>
+          <View style={styles.group}>
+            <Text style={styles.groupLabel}>Status</Text>
+            <SegmentedControl
+              options={STATUS_OPTIONS}
+              value={values.status}
+              onChange={(status) => update("status", status)}
+              accessibilityLabel="Filter by status"
+            />
+          </View>
         )}
-      </Form>
+      </View>
     </DefModal>
   );
 };
+
+const styles = StyleSheet.create({
+  form: {
+    gap: 16,
+  },
+  group: {
+    gap: 6,
+  },
+  groupLabel: {
+    fontFamily: "OpenSans_600SemiBold",
+    fontSize: 13,
+    color: "#334155",
+  },
+  footer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  clear: {
+    height: 44,
+    paddingHorizontal: 18,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#cbd5e1",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  clearLabel: {
+    fontFamily: "OpenSans_600SemiBold",
+    fontSize: 14,
+    color: "#475569",
+  },
+  apply: {
+    flex: 1,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: "#2563eb",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  applyDisabled: {
+    backgroundColor: "#cbd5e1",
+  },
+  applyLabel: {
+    fontFamily: "OpenSans_600SemiBold",
+    fontSize: 15,
+    color: "#ffffff",
+  },
+  pressed: {
+    opacity: 0.7,
+  },
+});
 
 export default ListFilterModal;

@@ -9,7 +9,9 @@ import {
 import type { BaseModalProps, IntensityType, Storm } from "@/lib/types";
 import { getGroupedStorms, getIntensityFromNumber } from "@/lib/utils/storm/aggregate";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { Popover } from "antd";
+import * as Haptics from "expo-haptics";
+import { useState } from "react";
+import { LayoutAnimation, Pressable, StyleSheet, Text, View } from "react-native";
 
 export type AverageModalCriteria = "position" | "country" | "year" | "month" | "name";
 
@@ -63,7 +65,7 @@ const CRITERIA_TEXT: Record<
 // Negative ranks need the parentheses to stay readable next to the × sign.
 const formatRank = (rank: number) => (rank < 0 ? `(−${Math.abs(rank)})` : String(rank));
 
-// (2×5 + 1×2 + 3×0) ÷ 6 = 12 ÷ 6 = 2.00 — one term per intensity row above.
+// (2×5 + 1×2 + 3×0) ÷ 6 = 12 ÷ 6 = 2.00 — one term per intensity row below.
 const AverageFormula = ({
   average,
   intensityData,
@@ -78,27 +80,26 @@ const AverageFormula = ({
     0,
   );
 
+  const terms = intensityData
+    .map((data) => `${data.count}×${formatRank(INTENSITY_RANK[data.intensity])}`)
+    .join(" + ");
+
   return (
-    <div className="max-w-[288px] text-sm tabular-nums text-foreground">
-      <span>
-        <span>(</span>
-        {intensityData.map((data, idx) => (
-          <span key={data.intensity}>
-            {idx > 0 && " + "}
-            {data.count}×{formatRank(INTENSITY_RANK[data.intensity])}
-          </span>
-        ))}
-        <span>
-          ) ÷ {total} = {formatRank(rankSum)} ÷ {total} ={" "}
-          <span className="font-bold">{average.toFixed(2)}</span>
-        </span>
-      </span>
-    </div>
+    <View style={styles.formula}>
+      <Text style={styles.formulaText}>
+        ({terms}) ÷ {total} = {formatRank(rankSum)} ÷ {total} ={" "}
+        <Text style={styles.formulaResult}>{average.toFixed(2)}</Text>
+      </Text>
+    </View>
   );
 };
 
-// The position part is used to a part of modal @modal/(.)positions/[position], but the owner forced to divorce and go back to here.
 const AverageModal = ({ isOpen, onClose, title, average, storms, criteria }: AverageModalProps) => {
+  // Web showed both the formula and each group's storms on hover. Touch has no hover, so both
+  // expand in place — one open group at a time, so the sheet does not grow past a scroll or two.
+  const [showFormula, setShowFormula] = useState(false);
+  const [expanded, setExpanded] = useState<IntensityType | null>(null);
+
   const { heading, empty } = CRITERIA_TEXT[criteria];
   const intensityGroups = getGroupedStorms(storms, "intensity");
   const intensityData: IntensityGroupData[] = Object.entries(intensityGroups)
@@ -110,122 +111,217 @@ const AverageModal = ({ isOpen, onClose, title, average, storms, criteria }: Ave
     .sort((a, b) => SORTING_RANK[b.intensity] - SORTING_RANK[a.intensity]);
   const maxCount = intensityData.reduce((max, data) => Math.max(max, data.count), 0);
 
-  return (
-    <DefModal
-      open={isOpen}
-      onClose={onClose}
-      width={448}
-      title={<span className="text-2xl font-bold text-foreground">{title}</span>}
-    >
-      <div className="pt-3">
-        <div className="space-y-3">
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-            <span id="avg-intensity-label" className="text-foreground">
-              Overall Average Intensity:
-            </span>
-            <span
-              className="text-lg font-bold tabular-nums"
-              aria-describedby="avg-intensity-label"
-              style={{ color: TEXT_COLOR_WHITE_BACKGROUND[getIntensityFromNumber(average)] }}
-            >
-              {average.toFixed(2)}
-            </span>
-            <span className="text-sm text-gray-500">on a −2 to 5 scale</span>
-            {storms.length > 0 && (
-              <Popover
-                styles={{ container: { backgroundColor: "#f3f4f6" } }}
-                content={
-                  <AverageFormula
-                    average={average}
-                    intensityData={intensityData}
-                    total={storms.length}
-                  />
-                }
-                trigger={["hover", "click"]}
-                placement="bottom"
-              >
-                <button
-                  type="button"
-                  className="flex cursor-pointer items-center text-gray-500 transition-colors hover:text-sky-700"
-                  aria-label="How the average intensity is calculated"
-                >
-                  <Ionicons
-                    name="information-circle-outline"
-                    size={16}
-                    color="#6b7280"
-                    aria-hidden
-                  />
-                </button>
-              </Popover>
-            )}
-          </div>
-          <div>
-            <div className="mb-2 text-foreground">{heading(title)}</div>
-            {intensityData.length === 0 && (
-              <div className="text-sm text-foreground">{empty(title)}</div>
-            )}
-            <div className="space-y-2">
-              {intensityData.map((data, idx) => {
-                const bgColor = BACKGROUND_BADGE[data.intensity];
-                const textColor = TEXT_COLOR_WHITE_BACKGROUND[data.intensity];
+  const toggle = (intensity: IntensityType) => {
+    Haptics.selectionAsync();
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setExpanded((current) => (current === intensity ? null : intensity));
+  };
 
-                return (
-                  <Popover
-                    key={data.intensity}
-                    styles={{ container: { backgroundColor: "#f3f4f6" } }}
-                    content={
-                      <div className="flex flex-col gap-1.5">
-                        {data.storms.map((storm) => (
-                          <div
-                            key={`${storm.name}-${storm.year}`}
-                            className="text-sm text-foreground"
-                          >
-                            <span className="font-semibold" style={{ color: textColor }}>
-                              {storm.name}
-                            </span>{" "}
-                            {storm.year}
-                          </div>
-                        ))}
-                      </div>
-                    }
-                    trigger={["hover", "click"]}
-                    placement="bottom"
-                  >
-                    <div
-                      className="flex cursor-pointer items-center justify-between rounded-md bg-white px-3 py-2 transition-colors hover:bg-gray-200"
-                      style={{ borderLeft: `4px solid ${bgColor}` }}
-                    >
-                      <span
-                        className="font-semibold"
-                        style={{ color: textColor }}
-                        aria-describedby={`avg-stats-${idx}`}
-                      >
-                        {INTENSITY_LABEL[data.intensity]}
-                      </span>
-                      <div id={`avg-stats-${idx}`} className="flex shrink-0 items-center gap-2">
-                        <span
-                          className="h-2 shrink-0 rounded-full"
-                          style={{
-                            width: `${maxCount > 0 ? Math.max(8, (data.count / maxCount) * 96) : 8}px`,
-                            backgroundColor: bgColor,
-                          }}
-                          aria-hidden="true"
-                        />
-                        <span className="text-sm font-semibold text-foreground tabular-nums">
-                          <span className="sr-only">Count: </span>
-                          {data.count}
-                        </span>
-                      </div>
-                    </div>
-                  </Popover>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      </div>
+  return (
+    <DefModal open={isOpen} onClose={onClose} title={title}>
+      <View style={styles.summary}>
+        <Text style={styles.summaryLabel}>Overall Average Intensity:</Text>
+        <Text
+          style={[
+            styles.summaryValue,
+            { color: TEXT_COLOR_WHITE_BACKGROUND[getIntensityFromNumber(average)] },
+          ]}
+        >
+          {average.toFixed(2)}
+        </Text>
+        <Text style={styles.scale}>on a −2 to 5 scale</Text>
+        {storms.length > 0 && (
+          <Pressable
+            onPress={() => {
+              LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+              setShowFormula((current) => !current);
+            }}
+            hitSlop={10}
+            accessibilityRole="button"
+            accessibilityLabel="How the average intensity is calculated"
+            accessibilityState={{ expanded: showFormula }}
+          >
+            <Ionicons
+              name={showFormula ? "information-circle" : "information-circle-outline"}
+              size={18}
+              color={showFormula ? "#0369a1" : "#6b7280"}
+            />
+          </Pressable>
+        )}
+      </View>
+
+      {showFormula && (
+        <AverageFormula average={average} intensityData={intensityData} total={storms.length} />
+      )}
+
+      <Text style={styles.heading}>{heading(title)}</Text>
+
+      {intensityData.length === 0 && <Text style={styles.empty}>{empty(title)}</Text>}
+
+      <View style={styles.groups}>
+        {intensityData.map((data) => {
+          const bgColor = BACKGROUND_BADGE[data.intensity];
+          const textColor = TEXT_COLOR_WHITE_BACKGROUND[data.intensity];
+          const isExpanded = expanded === data.intensity;
+
+          return (
+            <View key={data.intensity}>
+              <Pressable
+                onPress={() => toggle(data.intensity)}
+                style={({ pressed }) => [
+                  styles.group,
+                  { borderLeftColor: bgColor },
+                  pressed && styles.pressed,
+                ]}
+                accessibilityRole="button"
+                accessibilityState={{ expanded: isExpanded }}
+                accessibilityLabel={`${INTENSITY_LABEL[data.intensity]}, ${data.count} storms`}
+              >
+                <Text style={[styles.groupLabel, { color: textColor }]} numberOfLines={1}>
+                  {INTENSITY_LABEL[data.intensity]}
+                </Text>
+
+                <View style={styles.groupStats}>
+                  <View
+                    style={[
+                      styles.bar,
+                      {
+                        width: maxCount > 0 ? Math.max(8, (data.count / maxCount) * 96) : 8,
+                        backgroundColor: bgColor,
+                      },
+                    ]}
+                  />
+                  <Text style={styles.count}>{data.count}</Text>
+                  <Ionicons
+                    name={isExpanded ? "chevron-up" : "chevron-down"}
+                    size={14}
+                    color="#94a3b8"
+                  />
+                </View>
+              </Pressable>
+
+              {isExpanded && (
+                <View style={styles.stormList}>
+                  {data.storms.map((storm) => (
+                    <Text key={`${storm.name}-${storm.year}`} style={styles.storm}>
+                      <Text style={[styles.stormName, { color: textColor }]}>{storm.name}</Text>{" "}
+                      {storm.year}
+                    </Text>
+                  ))}
+                </View>
+              )}
+            </View>
+          );
+        })}
+      </View>
     </DefModal>
   );
 };
+
+const styles = StyleSheet.create({
+  summary: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    alignItems: "center",
+    columnGap: 8,
+    rowGap: 4,
+  },
+  summaryLabel: {
+    fontFamily: "OpenSans_400Regular",
+    fontSize: 14,
+    color: "#475569",
+  },
+  summaryValue: {
+    fontFamily: "OpenSans_700Bold",
+    fontSize: 17,
+    fontVariant: ["tabular-nums"],
+  },
+  scale: {
+    fontFamily: "OpenSans_400Regular",
+    fontSize: 13,
+    color: "#6b7280",
+  },
+  formula: {
+    marginTop: 10,
+    padding: 10,
+    borderRadius: 8,
+    backgroundColor: "#f3f4f6",
+  },
+  formulaText: {
+    fontFamily: "OpenSans_400Regular",
+    fontSize: 13,
+    lineHeight: 20,
+    color: "#475569",
+    fontVariant: ["tabular-nums"],
+  },
+  formulaResult: {
+    fontFamily: "OpenSans_700Bold",
+    color: "#0f172a",
+  },
+  heading: {
+    fontFamily: "OpenSans_400Regular",
+    fontSize: 14,
+    color: "#475569",
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  empty: {
+    fontFamily: "OpenSans_400Regular",
+    fontSize: 13,
+    color: "#64748b",
+  },
+  groups: {
+    gap: 8,
+  },
+  group: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 8,
+    minHeight: 48,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    borderLeftWidth: 4,
+    backgroundColor: "#f8fafc",
+  },
+  pressed: {
+    backgroundColor: "#e2e8f0",
+  },
+  groupLabel: {
+    flexShrink: 1,
+    fontFamily: "OpenSans_600SemiBold",
+    fontSize: 14,
+  },
+  groupStats: {
+    flexShrink: 0,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  bar: {
+    height: 8,
+    borderRadius: 4,
+  },
+  count: {
+    fontFamily: "OpenSans_600SemiBold",
+    fontSize: 13,
+    color: "#475569",
+    fontVariant: ["tabular-nums"],
+  },
+  stormList: {
+    gap: 4,
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 4,
+  },
+  storm: {
+    fontFamily: "OpenSans_400Regular",
+    fontSize: 13,
+    color: "#475569",
+  },
+  stormName: {
+    fontFamily: "OpenSans_600SemiBold",
+  },
+});
 
 export default AverageModal;

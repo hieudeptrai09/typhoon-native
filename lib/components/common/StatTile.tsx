@@ -1,18 +1,40 @@
 import type { ReactNode } from "react";
+import { StyleSheet, Text, View } from "react-native";
 
-const StatTile = ({
-  label,
-  title,
-  children,
-}: {
+interface StatTileProps {
   label: string;
-  title?: string;
+  /** The web build's tooltip text. Native has no hover, so it survives for screen readers only. */
+  hint?: string;
   children: ReactNode;
-}) => (
-  <div className="flex flex-col rounded-md bg-slate-50 px-3 py-2" title={title}>
-    <span className="text-sm text-foreground">{label}</span>
-    <span className="text-lg font-bold whitespace-nowrap tabular-nums">{children}</span>
-  </div>
+}
+
+const StatTile = ({ label, hint, children }: StatTileProps) => (
+  <View style={styles.root} accessible accessibilityLabel={label} accessibilityHint={hint}>
+    <Text style={styles.label}>{label}</Text>
+    <Text style={styles.value} numberOfLines={1}>
+      {children}
+    </Text>
+  </View>
 );
+
+const styles = StyleSheet.create({
+  root: {
+    borderRadius: 8,
+    backgroundColor: "#f8fafc",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  label: {
+    fontFamily: "OpenSans_400Regular",
+    fontSize: 13,
+    color: "#475569",
+  },
+  value: {
+    fontFamily: "OpenSans_700Bold",
+    fontSize: 17,
+    color: "#0f172a",
+    fontVariant: ["tabular-nums"],
+  },
+});
 
 export default StatTile;

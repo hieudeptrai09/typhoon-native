@@ -2,13 +2,13 @@ import DefModal from "@/lib/components/common/DefModal";
 import IntensityBadge from "@/lib/components/storm/IntensityBadge";
 import { TEXT_COLOR_WHITE_BACKGROUND } from "@/lib/constants";
 import type { BaseModalProps, Storm } from "@/lib/types";
+import { StyleSheet, Text, View } from "react-native";
 
 export interface StormDetailModalProps extends BaseModalProps {
   title: string;
   storms: Storm[];
 }
 
-// It's used to a part of modal @modal/(.)positions/[position], but the owner forced to divorce and go back to here.
 const StormDetailModal = ({ isOpen, onClose, title, storms }: StormDetailModalProps) => {
   const groupedByName = storms.reduce<Record<string, Storm[]>>((acc, storm) => {
     if (!acc[storm.name]) acc[storm.name] = [];
@@ -20,36 +20,51 @@ const StormDetailModal = ({ isOpen, onClose, title, storms }: StormDetailModalPr
   const hasMultipleNames = nameGroups.length > 1;
 
   return (
-    <DefModal
-      open={isOpen}
-      onClose={onClose}
-      width={448}
-      title={<span className="text-2xl font-bold text-foreground">{title}</span>}
-    >
-      <div className="flex flex-col pt-4 pb-px">
+    <DefModal open={isOpen} onClose={onClose} title={title}>
+      <View>
         {nameGroups.map(([name, stormGroup], groupIndex) => (
-          <div key={name} className="flex flex-col gap-1.5">
+          <View key={name} style={styles.group}>
             {stormGroup.map((storm, index) => (
-              <div key={index} className="flex items-center">
-                <IntensityBadge intensity={storm.intensity} />
-                <span
-                  className="ml-1.5"
-                  style={{ color: TEXT_COLOR_WHITE_BACKGROUND[storm.intensity] }}
+              <View key={index} style={styles.storm}>
+                <IntensityBadge intensity={storm.intensity} size={30} />
+                <Text
+                  style={[styles.label, { color: TEXT_COLOR_WHITE_BACKGROUND[storm.intensity] }]}
                 >
                   {storm.name} {storm.year}
-                  {storm.jtwcDesignation && ` (${storm.jtwcDesignation})`}
-                </span>
-              </div>
+                  {storm.jtwcDesignation ? ` (${storm.jtwcDesignation})` : ""}
+                </Text>
+              </View>
             ))}
 
             {hasMultipleNames && groupIndex < nameGroups.length - 1 && (
-              <div className="my-3 border-b border-gray-300" />
+              <View style={styles.divider} />
             )}
-          </div>
+          </View>
         ))}
-      </div>
+      </View>
     </DefModal>
   );
 };
+
+const styles = StyleSheet.create({
+  group: {
+    gap: 6,
+  },
+  storm: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  label: {
+    flex: 1,
+    fontFamily: "OpenSans_500Medium",
+    fontSize: 15,
+  },
+  divider: {
+    marginVertical: 12,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: "#cbd5e1",
+  },
+});
 
 export default StormDetailModal;

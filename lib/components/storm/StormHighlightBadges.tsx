@@ -1,34 +1,61 @@
-import type { Storm } from "@/lib/types";
+import type { IconName, Storm } from "@/lib/types";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import { StyleSheet, Text, View } from "react-native";
 
 export const hasHighlight = (storm: Storm): boolean =>
   storm.isStrongest === true || storm.isFirst === true || storm.isLast === true;
 
-const BADGE_CLASS =
-  "inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] leading-none font-semibold";
+interface BadgeProps {
+  icon: IconName;
+  label: string;
+  color: string;
+  background: string;
+}
+
+const Badge = ({ icon, label, color, background }: BadgeProps) => (
+  <View style={[styles.badge, { backgroundColor: background }]}>
+    <Ionicons name={icon} size={10} color={color} />
+    <Text style={[styles.label, { color }]}>{label}</Text>
+  </View>
+);
 
 const StormHighlightBadges = ({ storm }: { storm: Storm }) => {
   if (!hasHighlight(storm)) return null;
 
   return (
-    <div className="flex flex-wrap items-center gap-1">
+    <View style={styles.root}>
       {storm.isStrongest && (
-        <span className={`${BADGE_CLASS} bg-rose-200 text-rose-700`}>
-          <Ionicons name="flash-outline" size={10} color="#be123c" /> Strongest
-        </span>
+        <Badge icon="flash-outline" label="Strongest" color="#be123c" background="#fecdd3" />
       )}
       {storm.isFirst && (
-        <span className={`${BADGE_CLASS} bg-blue-200 text-blue-700`}>
-          <Ionicons name="medal-outline" size={10} color="#1d4ed8" /> First
-        </span>
+        <Badge icon="medal-outline" label="First" color="#1d4ed8" background="#bfdbfe" />
       )}
       {storm.isLast && (
-        <span className={`${BADGE_CLASS} bg-orange-200 text-orange-700`}>
-          <Ionicons name="download-outline" size={10} color="#c2410c" /> Last
-        </span>
+        <Badge icon="download-outline" label="Last" color="#c2410c" background="#fed7aa" />
       )}
-    </div>
+    </View>
   );
 };
+
+const styles = StyleSheet.create({
+  root: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    alignItems: "center",
+    gap: 4,
+  },
+  badge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 3,
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    borderRadius: 5,
+  },
+  label: {
+    fontFamily: "OpenSans_600SemiBold",
+    fontSize: 10,
+  },
+});
 
 export default StormHighlightBadges;

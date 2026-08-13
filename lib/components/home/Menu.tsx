@@ -1,44 +1,52 @@
-"use client";
-
-import { Button, ConfigProvider } from "antd";
-import Link from "next/link";
+import * as Haptics from "expo-haptics";
+import { useRouter, type Href } from "expo-router";
+import { Pressable, StyleSheet, Text } from "react-native";
 
 interface MenuProps {
-  href: string;
+  href: Href;
   label: string;
   bgColor: string;
-  hoverBgColor: string;
 }
 
-const Menu = ({ href, label, bgColor, hoverBgColor }: MenuProps) => {
+/** Full-width pill that navigates — the home screen's primary call to action. */
+const Menu = ({ href, label, bgColor }: MenuProps) => {
+  const router = useRouter();
+
   return (
-    <ConfigProvider
-      theme={{
-        token: {
-          colorPrimary: bgColor,
-          colorPrimaryHover: hoverBgColor,
-          colorPrimaryActive: hoverBgColor,
-        },
-        components: {
-          Button: {
-            primaryShadow: "0 4px 12px rgba(0, 0, 0, 0.12)",
-          },
-        },
+    <Pressable
+      onPress={() => {
+        Haptics.selectionAsync();
+        router.navigate(href);
       }}
+      style={({ pressed }) => [
+        styles.root,
+        { backgroundColor: bgColor },
+        pressed && styles.pressed,
+      ]}
+      accessibilityRole="button"
+      accessibilityLabel={label}
     >
-      <Link href={href} className="block">
-        <Button
-          block
-          type="primary"
-          size="large"
-          shape="round"
-          className="h-12! text-xl! font-bold!"
-        >
-          {label}
-        </Button>
-      </Link>
-    </ConfigProvider>
+      <Text style={styles.label}>{label}</Text>
+    </Pressable>
   );
 };
+
+const styles = StyleSheet.create({
+  root: {
+    width: "100%",
+    height: 52,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 26,
+  },
+  pressed: {
+    opacity: 0.85,
+  },
+  label: {
+    fontFamily: "OpenSans_700Bold",
+    fontSize: 19,
+    color: "#ffffff",
+  },
+});
 
 export default Menu;

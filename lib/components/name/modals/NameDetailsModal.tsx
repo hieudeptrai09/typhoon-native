@@ -1,29 +1,33 @@
 import DefModal from "@/lib/components/common/DefModal";
 import NameDetailsContent from "@/lib/components/name/NameDetailsContent";
 import type { BaseModalProps, RetiredName, TyphoonName } from "@/lib/types";
-import { getNameStatusColorClass } from "@/lib/utils/colors";
+import { getNameStatusColor } from "@/lib/utils/colors";
+import { StyleSheet, Text } from "react-native";
 
-// It's used to a part of modal @modal/(.)info/name, but the owner forced to divorce and go back to here.
 interface NameDetailsModalProps extends BaseModalProps {
   name: TyphoonName | RetiredName;
   hideReplacedBy?: boolean;
 }
 
-const NameDetailsModal = ({ isOpen, onClose, name, hideReplacedBy }: NameDetailsModalProps) => {
-  const titleColorClass = getNameStatusColorClass(name);
+const NameDetailsModal = ({ isOpen, onClose, name, hideReplacedBy }: NameDetailsModalProps) => (
+  <DefModal
+    open={isOpen}
+    onClose={onClose}
+    title={
+      <Text style={[styles.title, { color: getNameStatusColor(name) }]} numberOfLines={1}>
+        {name.name}
+      </Text>
+    }
+  >
+    <NameDetailsContent name={name} hideReplacedBy={hideReplacedBy} />
+  </DefModal>
+);
 
-  return (
-    <DefModal
-      open={isOpen}
-      onClose={onClose}
-      width={560}
-      title={<span className={`text-2xl font-bold ${titleColorClass}`}>{name.name}</span>}
-    >
-      <div className="pt-4">
-        <NameDetailsContent name={name} hideReplacedBy={hideReplacedBy} />
-      </div>
-    </DefModal>
-  );
-};
+const styles = StyleSheet.create({
+  title: {
+    fontFamily: "OpenSans_700Bold",
+    fontSize: 22,
+  },
+});
 
 export default NameDetailsModal;

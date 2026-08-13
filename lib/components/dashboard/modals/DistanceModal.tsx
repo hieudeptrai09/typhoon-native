@@ -3,6 +3,7 @@ import type { BaseModalProps, Storm } from "@/lib/types";
 import { getDistanceColor } from "@/lib/utils/colors";
 import { formatStormDateRange } from "@/lib/utils/date";
 import { formatDistance } from "@/lib/utils/storm/aggregate";
+import { StyleSheet, Text, View } from "react-native";
 
 interface DistanceModalProps extends BaseModalProps {
   title: string;
@@ -17,81 +18,152 @@ const formatGapLabel = (gap: number): string => {
 
 const DistanceModal = ({ isOpen, onClose, title, storms, average }: DistanceModalProps) => {
   const timeline = [...storms].sort((a, b) => a.year - b.year);
+  const averageColor = getDistanceColor(average);
 
   return (
     <DefModal
       open={isOpen}
       onClose={onClose}
-      width={448}
       title={
-        <span className="text-2xl font-bold" style={{ color: getDistanceColor(average) }}>
+        <Text style={[styles.title, { color: averageColor }]} numberOfLines={1}>
           {title}
-        </span>
+        </Text>
       }
     >
-      <div className="pt-3">
-        <div>
-          <span id="avg-recurrence-label" className="text-foreground">
-            Average Recurrence:{" "}
-          </span>
-          <span
-            className="text-lg font-bold"
-            aria-describedby="avg-recurrence-label"
-            style={{ color: getDistanceColor(average) }}
-          >
-            {formatDistance(average)}
-          </span>
-          {average >= 0 && <span className="text-foreground"> years</span>}
-        </div>
+      <View style={styles.summary}>
+        <Text style={styles.summaryLabel}>Average Recurrence: </Text>
+        <Text style={[styles.summaryValue, { color: averageColor }]}>
+          {formatDistance(average)}
+        </Text>
+        {average >= 0 && <Text style={styles.summaryLabel}> years</Text>}
+      </View>
 
-        <div className="mt-3 mb-2 text-foreground">
-          {timeline.length === 1
-            ? "Only one storm, so no recurrence can be measured:"
-            : "Storm timeline:"}
-        </div>
+      <Text style={styles.caption}>
+        {timeline.length === 1
+          ? "Only one storm, so no recurrence can be measured:"
+          : "Storm timeline:"}
+      </Text>
 
-        {timeline.length === 0 ? (
-          <div className="text-sm text-foreground">No storms to show.</div>
-        ) : (
-          <ol>
-            {timeline.map((storm, index) => {
-              // The first storm has no earlier storm to measure against, which is
-              // the same -1 "no gap" case the grid uses for a single storm.
-              const gap = index > 0 ? storm.year - timeline[index - 1].year : -1;
-              const color = getDistanceColor(gap);
-              const dateRange = formatStormDateRange(storm.dateStart, storm.dateEnd);
+      {timeline.length === 0 ? (
+        <Text style={styles.empty}>No storms to show.</Text>
+      ) : (
+        <View>
+          {timeline.map((storm, index) => {
+            // The first storm has no earlier storm to measure against, which is
+            // the same -1 "no gap" case the grid uses for a single storm.
+            const gap = index > 0 ? storm.year - timeline[index - 1].year : -1;
+            const color = getDistanceColor(gap);
 
-              return (
-                <li key={`${storm.name}-${storm.year}-${index}`}>
-                  {gap >= 0 && (
-                    <div className="flex items-stretch gap-3">
-                      <div className="flex w-2.5 shrink-0 justify-center">
-                        <div className="w-0.5" style={{ backgroundColor: color }} />
-                      </div>
-                      <span className="py-1 text-xs font-semibold" style={{ color }}>
-                        {formatGapLabel(gap)}
-                      </span>
-                    </div>
-                  )}
-                  <div className="flex items-center gap-3" style={{ color }}>
-                    <span className="flex w-2.5 shrink-0 justify-center">
-                      <span
-                        className="h-2.5 w-2.5 rounded-full"
-                        style={{ backgroundColor: color }}
-                      />
-                    </span>
-                    <span className="font-semibold tabular-nums">{storm.year}</span>
-                    <span className="font-semibold">{storm.name}</span>
-                    <span className="text-xs">{dateRange}</span>
-                  </div>
-                </li>
-              );
-            })}
-          </ol>
-        )}
-      </div>
+            return (
+              <View key={`${storm.name}-${storm.year}-${index}`}>
+                {gap >= 0 && (
+                  <View style={styles.gap}>
+                    <View style={styles.rail}>
+                      <View style={[styles.railLine, { backgroundColor: color }]} />
+                    </View>
+                    <Text style={[styles.gapLabel, { color }]}>{formatGapLabel(gap)}</Text>
+                  </View>
+                )}
+
+                <View style={styles.entry}>
+                  <View style={styles.rail}>
+                    <View style={[styles.dot, { backgroundColor: color }]} />
+                  </View>
+                  <Text style={[styles.year, { color }]}>{storm.year}</Text>
+                  <Text style={[styles.name, { color }]} numberOfLines={1}>
+                    {storm.name}
+                  </Text>
+                  <Text style={styles.dates} numberOfLines={1}>
+                    {formatStormDateRange(storm.dateStart, storm.dateEnd)}
+                  </Text>
+                </View>
+              </View>
+            );
+          })}
+        </View>
+      )}
     </DefModal>
   );
 };
+
+const styles = StyleSheet.create({
+  title: {
+    fontFamily: "OpenSans_700Bold",
+    fontSize: 22,
+  },
+  summary: {
+    flexDirection: "row",
+    alignItems: "baseline",
+    flexWrap: "wrap",
+  },
+  summaryLabel: {
+    fontFamily: "OpenSans_400Regular",
+    fontSize: 14,
+    color: "#475569",
+  },
+  summaryValue: {
+    fontFamily: "OpenSans_700Bold",
+    fontSize: 17,
+    fontVariant: ["tabular-nums"],
+  },
+  caption: {
+    fontFamily: "OpenSans_400Regular",
+    fontSize: 14,
+    color: "#475569",
+    marginTop: 12,
+    marginBottom: 8,
+  },
+  empty: {
+    fontFamily: "OpenSans_400Regular",
+    fontSize: 13,
+    color: "#64748b",
+  },
+  gap: {
+    flexDirection: "row",
+    alignItems: "stretch",
+    gap: 12,
+  },
+  // Fixed-width gutter so the connector line and the dots below it share one axis.
+  rail: {
+    width: 10,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  railLine: {
+    width: 2,
+    flex: 1,
+    minHeight: 16,
+  },
+  gapLabel: {
+    fontFamily: "OpenSans_600SemiBold",
+    fontSize: 12,
+    paddingVertical: 4,
+  },
+  entry: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  dot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+  },
+  year: {
+    fontFamily: "OpenSans_600SemiBold",
+    fontSize: 14,
+    fontVariant: ["tabular-nums"],
+  },
+  name: {
+    fontFamily: "OpenSans_600SemiBold",
+    fontSize: 14,
+  },
+  dates: {
+    flexShrink: 1,
+    fontFamily: "OpenSans_400Regular",
+    fontSize: 12,
+    color: "#64748b",
+  },
+});
 
 export default DistanceModal;

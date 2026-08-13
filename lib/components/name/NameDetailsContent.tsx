@@ -5,7 +5,9 @@ import ImageWithLoader from "@/lib/components/common/ImageWithLoader";
 import type { IconName, RetiredName, TyphoonName } from "@/lib/types";
 import { capitalize } from "@/lib/utils/format";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import * as WebBrowser from "expo-web-browser";
 import type { ReactNode } from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 const ROW_ICON_COLOR = "#64748b";
 
@@ -18,12 +20,10 @@ export interface NameDetailsContentProps {
 }
 
 const InfoRow = ({ icon, children }: { icon: ReactNode; children: ReactNode }) => (
-  <div className="flex items-center gap-2.5 text-sm text-foreground">
-    <span className="flex w-6 shrink-0 justify-center text-slate-500" aria-hidden="true">
-      {icon}
-    </span>
-    <span className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5">{children}</span>
-  </div>
+  <View style={styles.row}>
+    <View style={styles.rowIcon}>{icon}</View>
+    <View style={styles.rowBody}>{children}</View>
+  </View>
 );
 
 const NameDetailsContent = ({
@@ -52,86 +52,181 @@ const NameDetailsContent = ({
       : undefined;
 
   return (
-    <div className="@container">
-      <article className="flex flex-col gap-4">
-        {!hideStatus && (
-          <span
-            className={`inline-flex w-fit items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${
-              name.isRetired ? "bg-rose-100 text-rose-600" : "bg-emerald-100 text-emerald-700"
-            }`}
+    <View style={styles.root}>
+      {!hideStatus && (
+        <View style={[styles.status, name.isRetired ? styles.statusRetired : styles.statusActive]}>
+          <View style={[styles.dot, name.isRetired ? styles.dotRetired : styles.dotActive]} />
+          <Text
+            style={[
+              styles.statusLabel,
+              name.isRetired ? styles.statusLabelRetired : styles.statusLabelActive,
+            ]}
           >
-            <span
-              className={`h-1.5 w-1.5 rounded-full ${name.isRetired ? "bg-rose-500" : "bg-emerald-500"}`}
-              aria-hidden="true"
-            />
             {name.isRetired ? "Retired" : "Active"}
-          </span>
+          </Text>
+        </View>
+      )}
+
+      <View style={styles.header}>
+        <Text style={styles.meaning}>{name.meaning}</Text>
+        {name.description ? <Text style={styles.description}>{name.description}</Text> : null}
+      </View>
+
+      {/* Image above the rows rather than beside them: at phone width a side-by-side split leaves
+          neither column readable. */}
+      {name.image ? (
+        <View>
+          <ImageWithLoader source={name.image} label={name.name} style={styles.image} />
+          <ImageCredit credit={name.imageCredit} />
+        </View>
+      ) : null}
+
+      <View style={styles.rows}>
+        <InfoRow icon={<CountryFlag country={name.country} size={16} />}>
+          <Text style={styles.rowText}>
+            {name.country} · {name.language}
+          </Text>
+        </InfoRow>
+
+        {(name.originalText || name.ipa || pronunciationFile) && (
+          <InfoRow icon={<Ionicons name="language-outline" size={16} color={ROW_ICON_COLOR} />}>
+            {name.originalText ? <Text style={styles.rowStrong}>{name.originalText}</Text> : null}
+            {name.ipa ? (
+              <Text style={styles.rowText} accessibilityLabel="Pronunciation">
+                {name.ipa}
+              </Text>
+            ) : null}
+            {pronunciationFile ? (
+              <Pressable
+                onPress={() =>
+                  WebBrowser.openBrowserAsync(
+                    `https://www.typhooncommittee.org/tcsounds/${encodeURIComponent(pronunciationFile)}`,
+                  )
+                }
+                hitSlop={10}
+                accessibilityRole="button"
+                accessibilityLabel={`Listen to the pronunciation of ${capitalize(name.name.toLowerCase())}`}
+              >
+                <Ionicons name="volume-high-outline" size={16} color="#334155" />
+              </Pressable>
+            ) : null}
+          </InfoRow>
         )}
 
-        <header className="flex flex-col gap-1.5">
-          <h3 className="text-lg leading-tight font-semibold text-foreground">{name.meaning}</h3>
-          {name.description && (
-            <p className="text-sm leading-relaxed text-slate-500">{name.description}</p>
-          )}
-        </header>
+        {lastYear !== undefined && lastYear !== 0 && (
+          <InfoRow icon={<Ionicons name="time-outline" size={16} color={ROW_ICON_COLOR} />}>
+            <Text style={styles.rowText}>Last used {lastYear}</Text>
+          </InfoRow>
+        )}
 
-        <div className="flex flex-col gap-5 @md:flex-row @md:gap-6">
-          <div className="flex min-w-0 flex-1 flex-col gap-2.5">
-            <InfoRow icon={<CountryFlag country={name.country} className="h-4 w-6" />}>
-              {name.country} · {name.language}
-            </InfoRow>
-
-            {(name.originalText || name.ipa || pronunciationFile) && (
-              <InfoRow icon={<Ionicons name="language-outline" size={16} color={ROW_ICON_COLOR} />}>
-                {name.originalText && <span className="font-medium">{name.originalText}</span>}
-                {name.ipa && <span aria-label="Pronunciation">{name.ipa}</span>}
-                {pronunciationFile && (
-                  <a
-                    href={`https://www.typhooncommittee.org/tcsounds/${encodeURIComponent(pronunciationFile)}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center text-slate-400! hover:text-teal-600!"
-                    title={`Listen to the pronunciation of ${capitalize(name.name.toLowerCase())}`}
-                    aria-label={`Listen to the pronunciation of ${capitalize(name.name.toLowerCase())}`}
-                  >
-                    <Ionicons name="volume-high-outline" size={16} color="#334155" aria-hidden />
-                  </a>
-                )}
-              </InfoRow>
-            )}
-
-            {lastYear !== undefined && lastYear !== 0 && (
-              <InfoRow icon={<Ionicons name="time-outline" size={16} color={ROW_ICON_COLOR} />}>
-                Last used {lastYear}
-              </InfoRow>
-            )}
-
-            {crossRef && (
-              <InfoRow icon={<Ionicons name={crossRef.icon} size={16} color={ROW_ICON_COLOR} />}>
-                {crossRef.label}{" "}
-                <span className="font-semibold text-teal-600">{crossRef.value}</span>
-              </InfoRow>
-            )}
-          </div>
-
-          {name.image && (
-            <figure className="min-w-0 shrink-0 @md:self-end">
-              <div className="relative h-36 w-full overflow-hidden rounded-lg bg-slate-50 @md:h-36 @md:w-48">
-                <ImageWithLoader
-                  src={name.image}
-                  alt={name.name}
-                  fill
-                  className="object-contain"
-                  unoptimized
-                />
-              </div>
-              <ImageCredit credit={name.imageCredit} />
-            </figure>
-          )}
-        </div>
-      </article>
-    </div>
+        {crossRef && (
+          <InfoRow icon={<Ionicons name={crossRef.icon} size={16} color={ROW_ICON_COLOR} />}>
+            <Text style={styles.rowText}>
+              {crossRef.label} <Text style={styles.crossRefValue}>{crossRef.value}</Text>
+            </Text>
+          </InfoRow>
+        )}
+      </View>
+    </View>
   );
 };
+
+const styles = StyleSheet.create({
+  root: {
+    gap: 16,
+  },
+  status: {
+    alignSelf: "flex-start",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 999,
+  },
+  statusRetired: {
+    backgroundColor: "#ffe4e6",
+  },
+  statusActive: {
+    backgroundColor: "#d1fae5",
+  },
+  dot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  dotRetired: {
+    backgroundColor: "#f43f5e",
+  },
+  dotActive: {
+    backgroundColor: "#10b981",
+  },
+  statusLabel: {
+    fontFamily: "OpenSans_500Medium",
+    fontSize: 12,
+  },
+  statusLabelRetired: {
+    color: "#e11d48",
+  },
+  statusLabelActive: {
+    color: "#047857",
+  },
+  header: {
+    gap: 6,
+  },
+  meaning: {
+    fontFamily: "OpenSans_600SemiBold",
+    fontSize: 17,
+    lineHeight: 23,
+    color: "#334155",
+  },
+  description: {
+    fontFamily: "OpenSans_400Regular",
+    fontSize: 14,
+    lineHeight: 21,
+    color: "#64748b",
+  },
+  image: {
+    width: "100%",
+    height: 176,
+    borderRadius: 12,
+    backgroundColor: "#f8fafc",
+  },
+  rows: {
+    gap: 10,
+  },
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  rowIcon: {
+    width: 24,
+    flexShrink: 0,
+    alignItems: "center",
+  },
+  rowBody: {
+    flex: 1,
+    flexDirection: "row",
+    flexWrap: "wrap",
+    alignItems: "center",
+    columnGap: 8,
+    rowGap: 2,
+  },
+  rowText: {
+    fontFamily: "OpenSans_400Regular",
+    fontSize: 14,
+    color: "#475569",
+  },
+  rowStrong: {
+    fontFamily: "OpenSans_500Medium",
+    fontSize: 14,
+    color: "#334155",
+  },
+  crossRefValue: {
+    fontFamily: "OpenSans_600SemiBold",
+    color: "#0d9488",
+  },
+});
 
 export default NameDetailsContent;

@@ -29,3 +29,27 @@ export interface StormHighlight {
   position: number;
   status: StormHighlightStatus;
 }
+
+/**
+ * Mirrors be/api/getOnThisDay.ts. Redeclared here rather than imported so a screen bundle never
+ * reaches into @/be — same reasoning as the envelope in lib/api/client.ts.
+ */
+export interface OnThisDayStorm {
+  name: string;
+  intensity: IntensityType;
+  position: number;
+  year: number;
+  dateStart: string;
+  dateEnd: string | null;
+  reason: "started" | "ended" | "both";
+}
+
+/** Mirrors be/api/getActiveOnThisDay.ts. `dateEnd` is null while the storm is still ongoing. */
+export interface ActiveOnThisDayStorm {
+  name: string;
+  intensity: IntensityType;
+  position: number;
+  year: number;
+  dateStart: string;
+  dateEnd: string | null;
+}

@@ -5,7 +5,6 @@ import {
   DISTANCE_NA_COLOR,
   DISTANCE_SHORT_COLOR,
   DISTANCE_STANDARD_COLOR,
-  HIGHLIGHT_CELL_CLASS,
   HIGHLIGHT_CELL_COLOR,
   HIGHLIGHT_FALLBACK_COLOR,
   RETIRED_REASON_COLOR,
@@ -24,9 +23,6 @@ export const getDistanceColor = (years: number): string => {
 export const getAvgDateColor = (month: number): string =>
   AVG_DATE_MONTH_COLOR[month] ?? AVG_DATE_FALLBACK_COLOR;
 
-export const getHighlightCellClass = (highlightType: string): string =>
-  HIGHLIGHT_CELL_CLASS[highlightType] ?? "bg-green-300";
-
 export const getHighlightCellColor = (highlightType: string): string =>
   HIGHLIGHT_CELL_COLOR[highlightType] ?? HIGHLIGHT_FALLBACK_COLOR;
 
@@ -43,34 +39,12 @@ export const getNameStatusColor = (name: NameStatus): string => {
   return "#059669";
 };
 
-export const getNameStatusColorClass = (name: NameStatus): string => {
-  if (name.isExternal) return "text-slate-600";
-  if (name.retirementReason === "misspell") return "text-amber-600";
-  if (name.isRetired) return "text-red-600";
-  return "text-emerald-600";
-};
-
-export const getNameStatusBgClass = (name: NameStatus): string => {
-  if (name.isExternal) return "bg-slate-100";
-  if (name.retirementReason === "misspell") return "bg-amber-100";
-  if (name.isRetired) return "bg-red-100";
-  return "bg-emerald-100";
+export const getNameStatusBgColor = (name: NameStatus): string => {
+  if (name.isExternal) return "#f1f5f9";
+  if (name.retirementReason === "misspell") return "#fef3c7";
+  if (name.isRetired) return "#fee2e2";
+  return "#d1fae5";
 };
 
 export const getRetiredReasonColor = (reason?: RetirementReason): string =>
   (reason && RETIRED_REASON_COLOR[reason]) ?? RETIRED_REASON_FALLBACK_COLOR;
-
-export const getRetiredReasonColorClass = (reason?: RetirementReason): string => {
-  switch (reason) {
-    case "destructive":
-      return "text-red-600";
-    case "language":
-      return "text-purple-600";
-    case "misspell":
-      return "text-amber-600";
-    case "special":
-      return "text-foreground";
-    default:
-      return "text-red-600";
-  }
-};

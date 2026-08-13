@@ -1,57 +1,52 @@
-"use client";
-
-import { fetchRandomFact } from "@/be/actions/home";
+import { useApiQuery } from "@/lib/api/client";
+import DefModal from "@/lib/components/common/DefModal";
+import FrownError from "@/lib/components/common/FrownError";
 import TyphoonSpinner from "@/lib/components/common/TyphoonSpinner";
-import Ionicons from "@expo/vector-icons/Ionicons";
-import { App, Button } from "antd";
+import QuickActionButton from "@/lib/components/home/QuickActionButton";
 import { useState } from "react";
+import { StyleSheet, Text, View } from "react-native";
 
 const FunFacts = () => {
-  const [loading, setLoading] = useState(false);
-  const { modal } = App.useApp();
-
-  const showFact = async () => {
-    setLoading(true);
-    try {
-      const fact = await fetchRandomFact();
-
-      modal.info({
-        title: "Did you know?",
-        icon: null,
-        centered: true,
-        okText: "Got it",
-        content: <p className="leading-relaxed text-foreground">{fact ?? "No facts available."}</p>,
-      });
-    } catch {
-      modal.info({
-        title: "Oops!",
-        icon: null,
-        centered: true,
-        okText: "Close",
-        content: <p className="text-foreground">Could not load fact.</p>,
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [isOpen, setIsOpen] = useState(false);
+  const { data, isLoading, isError, refetch } = useApiQuery<string | null>(
+    isOpen ? "/api/v1/random-fact" : null,
+  );
 
   return (
-    <Button
-      type="text"
-      icon={
-        loading ? (
-          <TyphoonSpinner size="small" colorClass="text-amber-700" />
+    <>
+      <QuickActionButton
+        icon="bulb-outline"
+        label="Useless Facts"
+        onPress={() => setIsOpen(true)}
+      />
+
+      <DefModal open={isOpen} onClose={() => setIsOpen(false)} title="Did you know?">
+        {isLoading ? (
+          <View style={styles.center}>
+            <TyphoonSpinner />
+          </View>
+        ) : isError ? (
+          <FrownError onRetry={refetch} />
         ) : (
-          <Ionicons name="bulb-outline" size={16} color="#b45309" />
-        )
-      }
-      onClick={showFact}
-      disabled={loading}
-      className="w-full! justify-start! text-sm! font-semibold! text-amber-700! hover:text-amber-800!"
-    >
-      Useless Facts
-    </Button>
+          <Text style={styles.fact}>{data ?? "No facts available."}</Text>
+        )}
+      </DefModal>
+    </>
   );
 };
+
+const styles = StyleSheet.create({
+  center: {
+    alignItems: "center",
+    paddingVertical: 32,
+  },
+  fact: {
+    fontFamily: "OpenSans_400Regular",
+    fontSize: 15,
+    lineHeight: 23,
+    color: "#475569",
+    paddingVertical: 4,
+  },
+});
 
 export default FunFacts;

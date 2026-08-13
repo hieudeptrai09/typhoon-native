@@ -1,5 +1,3 @@
-"use client";
-
 import CountryFlag from "@/lib/components/common/CountryFlag";
 import DefModal from "@/lib/components/common/DefModal";
 import EmptyResults from "@/lib/components/common/EmptyResults";
@@ -9,8 +7,8 @@ import ImageWithLoader from "@/lib/components/common/ImageWithLoader";
 import Tabs, { type Tab } from "@/lib/components/common/Tabs";
 import StormStats from "@/lib/components/storm/StormStats";
 import { BACKGROUND_BADGE, INTENSITY_LABEL, TEXT_COLOR_WHITE_BACKGROUND } from "@/lib/constants";
-import type { PositionDetail, Storm, TyphoonName } from "@/lib/types";
-import { getDistanceColor, getNameStatusColorClass } from "@/lib/utils/colors";
+import type { BaseModalProps, PositionDetail, Storm, TyphoonName } from "@/lib/types";
+import { getDistanceColor, getNameStatusColor } from "@/lib/utils/colors";
 import { formatStormDateRange } from "@/lib/utils/date";
 import { getZoomEarthUrl } from "@/lib/utils/format";
 import { getPositionTitle } from "@/lib/utils/position";
@@ -23,11 +21,20 @@ import {
   sortNamesByFirstYear,
 } from "@/lib/utils/storm/aggregate";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { Carousel as AntCarousel } from "antd";
-import { useRouter } from "next/navigation";
+import * as WebBrowser from "expo-web-browser";
 import { useState, type ReactNode } from "react";
+import {
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+  type LayoutChangeEvent,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
+} from "react-native";
 
-interface PositionModalProps {
+interface PositionModalProps extends BaseModalProps {
   detail: PositionDetail | null;
   position: number;
   isError?: boolean;
@@ -35,102 +42,136 @@ interface PositionModalProps {
 
 type TabType = "names" | "storms";
 
+/** Above this the position belongs to another basin's agency, which has no grid cell or country. */
+const LAST_GRID_POSITION = 140;
+
+// Replaces antd's Carousel: a paging ScrollView is the gesture people already expect here, so the
+// arrows the web build needed are gone and only the page dots remain.
 function Carousel({ slides }: { slides: ReactNode[] }) {
+  const [width, setWidth] = useState(0);
+  const [page, setPage] = useState(0);
+
   if (slides.length === 0) return null;
 
-  // A lone slide has nowhere to go, so drop the controls entirely.
-  const hasControls = slides.length > 1;
+  const handleLayout = (event: LayoutChangeEvent) => setWidth(event.nativeEvent.layout.width);
+
+  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    if (width === 0) return;
+    setPage(Math.round(event.nativeEvent.contentOffset.x / width));
+  };
 
   return (
-    <AntCarousel rootClassName="carousel-light" arrows={hasControls} dots={hasControls}>
-      {slides}
-    </AntCarousel>
+    <View onLayout={handleLayout}>
+      <ScrollView
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        onMomentumScrollEnd={handleScroll}
+        scrollEnabled={slides.length > 1}
+      >
+        {slides.map((slide, index) => (
+          <View key={index} style={{ width }}>
+            {slide}
+          </View>
+        ))}
+      </ScrollView>
+
+      {slides.length > 1 && (
+        <View style={styles.dots}>
+          {slides.map((_, index) => (
+            <View key={index} style={[styles.dot, index === page && styles.dotActive]} />
+          ))}
+        </View>
+      )}
+    </View>
   );
 }
 
-/** One name slide: "Name (country): meaning" above its image. */
+/** One name slide: "Name (language): meaning" above its image. */
 function NameSlide({ name }: { name: TyphoonName }) {
   return (
-    <div className="px-2">
-      <p className="text-sm mb-3 text-center leading-relaxed">
-        <span className={`font-bold ${getNameStatusColorClass(name)}`}>{name.name}</span>
-        {name.country && <span className="text-foreground"> ({name.language}): </span>}
-        {name.meaning && <span className="text-foreground italic">{name.meaning}</span>}
-      </p>
-      {name.image && (
-        <div className="mx-auto w-full max-w-sm">
-          <div className="relative aspect-4/3 overflow-hidden rounded-lg border border-slate-200 bg-slate-50">
-            <ImageWithLoader
-              src={name.image}
-              alt={name.name}
-              fill
-              className="object-contain"
-              unoptimized
-            />
-          </div>
+    <View style={styles.slide}>
+      <Text style={styles.slideText}>
+        <Text style={[styles.slideName, { color: getNameStatusColor(name) }]}>{name.name}</Text>
+        {name.country ? <Text style={styles.slideMeta}> ({name.language}): </Text> : null}
+        {name.meaning ? <Text style={styles.slideMeaning}>{name.meaning}</Text> : null}
+      </Text>
+
+      {name.image ? (
+        <View>
+          <ImageWithLoader
+            source={name.image}
+            label={name.name}
+            style={styles.slideImage}
+            spinnerSize="small"
+          />
           <ImageCredit credit={name.imageCredit} />
-        </div>
-      )}
-    </div>
+        </View>
+      ) : null}
+    </View>
   );
 }
 
 function StormGridCard({ storm }: { storm: Storm }) {
   const accent = TEXT_COLOR_WHITE_BACKGROUND[storm.intensity];
-  const label = INTENSITY_LABEL[storm.intensity];
-  const dateRange = formatStormDateRange(storm.dateStart, storm.dateEnd);
-  const hasMap = !!storm.map && storm.map.trim() !== "";
+  const hasMap = Boolean(storm.map && storm.map.trim() !== "");
 
   return (
-    <div className="rounded-md bg-slate-50 p-2">
+    <View style={styles.card}>
       {hasMap ? (
-        <div className="relative aspect-4/3 w-full overflow-hidden rounded bg-white">
-          <ImageWithLoader
-            src={storm.map}
-            alt={`${storm.name} ${storm.year} track`}
-            fill
-            className="object-contain"
-            unoptimized
-          />
-        </div>
+        <ImageWithLoader
+          source={storm.map}
+          label={`${storm.name} ${storm.year} track`}
+          style={styles.cardImage}
+          spinnerSize="small"
+          showErrorLabel={false}
+        />
       ) : (
-        <div className="flex h-20 items-center justify-center gap-1.5 rounded bg-slate-100 text-xs text-slate-400">
-          <Ionicons name="image-outline" size={14} color="#94a3b8" />
-        </div>
+        <View style={styles.cardNoImage}>
+          <Ionicons name="image-outline" size={16} color="#94a3b8" />
+        </View>
       )}
-      <div className="mt-2 space-y-1">
-        <div className="text-sm leading-tight font-bold" style={{ color: accent }}>
-          {label} {storm.name}
-        </div>
-        <div className="flex items-center gap-1.5 text-xs text-foreground">
+
+      <View style={styles.cardBody}>
+        <Text style={[styles.cardTitle, { color: accent }]}>
+          {INTENSITY_LABEL[storm.intensity]} {storm.name}
+        </Text>
+
+        <View style={styles.cardDate}>
           <Ionicons name="calendar-outline" size={12} color="#334155" />
-          {dateRange}
-        </div>
-        <a
-          href={getZoomEarthUrl(storm.name, storm.year)}
-          target="_blank"
-          rel="noopener noreferrer"
-          title={`View ${storm.name} ${storm.year} on Zoom Earth`}
-          className="inline-flex items-center gap-1 text-xs font-semibold text-sky-700 hover:underline"
+          <Text style={styles.cardDateText} numberOfLines={1}>
+            {formatStormDateRange(storm.dateStart, storm.dateEnd)}
+          </Text>
+        </View>
+
+        <Pressable
+          onPress={() => WebBrowser.openBrowserAsync(getZoomEarthUrl(storm.name, storm.year))}
+          hitSlop={8}
+          style={({ pressed }) => [styles.link, pressed && styles.pressed]}
+          accessibilityRole="link"
+          accessibilityLabel={`View ${storm.name} ${storm.year} on Zoom Earth`}
         >
-          Zoom Earth
+          <Text style={styles.linkLabel}>Zoom Earth</Text>
           <Ionicons name="open-outline" size={12} color="#0369a1" />
-        </a>
-      </div>
-    </div>
+        </Pressable>
+      </View>
+    </View>
   );
 }
 
-export default function PositionModal({ detail, position, isError = false }: PositionModalProps) {
-  const router = useRouter();
+export default function PositionModal({
+  isOpen,
+  onClose,
+  detail,
+  position,
+  isError = false,
+}: PositionModalProps) {
   const [activeTab, setActiveTab] = useState<TabType>("names");
 
-  const isInternal = position <= 140;
-  const positionTitle = getPositionTitle(position);
+  const isInternal = position <= LAST_GRID_POSITION;
   const country = detail?.country ?? "";
   const names = detail?.names ?? [];
   const storms = detail?.storms ?? [];
-
   const isEmpty = !detail || (names.length === 0 && storms.length === 0);
 
   const titleColor =
@@ -139,83 +180,79 @@ export default function PositionModal({ detail, position, isError = false }: Pos
       : "#64748b";
 
   const title: ReactNode = (
-    <div className="flex items-center gap-3">
-      {isInternal && country && <CountryFlag country={country} className="h-6 w-9" />}
-      <span className="text-2xl font-bold" style={{ color: titleColor }}>
-        {positionTitle}
-      </span>
-    </div>
+    <View style={styles.title}>
+      {isInternal && country ? <CountryFlag country={country} size={20} /> : null}
+      <Text style={[styles.titleLabel, { color: titleColor }]} numberOfLines={1}>
+        {getPositionTitle(position)}
+      </Text>
+    </View>
   );
 
   const stormsPanel = (
-    <div>
-      {storms.length > 0 && (
-        <div className="mb-4 space-y-3">
-          <span className="text-lg font-bold text-foreground">All Storms ({storms.length})</span>
-          <StormStats storms={storms} />
-        </div>
-      )}
+    <View style={styles.panel}>
       {storms.length === 0 ? (
-        <p className="py-4 text-center text-foreground">No storms recorded at this position.</p>
+        <Text style={styles.empty}>No storms recorded at this position.</Text>
       ) : (
-        <div className="space-y-6">
+        <>
+          <StormStats storms={storms} />
+
           {sortNamesByFirstYear(Object.entries(getGroupedStorms(storms, "name"))).map(
             ([name, group]) => {
               const sorted = [...group].sort((a, b) => a.year - b.year);
               const average = calculateAverage(sorted);
               const groupIntensity = getIntensityFromNumber(average);
               const recurrence = calculateGapAverage(sorted);
+
               return (
-                <div key={name}>
-                  <div
-                    className="mb-2 flex flex-wrap items-center justify-between gap-x-2 gap-y-1 rounded-md bg-slate-50 py-2 pr-4 pl-3"
-                    style={{
-                      borderLeftWidth: 4,
-                      borderLeftColor: BACKGROUND_BADGE[groupIntensity],
-                    }}
+                <View key={name} style={styles.group}>
+                  <View
+                    style={[
+                      styles.groupHeader,
+                      { borderLeftColor: BACKGROUND_BADGE[groupIntensity] },
+                    ]}
                   >
-                    <span className="font-semibold text-foreground">{name}</span>
-                    <span className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-foreground">
-                      <span>
-                        Count:{" "}
-                        <span className="font-semibold text-foreground">{sorted.length}</span>
-                      </span>
-                      <span title={INTENSITY_LABEL[groupIntensity]}>
+                    <Text style={styles.groupName}>{name}</Text>
+
+                    <View style={styles.groupStats}>
+                      <Text style={styles.stat}>
+                        Count: <Text style={styles.statValue}>{sorted.length}</Text>
+                      </Text>
+                      <Text style={styles.stat}>
                         Avg:{" "}
-                        <span
-                          className="font-bold"
-                          style={{ color: TEXT_COLOR_WHITE_BACKGROUND[groupIntensity] }}
+                        <Text
+                          style={[
+                            styles.statValue,
+                            { color: TEXT_COLOR_WHITE_BACKGROUND[groupIntensity] },
+                          ]}
                         >
                           {average.toFixed(2)}
-                        </span>
-                      </span>
-                      {/* A lone storm leaves no gap to measure, so the stat is left off entirely. */}
+                        </Text>
+                      </Text>
+                      {/* A lone storm leaves no gap to measure, so the stat is left off. */}
                       {recurrence >= 0 && (
-                        <span>
+                        <Text style={styles.stat}>
                           Every:{" "}
-                          <span
-                            className="font-bold"
-                            style={{ color: getDistanceColor(recurrence) }}
-                          >
+                          <Text style={[styles.statValue, { color: getDistanceColor(recurrence) }]}>
                             {formatDistance(recurrence)}
-                          </span>{" "}
+                          </Text>{" "}
                           yrs
-                        </span>
+                        </Text>
                       )}
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                    {sorted.map((storm, idx) => (
-                      <StormGridCard key={idx} storm={storm} />
+                    </View>
+                  </View>
+
+                  <View style={styles.cards}>
+                    {sorted.map((storm, index) => (
+                      <StormGridCard key={index} storm={storm} />
                     ))}
-                  </div>
-                </div>
+                  </View>
+                </View>
               );
             },
           )}
-        </div>
+        </>
       )}
-    </div>
+    </View>
   );
 
   let content: ReactNode;
@@ -231,41 +268,177 @@ export default function PositionModal({ detail, position, isError = false }: Pos
       {
         key: "names",
         label: `Names (${names.length})`,
-        content: (
-          <div>
-            {names.length === 0 ? (
-              <p className="py-4 text-center text-foreground">
-                No names have been assigned to this slot.
-              </p>
-            ) : (
-              <Carousel
-                slides={names.map((name) => (
-                  <NameSlide key={name.id} name={name} />
-                ))}
-              />
-            )}
-          </div>
-        ),
+        content:
+          names.length === 0 ? (
+            <Text style={styles.empty}>No names have been assigned to this slot.</Text>
+          ) : (
+            <Carousel
+              slides={names.map((name) => (
+                <NameSlide key={name.id} name={name} />
+              ))}
+            />
+          ),
       },
       { key: "storms", label: `Storms (${storms.length})`, content: stormsPanel },
     ];
 
-    content = (
-      <div className="pt-4">
-        <Tabs
-          tabs={tabs}
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-          ariaLabel="Position details tabs"
-          idPrefix="position-modal-tab"
-        />
-      </div>
-    );
+    content = <Tabs tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />;
   }
 
   return (
-    <DefModal onClose={() => router.back()} title={title} width={600}>
+    <DefModal open={isOpen} onClose={onClose} title={title}>
       {content}
     </DefModal>
   );
 }
+
+const styles = StyleSheet.create({
+  title: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  titleLabel: {
+    flexShrink: 1,
+    fontFamily: "OpenSans_700Bold",
+    fontSize: 22,
+  },
+  dots: {
+    flexDirection: "row",
+    alignSelf: "center",
+    gap: 6,
+    marginTop: 12,
+  },
+  dot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: "#cbd5e1",
+  },
+  dotActive: {
+    backgroundColor: "#0369a1",
+  },
+  slide: {
+    gap: 12,
+    paddingHorizontal: 4,
+  },
+  slideText: {
+    fontFamily: "OpenSans_400Regular",
+    fontSize: 14,
+    lineHeight: 21,
+    textAlign: "center",
+    color: "#475569",
+  },
+  slideName: {
+    fontFamily: "OpenSans_700Bold",
+  },
+  slideMeta: {
+    color: "#475569",
+  },
+  slideMeaning: {
+    fontFamily: "OpenSans_400Regular_Italic",
+  },
+  slideImage: {
+    width: "100%",
+    aspectRatio: 4 / 3,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    backgroundColor: "#f8fafc",
+  },
+  panel: {
+    gap: 20,
+  },
+  empty: {
+    fontFamily: "OpenSans_400Regular",
+    fontSize: 14,
+    color: "#64748b",
+    textAlign: "center",
+    paddingVertical: 16,
+  },
+  group: {
+    gap: 10,
+  },
+  groupHeader: {
+    gap: 4,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    borderLeftWidth: 4,
+    backgroundColor: "#f8fafc",
+  },
+  groupName: {
+    fontFamily: "OpenSans_600SemiBold",
+    fontSize: 15,
+    color: "#334155",
+  },
+  groupStats: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    columnGap: 14,
+    rowGap: 2,
+  },
+  stat: {
+    fontFamily: "OpenSans_400Regular",
+    fontSize: 13,
+    color: "#475569",
+  },
+  statValue: {
+    fontFamily: "OpenSans_700Bold",
+    color: "#334155",
+  },
+  cards: {
+    gap: 10,
+  },
+  card: {
+    gap: 8,
+    padding: 8,
+    borderRadius: 10,
+    backgroundColor: "#f8fafc",
+  },
+  cardImage: {
+    width: "100%",
+    aspectRatio: 4 / 3,
+    borderRadius: 6,
+    backgroundColor: "#ffffff",
+  },
+  cardNoImage: {
+    height: 80,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 6,
+    backgroundColor: "#f1f5f9",
+  },
+  cardBody: {
+    gap: 4,
+  },
+  cardTitle: {
+    fontFamily: "OpenSans_700Bold",
+    fontSize: 14,
+    lineHeight: 19,
+  },
+  cardDate: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  cardDateText: {
+    flexShrink: 1,
+    fontFamily: "OpenSans_400Regular",
+    fontSize: 12,
+    color: "#475569",
+  },
+  link: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  pressed: {
+    opacity: 0.6,
+  },
+  linkLabel: {
+    fontFamily: "OpenSans_600SemiBold",
+    fontSize: 12,
+    color: "#0369a1",
+  },
+});
