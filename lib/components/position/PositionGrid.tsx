@@ -8,7 +8,6 @@ import { memo, useCallback, useMemo, useRef, useState, type ReactNode } from "re
 import { LayoutChangeEvent, Pressable, StyleSheet, Text, View } from "react-native";
 
 export interface GridCell {
-  /** Cell fill — this is what carries the data on a heatmap. */
   color: string;
   clickable: boolean;
   /** Up to ~3 characters drawn inside the cell; omit when the value needs the readout. */
@@ -18,7 +17,6 @@ export interface GridCell {
 
 interface PositionGridProps {
   renderCell: (position: number) => GridCell;
-  /** Detail for the selected cell, shown in the readout below the grid. */
   renderReadout?: (position: number) => ReactNode;
   onPositionPress?: (position: number) => void;
 }
@@ -67,10 +65,6 @@ const CellButton = memo(({ position, cell, size, isSelected, onSelect }: CellBut
 CellButton.displayName = "CellButton";
 
 /**
- * The 14×10 naming table as a heatmap that fits a phone in one screen: colour carries the value,
- * the axes carry the labels, and the cell you tap is read out below the grid. The web build
- * scrolled this table sideways — on a phone that costs the whole point of a 2D layout.
- *
  * A cell is ~22dp wide, well under a comfortable tap target, so a single tap only *selects*: it
  * costs nothing to correct. Opening is the full-width button in the readout, or a second tap on
  * the cell already selected.

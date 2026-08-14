@@ -24,14 +24,11 @@ interface DataListProps<T> {
   renderCard: (row: T, index: number) => ReactNode;
   sortFields?: SortField<T>[];
   onRowPress?: (row: T) => void;
-  /** Left side of the toolbar; defaults to a plain "N results". */
   countLabel?: (count: number) => string;
   empty?: ReactNode;
-  /** Scrolls away above the first card. Page-level controls belong outside DataList. */
   header?: ReactNode;
   /** Names this list's sort so it survives the view being switched away and back. */
   sortKey?: string;
-  /** Order applied before the user touches anything. */
   defaultSort?: SortCriterion[];
   /**
    * Turns on the alphabet rail, but only while the list is actually ordered by `key` — an index
@@ -42,11 +39,6 @@ interface DataListProps<T> {
 
 const defaultCountLabel = (count: number) => `${count} result${count === 1 ? "" : "s"}`;
 
-/**
- * The native stand-in for the web build's antd table: one card per row instead of
- * a horizontally scrolled grid of columns, with sorting moved off the (absent)
- * column headers into a bottom sheet.
- */
 const DataList = <T,>({
   data,
   keyExtractor,
@@ -180,8 +172,6 @@ const DataList = <T,>({
           windowSize={9}
           removeClippedSubviews
           keyboardShouldPersistTaps="handled"
-          // Scrolling a list while a keyboard covers half of it is the search screen's default
-          // state; the drag itself is the signal that the user is done typing.
           keyboardDismissMode="on-drag"
           // Cards vary in height, so a jump far down the list can land before its target has been
           // measured. Fall back to the estimate, then land the jump on the next frame.

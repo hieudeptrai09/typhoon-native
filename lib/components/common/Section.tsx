@@ -7,7 +7,6 @@ interface SectionProps {
   children: ReactNode;
 }
 
-/** Titled card used to block out the detail screens. */
 const Section = ({ title, children }: SectionProps) => (
   <View style={styles.root}>
     {title ? <Text style={styles.title}>{title}</Text> : null}

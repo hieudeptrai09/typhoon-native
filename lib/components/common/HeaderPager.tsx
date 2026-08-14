@@ -6,16 +6,10 @@ import { Pressable, StyleSheet, View } from "react-native";
 interface HeaderPagerProps {
   onPrev: () => void;
   onNext: () => void;
-  /** Spoken, not drawn — the header has no room for the target's name. */
   prevLabel: string;
   nextLabel: string;
 }
 
-/**
- * Prev/next for a detail screen, in the header rather than under the content. A detail page here
- * runs to thousands of pixels, and paging is a navigation act: burying it below every storm card
- * meant scrolling the whole page to move one step.
- */
 const HeaderPager = ({ onPrev, onNext, prevLabel, nextLabel }: HeaderPagerProps) => {
   const step = (go: () => void) => () => {
     Haptics.selectionAsync();

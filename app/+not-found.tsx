@@ -21,7 +21,6 @@ export default function NotFoundScreen() {
   useEffect(() => {
     let cancelled = false;
 
-    // Bản web tắt animation qua prefers-reduced-motion; native đọc cùng thiết lập đó từ hệ điều hành
     AccessibilityInfo.isReduceMotionEnabled().then((reduced) => {
       if (reduced || cancelled) return;
       Animated.loop(
@@ -46,7 +45,6 @@ export default function NotFoundScreen() {
       <Stack.Screen options={{ headerShown: false }} />
       <StatusBar style="dark" />
       <SafeAreaView style={styles.screen}>
-        {/* 404 — vòng xoáy bão thay cho số 0 ở giữa */}
         <View style={styles.code} accessibilityLabel="404 — Page not found">
           <Text style={styles.digit}>4</Text>
           <Animated.View style={{ transform: [{ rotate }] }}>
@@ -61,7 +59,6 @@ export default function NotFoundScreen() {
           Let&rsquo;s get you back on course.
         </Text>
 
-        {/* Link nhẹ thay vì nút to, để ngõ cụt vẫn nhẹ nhàng */}
         <View style={styles.links}>
           <Pressable style={styles.link} onPress={() => router.replace("/")} hitSlop={8}>
             <Ionicons name="home-outline" size={18} color={COLOR.accent} />

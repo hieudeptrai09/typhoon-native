@@ -12,11 +12,6 @@ interface SearchResultRowProps {
   matchLength: number;
 }
 
-/**
- * Deliberately thinner than the DataCard the other lists use. Search is scan-and-tap: fitting three
- * times as many candidates on screen beats spelling out every field on each one, and the detail
- * screen one tap away carries the rest.
- */
 const SearchResultRow = ({ result, matchAt, matchLength }: SearchResultRowProps) => (
   <View style={styles.row}>
     <NameStatusIcon

@@ -79,10 +79,6 @@ export const applyRetiredFilters = (
   });
 };
 
-/**
- * One chip per *value*, not per field: a phone has no room to explain that "Countries" stands for
- * three of them, and removing one of the three has to be reachable without reopening the modal.
- */
 export interface FilterChip {
   key: string;
   label: string;

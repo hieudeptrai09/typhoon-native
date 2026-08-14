@@ -26,7 +26,5 @@ interface TagIconProps {
 export const TagIcon = ({ tag, size = 18, colorOverride }: TagIconProps) => {
   const icon = TAG_ICONS[tag];
   if (!icon) return null;
-  // One neutral for every tag: the icon shape and the label beside it already name the category,
-  // so a per-tag hue would only add a colour that says nothing.
   return <Ionicons name={icon} size={size} color={colorOverride || COLOR.textBody} />;
 };

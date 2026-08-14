@@ -9,11 +9,6 @@ interface RecentSearchesProps {
   onClear: () => void;
 }
 
-/**
- * What the Search tab shows before anything is typed. A tab the user chose to open should not
- * answer with an empty screen, and the name they looked up yesterday is the likeliest thing they
- * came back for.
- */
 const RecentSearches = ({ names, onOpen, onClear }: RecentSearchesProps) => {
   if (names.length === 0) {
     return (

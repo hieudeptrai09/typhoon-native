@@ -5,19 +5,16 @@ type Store = Record<string, SortCriterion[]>;
 
 const SortMemoryContext = createContext<{ current: Store } | null>(null);
 
-/**
- * Switching views unmounts the list, which would otherwise throw away the sort the user just set
- * up — a cost web never paid, because there you rarely left the page in the first place.
- */
+// Switching views unmounts the list, which would otherwise throw away the sort the user just set up.
 export const SortMemoryProvider = ({ children }: { children: ReactNode }) => {
   const store = useRef<Store>({});
   return <SortMemoryContext.Provider value={store}>{children}</SortMemoryContext.Provider>;
 };
 
 /**
- * Remembered criteria when the list names a `key` inside a provider, plain local state otherwise,
- * so a list with no business persisting its sort needs to do nothing. Only the one mounted list
- * owning a key ever writes it, so a re-render tick is enough to publish the change.
+ * Remembered criteria when the list names a `key` inside a provider, plain local state otherwise.
+ * Only the one mounted list owning a key ever writes it, so a re-render tick is enough to publish
+ * the change.
  */
 export const useSortMemory = (
   key?: string,

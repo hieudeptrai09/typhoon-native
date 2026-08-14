@@ -1,4 +1,5 @@
 import FrownError from "@/lib/components/common/FrownError";
+import type { DetailTarget } from "@/lib/components/common/OpenDetailButton";
 import StaleBanner from "@/lib/components/common/StaleBanner";
 import DashboardLegend from "@/lib/components/dashboard/legends/DashboardLegend";
 import AverageModal, {
@@ -7,7 +8,6 @@ import AverageModal, {
 import AvgDateModal from "@/lib/components/dashboard/modals/AvgDateModal";
 import DistanceModal from "@/lib/components/dashboard/modals/DistanceModal";
 import NameListModal from "@/lib/components/dashboard/modals/NameListModal";
-import type { DetailTarget } from "@/lib/components/common/OpenDetailButton";
 import StormDetailModal from "@/lib/components/dashboard/modals/StormDetailModal";
 import AverageView from "@/lib/components/dashboard/views/AverageView";
 import AvgDateView from "@/lib/components/dashboard/views/AvgDateView";
@@ -51,7 +51,6 @@ interface DashboardPageContentProps {
   params: DashboardParams;
   onParamsChange: (params: DashboardParams) => void;
   onSelectView: (view: string) => void;
-  /** A refresh failed over data already on screen — worth saying, not worth a full error page. */
   staleError?: boolean;
 }
 
@@ -84,7 +83,6 @@ export default function DashboardPageContent({
     const storms = (stormsData || []).filter((s) => s[key as keyof Storm] === data);
     const target = targetFor(data, key);
 
-    // Storms view — name list mode: clicking a name row
     if (view === "all" && key === "name") {
       const avgIntensity = calculateAverage(storms);
       setSelectedData({ name: data as string, storms, avgIntensity, target });
@@ -92,7 +90,6 @@ export default function DashboardPageContent({
       return;
     }
 
-    // Storms view — any table mode (position or name grid): clicking a cell
     if (view === "all" && key === "position") {
       const title = key === "position" ? getPositionTitle(Number(data)) : String(data);
       setSelectedData({ title, storms, target });
@@ -112,7 +109,6 @@ export default function DashboardPageContent({
       return;
     }
 
-    // Average / month: clicking a month row opens storm detail modal
     if (view === "average" && filter === "month") {
       const monthName = MONTH_NAMES[data as number];
       const monthStorms = (stormsData || []).filter(
@@ -128,7 +124,6 @@ export default function DashboardPageContent({
       return;
     }
 
-    // Recurrence view: clicking a position or name opens the recurrence timeline
     if (view === "recurrence") {
       const title = key === "position" ? getPositionTitle(Number(data)) : String(data);
       setSelectedData({ title, storms, average: calculateGapAverage(storms), target });
@@ -136,7 +131,6 @@ export default function DashboardPageContent({
       return;
     }
 
-    // Avg. Date view: clicking a position or name opens the seasonal date modal
     if (view === "avgdate") {
       const title = key === "position" ? getPositionTitle(Number(data)) : String(data);
       setSelectedData({ title, storms, target });

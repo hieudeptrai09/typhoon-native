@@ -43,21 +43,19 @@ export const DISTANCE_STANDARD_COLOR = "#4d7c0f";
 export const DISTANCE_LONG_COLOR = COLOR.accent;
 
 export const AVG_DATE_MONTH_COLOR: Record<number, string> = {
-  6: "#1d4ed8", // June — blue
-  7: "#15803d", // July — green
-  8: "#ea580c", // August — orange
-  9: "#9333ea", // September — purple
-  10: "#be185d", // October — pink
+  6: "#1d4ed8",
+  7: "#15803d",
+  8: "#ea580c",
+  9: "#9333ea",
+  10: "#be185d",
 };
 
 export const AVG_DATE_FALLBACK_COLOR = "#374151";
 
-// The web grid spelled out each position's label in its cell; here the axes do that, so the fill
-// is free to carry how busy the position is. Index 0 is "one storm", and the last bucket is open-ended.
+// Index 0 is "one storm"; the last bucket is open-ended.
 export const STORM_COUNT_COLORS = ["#dbeafe", "#93c5fd", "#60a5fa", "#3b82f6", "#1d4ed8"];
 
-// How many times a position has reused a name, on the names history table. Index 0 is "used once",
-// and the last bucket is open-ended.
+// Index 0 is "used once"; the last bucket is open-ended.
 export const NAME_REUSE_COLORS = [COLOR.success, COLOR.accent, COLOR.warning, COLOR.danger];
 
 export const HIGHLIGHT_CELL_COLOR: Record<string, string> = {
@@ -70,7 +68,6 @@ export const HIGHLIGHT_CELL_COLOR: Record<string, string> = {
 export const HIGHLIGHT_FALLBACK_COLOR = "#86efac";
 export const HIGHLIGHT_EMPTY_CELL_COLOR = "#f1f5f9";
 
-/** A position with no value at all, on any of the heatmaps. */
 export const GRID_EMPTY_CELL_COLOR = "#e2e8f0";
 
 export const RETIRED_REASON_COLOR: Record<string, string> = {

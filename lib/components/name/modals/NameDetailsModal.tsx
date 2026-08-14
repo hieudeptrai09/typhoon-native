@@ -19,8 +19,6 @@ const NameDetailsModal = ({ isOpen, onClose, name, hideReplacedBy }: NameDetails
         {name.name}
       </Text>
     }
-    // The name's own screen carries the storms it has been used for, which the sheet has no room
-    // for. Without this the Names tab was the one place a name led nowhere.
     footer={<OpenDetailButton target={{ kind: "name", name: name.name }} onClose={onClose} />}
   >
     <NameDetailsContent name={name} hideReplacedBy={hideReplacedBy} />

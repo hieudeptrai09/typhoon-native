@@ -27,7 +27,6 @@ interface DefModalProps {
   children: ReactNode;
 }
 
-/** Bottom sheet: the native stand-in for the centred dialog the web build uses. */
 const DefModal = ({ open = true, onClose, title, footer, children }: DefModalProps) => {
   const insets = useSafeAreaInsets();
   const translateY = useRef(new Animated.Value(SHEET_OFFSCREEN)).current;

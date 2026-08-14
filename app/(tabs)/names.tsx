@@ -15,10 +15,6 @@ import type {
 import { EMPTY_NAME_FILTERS, EMPTY_RETIRED_FILTERS } from "@/lib/utils/name/filters";
 import { useState } from "react";
 
-// The scope/layout toggles were URL segments on web only so the pages could be indexed. Here they
-// are state, and they live on the screen rather than inside the views: a phone user hops between
-// scopes far more than a web user hopped between pages, and rebuilding the filters every time
-// makes each trip back a fresh start.
 export default function NamesScreen() {
   const [scope, setScope] = useState<NamesScope>("current");
   const [layout, setLayout] = useState<NamesLayout>("grid");

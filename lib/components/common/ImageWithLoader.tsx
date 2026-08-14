@@ -12,7 +12,6 @@ interface ImageWithLoaderProps {
   /** Applied to the wrapper, which the image fills — give it the size or let a parent size it. */
   style?: StyleProp<ViewStyle>;
   spinnerSize?: "small" | "medium" | "large";
-  /** Hidden when the box is too small for the caption to read as anything but noise. */
   showErrorLabel?: boolean;
 }
 

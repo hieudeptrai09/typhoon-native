@@ -1,7 +1,5 @@
 import DefModal from "@/lib/components/common/DefModal";
-import OpenDetailButton, {
-  type DetailTarget,
-} from "@/lib/components/common/OpenDetailButton";
+import OpenDetailButton, { type DetailTarget } from "@/lib/components/common/OpenDetailButton";
 import { COLOR } from "@/lib/constants/theme";
 import type { BaseModalProps, Storm } from "@/lib/types";
 import { getDistanceColor } from "@/lib/utils/colors";
@@ -13,7 +11,6 @@ interface DistanceModalProps extends BaseModalProps {
   title: string;
   storms: Storm[];
   average: number;
-  /** The subject this sheet was opened from, when it has a screen of its own to go on to. */
   target?: DetailTarget;
 }
 
@@ -22,14 +19,7 @@ const formatGapLabel = (gap: number): string => {
   return gap === 1 ? "1 year" : `${gap} years`;
 };
 
-const DistanceModal = ({
-  isOpen,
-  onClose,
-  title,
-  storms,
-  average,
-  target,
-}: DistanceModalProps) => {
+const DistanceModal = ({ isOpen, onClose, title, storms, average, target }: DistanceModalProps) => {
   const timeline = [...storms].sort((a, b) => a.year - b.year);
   const averageColor = getDistanceColor(average);
 

@@ -16,7 +16,6 @@ export const DEFAULT_FILTER: Record<string, string> = {
   avgdate: "position",
 };
 
-// Every URL is /storms/<view>/<filter>/[list]/
 export const isValidStormsSlug = (slug: string[]): boolean => {
   const [first, second, third] = slug;
 
@@ -78,13 +77,11 @@ const ALL_SLUGS: string[][] = [
   ),
 ];
 
-// Non-canonical slugs redirect, so prerendering them would only cache the redirect.
 export const getCanonicalStormsSlugs = (): string[][] =>
   ALL_SLUGS.filter((slug) => paramsToPath(slugToParams(slug)) === slugToPath(slug));
 
 export type LegendKind = "intensity" | "recurrence" | "avgdate" | "highlight" | "count" | null;
 
-// Which legend a view/mode pairing needs is decided by the same params that pick the view itself.
 export const getLegendKind = ({ view, mode, filter }: DashboardParams): LegendKind => {
   switch (view) {
     case "recurrence":
@@ -97,7 +94,6 @@ export const getLegendKind = ({ view, mode, filter }: DashboardParams): LegendKi
       return "intensity";
     case "all":
       if (mode === "list") return filter === "name" ? "intensity" : null;
-      // The default landing view is a heatmap; its shading needs saying just as much as the rest.
       return filter === "position" ? "count" : null;
     default:
       return null;

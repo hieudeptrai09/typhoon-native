@@ -26,7 +26,6 @@ export const getPositionTitle = (position: number): string => {
 export const isExternalPosition = (position?: number): boolean =>
   position !== undefined && (position < 1 || position > GRID_MAX);
 
-/** A position a detail screen can actually render: inside the grid, or one of the agency slots. */
 export const isKnownPosition = (position: number | null): position is number =>
   position !== null && Number.isInteger(position) && position >= 1 && position <= TOTAL_POSITIONS;
 
@@ -34,7 +33,6 @@ export const isKnownPosition = (position: number | null): position is number =>
 export const stepPosition = (position: number, step: 1 | -1): number =>
   ((position - 1 + step + TOTAL_POSITIONS) % TOTAL_POSITIONS) + 1;
 
-// Parse a grid label ("3I" / "3i") or a plain number ("37") into a 1–140 position, else null.
 export const parsePositionLabel = (input: string): number | null => {
   const trimmed = input.trim().toUpperCase();
   if (!trimmed) return null;
@@ -51,8 +49,6 @@ export const parsePositionLabel = (input: string): number | null => {
   return Number.isInteger(num) && num >= 1 && num <= GRID_MAX ? num : null;
 };
 
-// The empty value spells out both keys because Form.setFieldsValue merges plain objects into the
-// store: a bare {} would merge nothing and leave the previous pick in place.
 export const positionToValue = (position: number | null): PositionValue =>
   position != null && position >= 1 && position <= GRID_MAX
     ? { row: Math.floor((position - 1) / GRID_COLS) + 1, col: (position - 1) % GRID_COLS }
@@ -64,7 +60,6 @@ export const positionFromValue = (value?: PositionValue): number | null =>
 export const isPartialPosition = (value?: PositionValue) =>
   (value?.row != null) !== (value?.col != null);
 
-// URLs carry the lowercase grid label ("3i"), so the page redirects /positions/3I/ and /positions/37/ onto it.
 export const getPositionSlug = (position: number): string =>
   POSITION_SLUGS[position] ?? positionGridLabel(position)?.toLowerCase() ?? String(position);
 

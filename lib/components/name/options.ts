@@ -10,8 +10,6 @@ export const NAME_SCOPE_TABS: { key: NamesScope; label: string; icon: IconName }
   { key: "retired", label: "Retired", icon: "skull-outline" },
 ];
 
-// A three-word tab cannot say what separates "Current" from "History" from "Retired", and getting
-// it wrong costs a round trip through a data fetch.
 export const NAME_SCOPE_DESCRIPTION: Record<NamesScope, string> = {
   current: "The names in the rotation as it stands today",
   history: "Every name each position has carried, and how often it was used",

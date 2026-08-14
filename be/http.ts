@@ -64,8 +64,6 @@ export function route<P extends Record<string, string> = Record<string, string>>
   };
 }
 
-// --- Parameter parsing -------------------------------------------------------------------------
-
 export function optionalInt(url: URL, key: string): number | null {
   const raw = url.searchParams.get(key);
   if (raw === null || raw.trim() === "") return null;

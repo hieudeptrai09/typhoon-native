@@ -1,7 +1,5 @@
 import DefModal from "@/lib/components/common/DefModal";
-import OpenDetailButton, {
-  type DetailTarget,
-} from "@/lib/components/common/OpenDetailButton";
+import OpenDetailButton, { type DetailTarget } from "@/lib/components/common/OpenDetailButton";
 import {
   BACKGROUND_BADGE,
   INTENSITY_LABEL,
@@ -109,8 +107,6 @@ const AverageModal = ({
   criteria,
   target,
 }: AverageModalProps) => {
-  // Web showed both the formula and each group's storms on hover. Touch has no hover, so both
-  // expand in place — one open group at a time, so the sheet does not grow past a scroll or two.
   const [showFormula, setShowFormula] = useState(false);
   const [expanded, setExpanded] = useState<IntensityType | null>(null);
 

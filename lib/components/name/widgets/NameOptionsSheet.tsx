@@ -15,11 +15,6 @@ interface NameOptionsSheetProps {
   onShowNameChange: (showName: boolean) => void;
 }
 
-/**
- * These were three unlabelled icon toggles in a row, two of them carrying a slash that only said
- * *that* something was off, never what. Behind a pill they get their names back and the row above
- * the data goes down to two controls.
- */
 const NameOptionsSheet = ({
   open,
   onClose,

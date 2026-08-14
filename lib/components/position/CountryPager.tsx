@@ -21,17 +21,11 @@ interface CountryPagerProps {
   renderPosition: (position: number) => ReactNode;
   onPositionPress?: (position: number) => void;
   positionEnabled?: (position: number) => boolean;
-  /** Shown under the pages — legends, notes. */
   footer?: ReactNode;
 }
 
 const TAB_WIDTH = 56;
 
-/**
- * The naming table split by contributing country: one swipeable page per column.
- * Cells here hold real text (names, dates), which a 14-column grid cannot show on
- * a phone, so the column becomes the page and each of its 10 positions gets a full-width row.
- */
 const CountryPager = ({
   renderPosition,
   onPositionPress,

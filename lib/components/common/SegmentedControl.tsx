@@ -16,7 +16,6 @@ interface SegmentedControlProps<T extends string = string> {
   value: T;
   onChange: (value: T) => void;
   accessibilityLabel?: string;
-  /** Lets the row scroll sideways instead of squeezing many options into the screen width. */
   scrollable?: boolean;
 }
 

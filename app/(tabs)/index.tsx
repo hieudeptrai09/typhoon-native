@@ -7,13 +7,6 @@ import type { ActiveOnThisDayStorm, OnThisDayStorm, StormHighlight } from "@/lib
 import { useEffect, useRef, useState } from "react";
 import { RefreshControl, ScrollView, StyleSheet } from "react-native";
 
-/**
- * The landing page the web build opened with had to introduce the site to a stranger. An installed
- * app has no stranger to convince, and the tab bar already carries navigation — so this tab is a
- * feed of the date-scoped content that has no other home in the app, not a menu of the tabs below.
- *
- * The queries live here rather than in each card so pull-to-refresh can reload all of them at once.
- */
 export default function TodayScreen() {
   const today = new Date();
   const dayParams = `day=${today.getDate()}&month=${today.getMonth() + 1}`;

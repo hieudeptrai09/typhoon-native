@@ -20,10 +20,6 @@ const routeFor = (target: DetailTarget): string =>
 const labelFor = (target: DetailTarget): string =>
   target.kind === "name" ? `Open ${target.name}` : `Open ${getPositionTitle(target.position)}`;
 
-/**
- * A sheet opened from a cell used to be the end of the trail: whatever it showed, the only way on
- * was back. This carries the same subject into its own screen, where the stack takes over.
- */
 const OpenDetailButton = ({ target, onClose }: OpenDetailButtonProps) => (
   <Pressable
     onPress={() => {

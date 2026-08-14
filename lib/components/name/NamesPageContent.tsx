@@ -27,7 +27,6 @@ interface NamesPageContentProps {
   onNameFiltersChange: (filters: FilterParams) => void;
   retiredFilters: RetiredFilterParams;
   onRetiredFiltersChange: (filters: RetiredFilterParams) => void;
-  /** A refresh failed over data already on screen — worth saying, not worth a full error page. */
   staleError?: boolean;
 }
 

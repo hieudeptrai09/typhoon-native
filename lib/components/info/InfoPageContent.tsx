@@ -16,7 +16,6 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 interface InfoPageContentProps {
   detail: SearchDetail | null;
   name: string;
-  /** A refresh failed over data already on screen — worth saying, not worth a full error page. */
   staleError?: boolean;
 }
 
@@ -126,8 +125,7 @@ export default function InfoPageContent({
         contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + SPACE.xl }]}
         refreshControl={refreshControl}
         showsVerticalScrollIndicator={false}
-        // Each card carries a remote track map, so mounting the whole history at once is what the
-        // ScrollView this replaced got wrong.
+        // Each card carries a remote track map, so the whole history must not mount at once.
         initialNumToRender={4}
         windowSize={7}
         removeClippedSubviews

@@ -7,17 +7,13 @@ import * as Haptics from "expo-haptics";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 interface NamesToolbarProps {
-  /** Omitted in a scope with only one layout, so a dead control never costs a tap to discover. */
+  /** Omitted in a scope with only one layout. */
   options?: { label: string; icon: IconName; onPress: () => void };
   chips: FilterChip[];
   onOpenFilters: () => void;
   onRemoveChip: (key: string) => void;
 }
 
-/**
- * One toolbar for all three scopes. It used to be built inline in each view, which is how the
- * filter button ended up in a different place depending on which tab you were on.
- */
 const NamesToolbar = ({ options, chips, onOpenFilters, onRemoveChip }: NamesToolbarProps) => (
   <View style={styles.root}>
     <View style={styles.row}>
@@ -64,8 +60,6 @@ const NamesToolbar = ({ options, chips, onOpenFilters, onRemoveChip }: NamesTool
       </Pressable>
     </View>
 
-    {/* Which filters are on, not just how many — reading that off a badge meant reopening the
-        modal, and removing one of them meant editing a multi-select to get back out. */}
     {chips.length > 0 && (
       <EdgeFade contentContainerStyle={styles.chips}>
         {chips.map((chip) => (

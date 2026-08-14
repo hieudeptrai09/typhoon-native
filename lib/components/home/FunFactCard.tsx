@@ -9,7 +9,6 @@ interface FunFactCardProps {
   query: QueryState<string | null>;
 }
 
-// One sentence never justified a modal: it shows inline, and the shuffle re-rolls it in place.
 const FunFactCard = ({ query }: FunFactCardProps) => {
   const { data, isLoading, isError, refetch } = query;
 

@@ -21,12 +21,8 @@ interface DashboardControlBarProps {
   onSelectView: (view: string) => void;
 }
 
-// Slow enough to read as the pill travelling to the tapped tab, short enough that a run of taps
-// down the row does not queue up.
 const SLIDE = LinearTransition.duration(220);
 
-// On web each view was a <Link> so it could be indexed; here the dashboard owns its params as
-// state, so these are plain buttons that swap the view in place.
 const DashboardControlBar = ({ params, onChange, onSelectView }: DashboardControlBarProps) => {
   const [sheetOpen, setSheetOpen] = useState(false);
   const { view, filter, mode } = params;
@@ -34,8 +30,6 @@ const DashboardControlBar = ({ params, onChange, onSelectView }: DashboardContro
   const filterOptions = FILTER_OPTIONS[view] ?? [];
   const activeFilter = filterOptions.find((option) => option.value === filter) ?? filterOptions[0];
 
-  // A layout the view cannot honour is dropped rather than shown greyed out: a dead control still
-  // costs a tap to discover it is dead.
   const layoutLocked = isGridOnly(view, filter) || isListOnly(view, filter);
   const modeLabel = MODE_OPTIONS.find((option) => option.value === mode)?.label;
 
@@ -71,8 +65,6 @@ const DashboardControlBar = ({ params, onChange, onSelectView }: DashboardContro
                   size={16}
                   color={isActive ? COLOR.textInverse : COLOR.textBody}
                 />
-                {/* Only the selected tab is worth the width for a name; the line below carries the
-                    rest of the explanation, so the others stay glyphs. */}
                 {isActive && (
                   <Animated.Text
                     entering={FadeIn.duration(140).delay(80)}

@@ -9,17 +9,10 @@ import { StyleSheet, Text, View } from "react-native";
 export interface StormDetailModalProps extends BaseModalProps {
   title: string;
   storms: Storm[];
-  /** Set when the sheet was opened from a naming position, which then has a screen of its own. */
   position?: number;
 }
 
-const StormDetailModal = ({
-  isOpen,
-  onClose,
-  title,
-  storms,
-  position,
-}: StormDetailModalProps) => {
+const StormDetailModal = ({ isOpen, onClose, title, storms, position }: StormDetailModalProps) => {
   const groupedByName = storms.reduce<Record<string, Storm[]>>((acc, storm) => {
     if (!acc[storm.name]) acc[storm.name] = [];
     acc[storm.name].push(storm);

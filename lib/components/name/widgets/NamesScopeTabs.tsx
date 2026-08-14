@@ -13,8 +13,6 @@ interface NamesScopeTabsProps {
   onChange: (scope: NamesScope) => void;
 }
 
-// Replaces the web <h1>: the native header already says "Names", so the scope is what actually
-// needs naming on screen — and here it doubles as the control that changes it.
 const NamesScopeTabs = ({ activeScope, onChange }: NamesScopeTabsProps) => (
   <View style={styles.root}>
     <View style={styles.tabs} accessibilityRole="tablist">

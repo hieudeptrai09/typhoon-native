@@ -10,7 +10,6 @@ import { StyleSheet, Text, View } from "react-native";
 interface PositionCellGridProps {
   stormsData: Storm[];
   renderCell: (position: number) => GridCell;
-  /** The cell's value spelled out for the readout — colour alone can't say "6.00 years". */
   renderValue?: (position: number) => string | undefined;
   onPositionPress?: (position: number) => void;
 }

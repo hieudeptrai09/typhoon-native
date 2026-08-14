@@ -2,8 +2,6 @@ import type { Storm } from "@/lib/types";
 import { daysBetween, parseStormDate } from "@/lib/utils/date";
 import { getGroupedStorms } from "@/lib/utils/storm/aggregate";
 
-// Averaged storm timing: when a group's storms typically start, end, and how long they last.
-
 // Dates are averaged as a day-of-year in a fixed non-leap reference year, so a
 // 29/2 date collapses to 28/2 and the output can never land on 29/2 either.
 const DAYS_IN_MONTH = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];

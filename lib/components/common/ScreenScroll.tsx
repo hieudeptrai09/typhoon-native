@@ -7,11 +7,7 @@ interface ScreenScrollProps {
   children: ReactNode;
 }
 
-/**
- * Vertical scroller for the heatmap views, whose grid + readout + side panels overflow a phone
- * once the control bar and legend are counted. List views bring their own FlatList and must not
- * be wrapped in this.
- */
+// List views bring their own FlatList and must not be wrapped in this.
 const ScreenScroll = ({ children }: ScreenScrollProps) => {
   const refreshControl = useRefreshControl();
 

@@ -4,7 +4,7 @@ import { StyleSheet, Text, View } from "react-native";
 
 interface StatTileProps {
   label: string;
-  /** The web build's tooltip text. Native has no hover, so it survives for screen readers only. */
+  /** Never drawn: there is no hover on touch, so it only reaches screen readers. */
   hint?: string;
   children: ReactNode;
 }

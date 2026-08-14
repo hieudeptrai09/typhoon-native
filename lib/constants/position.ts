@@ -1,7 +1,7 @@
 // The naming table is a fixed grid of GRID_ROWS × GRID_COLS, filled left-to-right, top-to-bottom, so a position maps to a "row + country-column letter" label (e.g. 37 → "3I").
 export const GRID_ROWS = 10;
 export const GRID_COLS = 14;
-export const GRID_MAX = GRID_ROWS * GRID_COLS; // 140
+export const GRID_MAX = GRID_ROWS * GRID_COLS;
 
 // Positions outside the grid belong to another basin's agency rather than the naming table.
 export const POSITION_SLUGS: Record<number, string> = {
@@ -14,10 +14,9 @@ export const SLUG_POSITIONS: Record<string, number> = Object.fromEntries(
   Object.entries(POSITION_SLUGS).map(([id, slug]) => [slug, Number(id)]),
 );
 
-// The grid plus the agency slots — the full range a position route accepts and pages through.
 export const TOTAL_POSITIONS = Math.max(GRID_MAX, ...Object.keys(POSITION_SLUGS).map(Number));
 
-// The agency positions as a render-ready list; integer-like keys iterate in ascending id order.
+// Integer-like keys iterate in ascending id order, so the list needs no sort.
 export const SPECIAL_POSITIONS = Object.entries(POSITION_SLUGS).map(([id, slug]) => ({
   id: Number(id),
   label: slug.toUpperCase(),

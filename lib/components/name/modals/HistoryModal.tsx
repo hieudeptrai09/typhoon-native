@@ -13,11 +13,6 @@ interface HistoryModalProps extends BaseModalProps {
   storms: StormHistoryEntry[];
 }
 
-/**
- * Every name here leads to the same place — its own screen, which carries the image, the storms and
- * the pronunciation. It used to expand an image inline for the few names that had one, which meant
- * a row's behaviour depended on data the user could not see in advance.
- */
 const HistoryModal = ({ isOpen, onClose, position, positionNames, storms }: HistoryModalProps) => {
   if (!isOpen) return null;
 

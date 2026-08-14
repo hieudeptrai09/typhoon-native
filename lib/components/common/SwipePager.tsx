@@ -12,24 +12,16 @@ import Animated, {
 interface SwipePagerProps {
   onPrev: () => void;
   onNext: () => void;
-  /** Off until the neighbours are known — a swipe that lands nowhere is worse than no swipe. */
   enabled?: boolean;
   children: ReactNode;
 }
 
-/** How far across the screen the finger must travel before the swipe counts. */
 const DISTANCE_RATIO = 0.22;
-/** A flick this fast counts even if it never covered the distance. */
 const VELOCITY = 550;
-/** Ceiling on how far the page slides under the finger: a hint of give, not a page transition. */
 const PEEK = 64;
 /** Both screen edges belong to the OS back gesture; starting a page swipe there loses every time. */
 const EDGE_GUARD = 28;
 
-/**
- * Horizontal swipe between neighbouring detail pages. The header arrows stay the discoverable
- * control — this is the shortcut for the thumb already resting on the middle of the screen.
- */
 const SwipePager = ({ onPrev, onNext, enabled = true, children }: SwipePagerProps) => {
   const { width } = useWindowDimensions();
   const offset = useSharedValue(0);

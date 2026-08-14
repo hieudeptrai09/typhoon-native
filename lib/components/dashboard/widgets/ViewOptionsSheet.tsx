@@ -8,17 +8,12 @@ interface ViewOptionsSheetProps {
   filterOptions: SegmentOption[];
   filter: string;
   onFilterChange: (filter: string) => void;
-  /** Omitted when the current view only supports one layout, rather than shown greyed out. */
+  /** Omitted when the current view only supports one layout. */
   modeOptions?: SegmentOption[];
   mode: string;
   onModeChange: (mode: string) => void;
 }
 
-/**
- * Grouping and layout were a permanent two-row filter bar on web. On a phone that is a fifth of
- * the screen spent on controls the user touches once, so they move behind one pill — the same
- * move the sort controls already made.
- */
 const ViewOptionsSheet = ({
   open,
   onClose,

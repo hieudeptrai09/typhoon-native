@@ -9,11 +9,6 @@ interface RefreshValue {
 
 const RefreshContext = createContext<RefreshValue | null>(null);
 
-/**
- * A screen's data lives one component above the scrollers that should carry its pull-to-refresh,
- * and between them sit view switches that would otherwise each have to forward the same two props.
- * The scrollers pick it up from here instead.
- */
 export const RefreshProvider = ({
   value,
   children,

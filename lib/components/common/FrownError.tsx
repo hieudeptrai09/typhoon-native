@@ -14,8 +14,6 @@ const FrownError = ({
     <Text style={styles.description}>{description}</Text>
 
     {onRetry && (
-      // Retry is the only action here on purpose: the tab bar already carries the escape routes,
-      // so repeating them would just compete with it.
       <Pressable
         onPress={onRetry}
         style={({ pressed }) => [styles.retry, pressed && styles.pressed]}

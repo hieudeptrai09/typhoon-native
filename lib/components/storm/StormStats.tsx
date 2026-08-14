@@ -32,7 +32,6 @@ const StormStats = ({ storms }: { storms: Storm[] }) => {
   const duration = calculateAvgDuration(storms);
 
   return (
-    // Two columns: four tiles across is unreadable at phone widths, and these values are short.
     <View style={styles.grid}>
       <View style={styles.cell}>
         <StatTile label="Avg. intensity" hint={`${INTENSITY_LABEL[intensity]} on a −2 to 5 scale`}>

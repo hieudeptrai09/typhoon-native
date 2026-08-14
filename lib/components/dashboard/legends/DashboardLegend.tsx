@@ -10,7 +10,6 @@ interface DashboardLegendProps {
   params: DashboardParams;
 }
 
-// Single place the dashboard decides which legend the current view has earned.
 const DashboardLegend = ({ params }: DashboardLegendProps) => {
   switch (getLegendKind(params)) {
     case "intensity":

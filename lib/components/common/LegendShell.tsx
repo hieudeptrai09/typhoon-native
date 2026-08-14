@@ -11,11 +11,6 @@ interface LegendShellProps {
   children: ReactNode;
 }
 
-/**
- * A legend is reference, not content, so on a phone it starts as one scrollable line pinned above
- * the tab bar and only wraps to its full height when tapped. The web version could afford to
- * wrap across three rows permanently; here that was a fifth of the viewport.
- */
 export default function LegendShell({ label, accessibilityLabel, children }: LegendShellProps) {
   const [expanded, setExpanded] = useState(false);
 
@@ -36,8 +31,7 @@ export default function LegendShell({ label, accessibilityLabel, children }: Leg
       <View style={styles.head}>
         <Text style={styles.label}>{label}</Text>
 
-        {/* Collapsed, the items share the label's row so the whole legend costs one line. The
-            scroller sits inside the Pressable: a tap that does not scroll falls through to it. */}
+        {/* The scroller sits inside the Pressable: a tap that does not scroll falls through to it. */}
         {!expanded && (
           <EdgeFade style={styles.strip} contentContainerStyle={styles.stripContent}>
             {children}

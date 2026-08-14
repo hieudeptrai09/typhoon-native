@@ -24,7 +24,6 @@ export const COLOR = {
   /** Foreground of anything switched off. Same value as borderStrong, different intent. */
   disabled: "#cbd5e1",
 
-  // One accent for the whole app: header, active tab, link, selected row, primary button.
   accent: "#0369a1",
   accentSoft: "#e0f2fe",
   accentBorder: "#7dd3fc",

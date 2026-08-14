@@ -33,7 +33,6 @@ const AvgDateGrid = ({
   const renderCell = useCallback(
     (position: number) => {
       const dates = avgDateValues?.[position];
-      // The season's start month is what the colour scale reads; the readout carries both dates.
       return {
         color: hasDates(dates)
           ? getAvgDateColor(getDoyMonth(dates.startDoy))

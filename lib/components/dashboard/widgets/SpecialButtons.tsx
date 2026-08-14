@@ -67,7 +67,6 @@ const SpecialButtons = ({
               accessibilityLabel={`View storms from ${button.label} region`}
             >
               <Text style={[styles.label, { color }]}>{button.label}</Text>
-              {/* The suffix is the cell value the grid would have shown, so it stays subordinate */}
               {suffix ? <Text style={styles.suffix}>{suffix}</Text> : null}
             </Pressable>
           );

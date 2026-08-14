@@ -108,7 +108,6 @@ const makeSortFields = (filterType: string): SortField<AverageData>[] => {
   }
 };
 
-// Each filter groups by a different thing, so the card's headline changes with it.
 const titleOf = (row: AverageData, filterType: string): string => {
   switch (filterType) {
     case "year":

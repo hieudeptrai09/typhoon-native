@@ -14,14 +14,9 @@ interface ZoomableImageProps {
   style?: StyleProp<ViewStyle>;
   spinnerSize?: "small" | "medium" | "large";
   showErrorLabel?: boolean;
-  /** Repeated under the enlarged image, so the attribution travels with the picture. */
   credit?: ImageCreditType;
 }
 
-/**
- * A storm track or a name's illustration is the point of the card it sits in, but at phone width
- * it renders too small to read. Tapping it opens the full screen; the thumbnail stays as it was.
- */
 const ZoomableImage = ({
   source,
   label,

@@ -15,9 +15,6 @@ interface TabsProps<T extends string = string> {
   onTabChange: (tab: T) => void;
 }
 
-// The web build kept every panel mounted and hid the inactive ones so their scroll position
-// survived. Native renders only the active panel: these panels sit inside a sheet that unmounts
-// anyway, and keeping images on all of them alive costs more than the state is worth.
 const Tabs = <T extends string = string>({ tabs, activeTab, onTabChange }: TabsProps<T>) => {
   const active = tabs.find((tab) => tab.key === activeTab);
 

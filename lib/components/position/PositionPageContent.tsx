@@ -31,7 +31,6 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 interface PositionPageContentProps {
   detail: PositionDetail | null;
   position: number;
-  /** A refresh failed over data already on screen — worth saying, not worth a full error page. */
   staleError?: boolean;
 }
 
@@ -364,7 +363,6 @@ const styles = StyleSheet.create({
   timelineItemPressed: {
     backgroundColor: COLOR.surfaceMuted,
   },
-  // The rail is the dot column itself: a phone is too narrow to spare a separate spine and indent.
   timelineDot: {
     width: 14,
     height: 14,

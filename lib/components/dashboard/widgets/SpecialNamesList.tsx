@@ -14,11 +14,6 @@ interface SpecialNamesListProps {
   nameSubtitles?: Record<string, ReactNode>;
 }
 
-/**
- * Three agencies with a handful of crossover names each. Stacked as columns they cost a third of
- * the screen and still needed a scroller of their own; one short row per agency — label pinned
- * left, names running sideways — fits the same content under the grid without taking from it.
- */
 const SpecialNamesList = ({
   stormsData,
   onNameClick,

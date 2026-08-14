@@ -7,9 +7,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 interface HomeCardProps {
   icon: IconName;
   title: string;
-  /** Rendered on the header row, opposite the title — a shuffle button, a "see all" link. */
   action?: ReactNode;
-  /** Sits under the header, above the body: a segmented control, a caption. */
   toolbar?: ReactNode;
   isLoading?: boolean;
   isError?: boolean;
@@ -19,10 +17,8 @@ interface HomeCardProps {
   children: ReactNode;
 }
 
-/**
- * Shell for the Today feed. It owns the loading and error states because FrownError is a
- * full-screen treatment — one failing card must not blank out the three beside it.
- */
+// Loading and error live here because FrownError is a full-screen treatment: one failing card must
+// not blank out the others beside it.
 const HomeCard = ({
   icon,
   title,

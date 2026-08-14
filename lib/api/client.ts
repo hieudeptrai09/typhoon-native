@@ -17,8 +17,7 @@ const originError = ((): string | null => {
   if (__DEV__) return null;
 
   const router = Constants.expoConfig?.extra?.router as
-    | { origin?: unknown; generatedOrigin?: unknown }
-    | undefined;
+    { origin?: unknown; generatedOrigin?: unknown } | undefined;
 
   if (typeof router?.origin === "string" || typeof router?.generatedOrigin === "string") {
     return null;
@@ -35,7 +34,6 @@ export interface QueryState<T> {
   isLoading: boolean;
   isError: boolean;
   isNotFound: boolean;
-  /** A refetch over data already on screen — drives a pull-to-refresh spinner, not a blank screen. */
   isRefetching: boolean;
   refetch: () => void;
 }
@@ -49,10 +47,9 @@ const idle = {
 } as const;
 
 /**
- * Reads one of the `+api.ts` routes. A null path means "nothing to ask for yet" — the screen is
- * still validating its params, or this query only applies to a view the user hasn't opened.
- *
- * `path` stays relative so the same call works against the dev server and the deployed one.
+ * A null `path` means "nothing to ask for yet": the screen is still validating its params, or the
+ * query only applies to a view the user hasn't opened. `path` stays relative so the same call
+ * works against the dev server and the deployed one.
  */
 export function useApiQuery<T>(path: string | null): QueryState<T> {
   const [nonce, setNonce] = useState(0);

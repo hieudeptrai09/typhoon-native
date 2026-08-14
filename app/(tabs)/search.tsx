@@ -12,14 +12,6 @@ import { useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import { Keyboard, StyleSheet, View } from "react-native";
 
-/**
- * The web page read the query from ?q= because the navbar search box navigated here. A tab has no
- * navbar to arrive from, so the field lives on the screen.
- *
- * The catalogue is fetched once and matched on-device, which is what makes the screen feel native:
- * results move with the keystroke, with no debounce to sit through, no spinner, and no dependence
- * on the connection once the tab has been opened.
- */
 export default function SearchScreen() {
   const router = useRouter();
   const [query, setQuery] = useState("");
@@ -34,8 +26,6 @@ export default function SearchScreen() {
     [catalogue, trimmed],
   );
 
-  // Only worth computing for a query that found nothing, and cheap enough over a few hundred names
-  // that it no longer needs the round trip the web build made for it.
   const suggestions = useMemo(() => {
     if (!catalogue || trimmed === "" || results.length > 0) return [];
     return topSuggestions(

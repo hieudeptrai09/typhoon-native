@@ -19,8 +19,6 @@ interface RetiredViewProps {
   onFiltersChange: (filters: RetiredFilterParams) => void;
 }
 
-// There is no layout to choose here — a retired name carries a reason, a year and a replacement,
-// which is more than a table cell can hold — so the toolbar shows only the filter control.
 const RetiredView = ({
   retiredNames,
   suggestedNames,

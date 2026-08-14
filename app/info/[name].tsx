@@ -21,7 +21,6 @@ export default function InfoScreen() {
   const detail = useApiQuery<SearchDetail>(name ? `/api/v1/name-detail?name=${query}` : null);
   const nameList = useApiQuery<string[]>("/api/v1/name-list");
 
-  // A misspelling gets trigram suggestions instead of a dead end, but only once we know it missed.
   const similar = useApiQuery<string[]>(
     detail.isNotFound ? `/api/v1/similar-names?name=${query}` : null,
   );
@@ -83,7 +82,6 @@ export default function InfoScreen() {
             <EmptyResults
               icon="search-outline"
               description={`No typhoon name matches "${name}".`}
-              // Suggestions are a nicety, so a failed lookup degrades to the plain empty state.
               action={<DidYouMean names={similar.data ?? []} />}
             />
           </View>

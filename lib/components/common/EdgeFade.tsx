@@ -17,7 +17,6 @@ interface EdgeFadeProps {
   contentContainerStyle?: StyleProp<ViewStyle>;
   accessibilityLabel?: string;
   accessibilityRole?: "tablist";
-  /** For rows that also scroll themselves, e.g. to keep the selected item centred. */
   scrollRef?: RefObject<ScrollView | null>;
   /** Must match what the row sits on, or the fade reads as a grey smudge. */
   backgroundColor?: string;
@@ -34,7 +33,6 @@ const Fade = ({ side, color }: { side: "left" | "right"; color: string }) => (
     style={[styles.fade, side === "left" ? styles.fadeLeft : styles.fadeRight]}
   >
     {Array.from({ length: SLICES }, (_, index) => {
-      // Opaque at the screen edge, clear where the content has to stay readable.
       const ramp = 1 - index / SLICES;
       return (
         <View
@@ -50,10 +48,6 @@ const Fade = ({ side, color }: { side: "left" | "right"; color: string }) => (
   </View>
 );
 
-/**
- * A horizontal row whose overflow is visible: without a fade at the live edge nothing on a phone
- * says the row scrolls, and options past the right margin are simply never found.
- */
 const EdgeFade = ({
   children,
   style,

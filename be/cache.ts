@@ -1,5 +1,3 @@
-// Stands in for Next.js's `unstable_cache`, which the query files used before the move.
-
 type AsyncFn<A extends unknown[], R> = (...args: A) => Promise<R>;
 
 interface Entry<R> {

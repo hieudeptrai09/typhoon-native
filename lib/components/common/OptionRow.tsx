@@ -10,7 +10,6 @@ interface OptionRowProps {
   onPress: () => void;
 }
 
-/** One full-width choice in an options sheet — the phone-sized replacement for a segment. */
 const OptionRow = ({ option, selected, onPress }: OptionRowProps) => (
   <Pressable
     onPress={() => {

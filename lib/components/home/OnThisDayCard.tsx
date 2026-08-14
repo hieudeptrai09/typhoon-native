@@ -158,11 +158,6 @@ interface OnThisDayCardProps {
   active: QueryState<ActiveOnThisDayStorm[]>;
 }
 
-/**
- * The web build hid these behind two entries of a header popover, each opening a modal on its own
- * fetch. Both answer the same question about the same date, so here they share one card and the
- * data is already on screen — the sheet is only the overflow for a long list.
- */
 const OnThisDayCard = ({ events, active }: OnThisDayCardProps) => {
   const router = useRouter();
   const [scope, setScope] = useState<Scope>("events");

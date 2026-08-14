@@ -4,13 +4,8 @@ import { useCallback, useEffect, useState } from "react";
 const KEY = "search:recent-names";
 const LIMIT = 8;
 
-/**
- * The names a user opened from search, newest first.
- *
- * Matching happens as you type, so there is no submit to record — the tap that opens a result is
- * the only moment a query is known to have meant something. Storing the name rather than the text
- * typed also makes the entry directly re-openable.
- */
+// Matching happens as you type, so there is no submit to record — the tap that opens a result is
+// the only moment a query is known to have meant something.
 export function useRecentNames() {
   const [names, setNames] = useState<string[]>([]);
 

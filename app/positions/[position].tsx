@@ -22,8 +22,6 @@ export default function PositionScreen() {
   const { position: slug = "" } = useLocalSearchParams<{ position: string }>();
   const router = useRouter();
 
-  // getPositionFromSlug accepts every spelling a deep link can carry ("3i", "3I", "37"), so there
-  // is nothing to redirect to — the web version normalised the URL only to keep one canonical link.
   const position = getPositionFromSlug(slug);
   const isKnown = isKnownPosition(position);
 

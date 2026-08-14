@@ -1,8 +1,6 @@
 import DefModal from "@/lib/components/common/DefModal";
+import OpenDetailButton, { type DetailTarget } from "@/lib/components/common/OpenDetailButton";
 import StatTile from "@/lib/components/common/StatTile";
-import OpenDetailButton, {
-  type DetailTarget,
-} from "@/lib/components/common/OpenDetailButton";
 import { MONTH_NAMES } from "@/lib/constants";
 import { COLOR } from "@/lib/constants/theme";
 import type { BaseModalProps, Storm } from "@/lib/types";
@@ -23,7 +21,6 @@ import { LayoutAnimation, Pressable, StyleSheet, Text, View } from "react-native
 interface AvgDateModalProps extends BaseModalProps {
   title: string;
   storms: Storm[];
-  /** The subject this sheet was opened from, when it has a screen of its own to go on to. */
   target?: DetailTarget;
 }
 
@@ -53,7 +50,6 @@ const groupByStartMonth = (storms: Storm[]): MonthGroup[] => {
 };
 
 const AvgDateModal = ({ isOpen, onClose, title, storms, target }: AvgDateModalProps) => {
-  // The month rows revealed their storms on hover on web; on touch they expand in place instead.
   const [expanded, setExpanded] = useState<number | null>(null);
 
   const { startDoy, endDoy } = calculateAvgDates(storms);

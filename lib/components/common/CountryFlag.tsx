@@ -35,7 +35,6 @@ const toFlagEmoji = (code: string): string =>
 interface CountryFlagProps {
   country: string;
   size?: number;
-  /** Show the country name next to the flag. */
   showName?: boolean;
 }
 

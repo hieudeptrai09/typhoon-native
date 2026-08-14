@@ -15,11 +15,7 @@ interface SearchRow {
   stormCount: string;
 }
 
-/**
- * The whole searchable catalogue, which the app matches against on-device rather than asking per
- * keystroke. An empty pattern is the "everything" case of the same ILIKE `search_names` already
- * runs, so the SQL side is unchanged.
- */
+// An empty pattern is the "everything" case of the ILIKE `search_names` already runs.
 async function querySearchIndex(): Promise<ApiListResponse<SearchResult[]>> {
   const rows = await rpc.call<SearchRow[]>("search_names", { p_query: "" });
 

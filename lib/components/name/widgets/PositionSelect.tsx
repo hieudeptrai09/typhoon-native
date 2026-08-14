@@ -49,7 +49,6 @@ const PositionSelect = ({ value = {}, onChange, help, error }: PositionSelectPro
       </View>
     </View>
 
-    {/* Kept out of the two-column row so it reads as one note about the pair, not about a column */}
     {error ? (
       <Text style={styles.error}>{error}</Text>
     ) : help ? (

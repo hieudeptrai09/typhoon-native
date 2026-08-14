@@ -60,8 +60,7 @@ const StormsView = ({ params, stormsData, averageValues, onCellClick }: StormsVi
     );
   }
 
-  // name + table → names pager with the out-of-grid names listed under it. The pager scrolls its
-  // own pages, so this branch must not use ScreenScroll.
+  // The names pager scrolls its own pages, so this branch must not use ScreenScroll.
   if (params.mode === "table") {
     return (
       <View style={styles.stack}>

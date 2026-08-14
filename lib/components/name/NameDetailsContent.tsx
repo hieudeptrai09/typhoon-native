@@ -73,8 +73,6 @@ const NameDetailsContent = ({
         {name.description ? <Text style={styles.description}>{name.description}</Text> : null}
       </View>
 
-      {/* Image above the rows rather than beside them: at phone width a side-by-side split leaves
-          neither column readable. */}
       {name.image ? (
         <View>
           <ImageWithLoader source={name.image} label={name.name} style={styles.image} />

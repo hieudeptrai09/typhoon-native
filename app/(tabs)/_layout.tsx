@@ -6,8 +6,6 @@ import { Pressable } from "react-native";
 const ACTIVE = COLOR.accent;
 const INACTIVE = COLOR.textMuted;
 
-// About was reachable only from the old home footer. A footer is web chrome, so it moves to the
-// one header the user always passes through.
 const AboutButton = () => (
   <Link href="/about" asChild>
     <Pressable

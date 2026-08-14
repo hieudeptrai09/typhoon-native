@@ -77,7 +77,7 @@ const ListFilterModal = ({
 
   const [values, setValues] = useState<FormValues>(buildOpenValues);
 
-  // antd's Form re-seeded itself from initialValues on every open; plain state has to be told.
+  // The sheet stays mounted between opens, so the fields have to be re-seeded on each one.
   useEffect(() => {
     if (isOpen) setValues(buildOpenValues());
     // eslint-disable-next-line react-hooks/exhaustive-deps

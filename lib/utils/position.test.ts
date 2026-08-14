@@ -157,7 +157,7 @@ describe("position slugs", () => {
     }
   });
 
-  // The canonical slug is "3i", so these are the spellings the page redirects onto it.
+  // Every spelling a deep link can carry has to resolve, since nothing normalises the slug first.
   it("also accepts the uppercase label and the plain number as a slug", () => {
     expect(getPositionFromSlug("3i")).toBe(37);
     expect(getPositionFromSlug("3I")).toBe(37);

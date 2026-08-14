@@ -27,7 +27,6 @@ async function queryOnThisDay(
 ): Promise<{ count: number; data: OnThisDayStorm[] }> {
   const rows = await rpc.call<OnThisDayRow[]>("get_on_this_day", { p_day: day, p_month: month });
 
-  // "MM-DD" suffix of a "YYYY-MM-DD" date, for comparing against today.
   const monthDay = `${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 
   const data: OnThisDayStorm[] = rows.map((row) => {

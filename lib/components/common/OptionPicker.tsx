@@ -8,7 +8,6 @@ import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 export interface PickerOption<T extends string | number = string> {
   value: T;
   label: string;
-  /** Right-aligned secondary text, e.g. the column letter next to a country. */
   hint?: string;
 }
 
@@ -20,13 +19,10 @@ interface OptionPickerProps<T extends string | number = string> {
   onChange: (value: T[]) => void;
   multiple?: boolean;
   searchable?: boolean;
-  /** Rendered under the field — the native stand-in for antd's Form.Item `extra`. */
   help?: string;
   error?: string;
 }
 
-// Replaces the antd <Select>: tapping the field opens a sheet, because a dropdown anchored to a
-// field is unusable on a phone once the list is longer than a few rows.
 const OptionPicker = <T extends string | number = string>({
   label,
   placeholder,

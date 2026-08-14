@@ -37,7 +37,6 @@ interface FormValues {
 
 const FIRST_YEAR = 2000;
 
-// The web build used a year DatePicker; a list is both shorter to reach and easier to hit here.
 const YEAR_OPTIONS = Array.from({ length: new Date().getFullYear() - FIRST_YEAR + 1 }, (_, idx) =>
   String(new Date().getFullYear() - idx),
 ).map((year) => ({ value: year, label: year }));
@@ -78,7 +77,7 @@ const RetiredFilterModal = ({
 
   const [values, setValues] = useState<FormValues>(buildOpenValues);
 
-  // antd's Form re-seeded itself from initialValues on every open; plain state has to be told.
+  // The sheet stays mounted between opens, so the fields have to be re-seeded on each one.
   useEffect(() => {
     if (isOpen) setValues(buildOpenValues());
     // eslint-disable-next-line react-hooks/exhaustive-deps

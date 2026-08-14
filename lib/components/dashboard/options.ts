@@ -34,8 +34,6 @@ export const VIEW_TABS: { key: string; label: string }[] = [
   { key: "avgdate", label: "Avg. Date" },
 ];
 
-// The web build could lean on a sidebar and hover text to explain these; a tab strip cannot, and
-// "Recurrence" tells a first-time visitor nothing on its own.
 export const VIEW_DESCRIPTION: Record<string, string> = {
   all: "Every storm that has used each name",
   highlights: "The record holder in each naming position",

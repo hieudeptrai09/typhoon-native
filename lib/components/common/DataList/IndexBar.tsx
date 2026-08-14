@@ -11,11 +11,6 @@ interface IndexBarProps {
 
 const ROW_HEIGHT = 15;
 
-/**
- * The web build filtered the list down to one letter at a time from a 26-key keypad that cost a
- * fifth of the viewport. Here the alphabet is *navigation*: a thin rail down the live edge that
- * scrubs under the thumb, so nothing is ever hidden and no filter has to be undone afterwards.
- */
 const IndexBar = ({ letters, onSelect }: IndexBarProps) => {
   const [active, setActive] = useState<string | null>(null);
   const lastSent = useRef<string | null>(null);
@@ -23,7 +18,7 @@ const IndexBar = ({ letters, onSelect }: IndexBarProps) => {
   if (letters.length < 2) return null;
 
   // Tracked from the touch position rather than per-letter presses: at 15px a row the letters are
-  // below a comfortable tap target, and scrubbing is what the rail is for.
+  // below a comfortable tap target.
   const letterAt = (event: GestureResponderEvent) => {
     const index = Math.floor(event.nativeEvent.locationY / ROW_HEIGHT);
     return letters[Math.min(letters.length - 1, Math.max(0, index))];

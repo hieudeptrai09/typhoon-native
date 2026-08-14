@@ -16,7 +16,6 @@ interface NowCardProps {
   query: QueryState<StormHighlight[]>;
 }
 
-/** The one "what is happening right now" surface in the app, so it leads the feed. */
 const NowCard = ({ query }: NowCardProps) => {
   const router = useRouter();
   const { data, isLoading, isError, refetch } = query;
@@ -28,16 +27,13 @@ const NowCard = ({ query }: NowCardProps) => {
   const index = candidates.length > 0 ? offset % candidates.length : 0;
   const current = candidates[index] ?? null;
 
-  // Nothing ongoing and no next name resolved: drop the card rather than show an empty shell.
   if (!isLoading && !isError && !current) return null;
 
   const isActive = current?.status === "active";
   const nameColor =
     isActive && current?.intensity ? TEXT_COLOR_WHITE_BACKGROUND[current.intensity] : COLOR.accent;
 
-  // Empty rather than a stand-in like "Ongoing": the card title already says the storm is active,
-  // so a filler line would only repeat it. Both parts are missing until the extended
-  // get_storm_highlight is deployed.
+  // Both parts stay missing until the extended get_storm_highlight is deployed.
   const meta = isActive
     ? [
         current?.intensity ? INTENSITY_LABEL[current.intensity] : null,
@@ -52,8 +48,6 @@ const NowCard = ({ query }: NowCardProps) => {
       icon={isActive ? "pulse-outline" : "arrow-forward-circle-outline"}
       title={isActive ? "Active now" : "Up next"}
       action={
-        // Only when there is somewhere to go — a control that re-renders the same name reads as
-        // broken, and "Up next" is a single name by definition.
         candidates.length > 1 ? (
           <Pressable
             onPress={() => {

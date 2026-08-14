@@ -6,19 +6,15 @@ import { StyleSheet, Text, View } from "react-native";
 export interface DataField {
   label: string;
   value: ReactNode;
-  /** Prose (meanings, notes) needs the full row rather than a half-width column. */
   wide?: boolean;
 }
 
 interface DataCardProps {
-  /** 1-based rank shown in the leading badge — the old "#" column. */
   ordinal?: number;
   title: ReactNode;
   titleColor?: string;
   subtitle?: ReactNode;
-  /** Rendered opposite the title: a year, a badge, a count. */
   trailing?: ReactNode;
-  /** Left edge bar, used to carry the row's status colour. */
   accentColor?: string;
   fields?: DataField[];
   pressable?: boolean;

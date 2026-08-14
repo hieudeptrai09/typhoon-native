@@ -24,9 +24,6 @@ interface NamesViewProps {
   onFiltersChange: (filters: FilterParams) => void;
 }
 
-// Filters and the active letter were query params on web so every combination could be linked and
-// indexed. A tab has no address bar, so the screen above owns the filters and the alphabet became
-// navigation rather than a filter of its own.
 const NamesView = ({
   allNames,
   stormHistory,
@@ -47,7 +44,7 @@ const NamesView = ({
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
 
   // A misspelling is a correction to a name, not a name the committee ever assigned, so it stays
-  // out of the rotation on both layouts — the table used to drop it while the list kept it.
+  // out of the rotation.
   const rotationNames = useMemo(
     () => allNames.filter((name) => name.retirementReason !== "misspell"),
     [allNames],

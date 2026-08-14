@@ -1,9 +1,3 @@
-/**
- * Query matching for the search screen. The name catalogue is a few hundred rows, so it is pulled
- * once and matched on-device: results land on the keystroke instead of a debounce plus a round
- * trip, and they keep working with no connection.
- */
-
 // A runtime without String.prototype.normalize would throw rather than degrade, and the only thing
 // lost by skipping the fold is accent-insensitivity.
 const decompose = (value: string): string =>
@@ -39,10 +33,6 @@ export interface Ranked<T> {
   at: number;
 }
 
-/**
- * Every name containing `query`, best match first. Alphabetical order buries the name the user
- * spelled out in full under whatever merely contains it, which on a phone is a screen of scrolling.
- */
 export function rankMatches<T>(
   items: T[],
   query: string,
