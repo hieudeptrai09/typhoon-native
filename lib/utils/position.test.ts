@@ -1,13 +1,16 @@
+import { TOTAL_POSITIONS } from "@/lib/constants/position";
 import {
   getPositionFromSlug,
   getPositionSlug,
   getPositionTitle,
   isExternalPosition,
+  isKnownPosition,
   isPartialPosition,
   parsePositionLabel,
   positionColumnLetter,
   positionFromValue,
   positionToValue,
+  stepPosition,
 } from "@/lib/utils/position";
 
 describe("positionColumnLetter", () => {
@@ -154,7 +157,7 @@ describe("position slugs", () => {
     }
   });
 
-  // The canonical slug is "3i", so these are the spellings the page redirects onto it.
+  // Every spelling a deep link can carry has to resolve, since nothing normalises the slug first.
   it("also accepts the uppercase label and the plain number as a slug", () => {
     expect(getPositionFromSlug("3i")).toBe(37);
     expect(getPositionFromSlug("3I")).toBe(37);
@@ -170,5 +173,39 @@ describe("position slugs", () => {
   it("passes out-of-grid integers through for the caller to range-check", () => {
     expect(getPositionFromSlug("999")).toBe(999);
     expect(getPositionFromSlug("0")).toBe(0);
+  });
+});
+
+describe("isKnownPosition", () => {
+  it("accepts the grid and the agency slots", () => {
+    expect(isKnownPosition(1)).toBe(true);
+    expect(isKnownPosition(140)).toBe(true);
+    expect(isKnownPosition(TOTAL_POSITIONS)).toBe(true);
+  });
+
+  it("rejects anything a detail screen could not render", () => {
+    expect(isKnownPosition(0)).toBe(false);
+    expect(isKnownPosition(TOTAL_POSITIONS + 1)).toBe(false);
+    expect(isKnownPosition(3.5)).toBe(false);
+    expect(isKnownPosition(null)).toBe(false);
+  });
+});
+
+describe("stepPosition", () => {
+  it("steps one position either way", () => {
+    expect(stepPosition(37, 1)).toBe(38);
+    expect(stepPosition(37, -1)).toBe(36);
+  });
+
+  it("wraps at both ends rather than dead-ending the pager", () => {
+    expect(stepPosition(1, -1)).toBe(TOTAL_POSITIONS);
+    expect(stepPosition(TOTAL_POSITIONS, 1)).toBe(1);
+  });
+
+  it("returns a valid position from every valid position", () => {
+    for (let position = 1; position <= TOTAL_POSITIONS; position++) {
+      expect(isKnownPosition(stepPosition(position, 1))).toBe(true);
+      expect(isKnownPosition(stepPosition(position, -1))).toBe(true);
+    }
   });
 });
