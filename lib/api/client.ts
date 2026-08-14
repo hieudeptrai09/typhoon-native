@@ -1,9 +1,33 @@
+import Constants from "expo-constants";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 // Mirrors the envelope that be/http.ts json() writes. Redeclared here instead of imported from
 // @/be so the screen bundle never pulls in the server module and its env lookups.
 interface ApiEnvelope<T> {
   data: T;
+}
+
+/**
+ * Expo's fetch polyfill resolves a relative path against the dev server in development and against
+ * the expo-router `origin` in a release build. A release build without that origin fails every
+ * request with an opaque URL error, which reads as "the server is down" — so name the real cause,
+ * once, at startup. See app.config.ts for where the value comes from.
+ */
+const originError = ((): string | null => {
+  if (__DEV__) return null;
+
+  const router = Constants.expoConfig?.extra?.router as
+    | { origin?: unknown; generatedOrigin?: unknown }
+    | undefined;
+
+  if (typeof router?.origin === "string" || typeof router?.generatedOrigin === "string") {
+    return null;
+  }
+  return "This build has no API origin. Set EXPO_PUBLIC_API_ORIGIN (see eas.json) and rebuild.";
+})();
+
+if (originError) {
+  console.error(`[api] ${originError}`);
 }
 
 export interface QueryState<T> {
@@ -28,9 +52,7 @@ const idle = {
  * Reads one of the `+api.ts` routes. A null path means "nothing to ask for yet" — the screen is
  * still validating its params, or this query only applies to a view the user hasn't opened.
  *
- * The relative path resolves against the Expo Router origin: the dev server under `npx expo start`,
- * and the `origin` option on the expo-router plugin in a release build. Without that option set,
- * a standalone build has nothing to resolve against.
+ * `path` stays relative so the same call works against the dev server and the deployed one.
  */
 export function useApiQuery<T>(path: string | null): QueryState<T> {
   const [nonce, setNonce] = useState(0);
@@ -43,6 +65,11 @@ export function useApiQuery<T>(path: string | null): QueryState<T> {
     if (path === null) {
       lastPath.current = null;
       setState(idle);
+      return;
+    }
+
+    if (originError) {
+      setState({ ...idle, isError: true });
       return;
     }
 
