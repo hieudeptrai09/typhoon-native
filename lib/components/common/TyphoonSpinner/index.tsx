@@ -1,7 +1,7 @@
 import { COLOR } from "@/lib/constants/theme";
-import Ionicons from "@expo/vector-icons/Ionicons";
 import { useEffect, useRef } from "react";
 import { AccessibilityInfo, Animated, Easing, StyleSheet, View } from "react-native";
+import TyphoonSymbol from "./TyphoonSymbol";
 
 type TyphoonSpinnerSize = "small" | "medium" | "large";
 
@@ -16,32 +16,34 @@ interface TyphoonSpinnerProps {
   color?: string;
 }
 
-// The web build drew its own swirl as an SVG path; native reuses the aperture glyph the 404 screen
-// already spins, so the loader needs no vector runtime.
 const TyphoonSpinner = ({ size = "medium", color = COLOR.accent }: TyphoonSpinnerProps) => {
   const px = sizeMap[size];
   const spin = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
+    let animation: Animated.CompositeAnimation | undefined;
     let cancelled = false;
 
     AccessibilityInfo.isReduceMotionEnabled().then((reduced) => {
       if (reduced || cancelled) return;
-      Animated.loop(
+      animation = Animated.loop(
         Animated.timing(spin, {
           toValue: 1,
           duration: 1800,
           easing: Easing.linear,
           useNativeDriver: true,
         }),
-      ).start();
+      );
+      animation.start();
     });
 
     return () => {
       cancelled = true;
+      animation?.stop();
     };
   }, [spin]);
 
+  // Counter-clockwise, the direction storms actually spin in the northern hemisphere.
   const rotate = spin.interpolate({ inputRange: [0, 1], outputRange: ["0deg", "-360deg"] });
 
   return (
@@ -51,7 +53,7 @@ const TyphoonSpinner = ({ size = "medium", color = COLOR.accent }: TyphoonSpinne
       accessibilityLabel="Loading"
     >
       <Animated.View style={{ transform: [{ rotate }] }}>
-        <Ionicons name="aperture-outline" size={px} color={color} />
+        <TyphoonSymbol size={px} color={color} />
       </Animated.View>
     </View>
   );

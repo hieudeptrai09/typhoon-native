@@ -4,8 +4,8 @@ import FrownError from "@/lib/components/common/FrownError";
 import HeaderPager from "@/lib/components/common/HeaderPager";
 import { RefreshProvider } from "@/lib/components/common/RefreshContext";
 import ScreenLoading from "@/lib/components/common/ScreenLoading";
+import SwipePager from "@/lib/components/common/SwipePager";
 import PositionPageContent from "@/lib/components/position/PositionPageContent";
-import { TOTAL_POSITIONS } from "@/lib/constants/position";
 import type { PositionDetail } from "@/lib/types";
 import {
   getPositionFromSlug,
@@ -45,10 +45,7 @@ export default function PositionScreen() {
     <>
       <Stack.Screen
         options={{
-          // The counter belongs in the title: it is where you are, not something to act on.
-          title: isKnown
-            ? `${getPositionTitle(position)} · ${position}/${TOTAL_POSITIONS}`
-            : "Position",
+          title: isKnown ? getPositionTitle(position) : "Position",
           headerRight: isKnown
             ? () => (
                 <HeaderPager
@@ -62,22 +59,24 @@ export default function PositionScreen() {
         }}
       />
 
-      {!isKnown || isNotFound ? (
-        <View style={styles.state}>
-          <EmptyResults
-            icon="help-circle-outline"
-            description={`There is no naming position "${slug}".`}
-          />
-        </View>
-      ) : isLoading ? (
-        <ScreenLoading />
-      ) : isError && !data ? (
-        <FrownError onRetry={refetch} />
-      ) : (
-        <RefreshProvider value={refreshValue}>
-          <PositionPageContent detail={data} position={position} staleError={isError} />
-        </RefreshProvider>
-      )}
+      <SwipePager enabled={isKnown} onPrev={() => go(prevPosition)} onNext={() => go(nextPosition)}>
+        {!isKnown || isNotFound ? (
+          <View style={styles.state}>
+            <EmptyResults
+              icon="help-circle-outline"
+              description={`There is no naming position "${slug}".`}
+            />
+          </View>
+        ) : isLoading ? (
+          <ScreenLoading />
+        ) : isError && !data ? (
+          <FrownError onRetry={refetch} />
+        ) : (
+          <RefreshProvider value={refreshValue}>
+            <PositionPageContent detail={data} position={position} staleError={isError} />
+          </RefreshProvider>
+        )}
+      </SwipePager>
     </>
   );
 }

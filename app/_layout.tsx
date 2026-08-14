@@ -11,6 +11,7 @@ import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -30,8 +31,9 @@ export default function RootLayout() {
   // Giữ splash cho tới khi font sẵn sàng, tránh frame đầu render bằng font hệ thống rồi nhảy
   if (!loaded && !error) return null;
 
+  // Gesture handler needs a root view above every screen, or the swipe pagers never receive touches.
   return (
-    <>
+    <GestureHandlerRootView style={{ flex: 1 }}>
       <StatusBar style="light" />
       <Stack
         screenOptions={{
@@ -47,6 +49,6 @@ export default function RootLayout() {
         <Stack.Screen name="positions/[position]" />
         <Stack.Screen name="about" options={{ title: "About" }} />
       </Stack>
-    </>
+    </GestureHandlerRootView>
   );
 }

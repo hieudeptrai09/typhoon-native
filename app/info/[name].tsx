@@ -4,6 +4,7 @@ import FrownError from "@/lib/components/common/FrownError";
 import HeaderPager from "@/lib/components/common/HeaderPager";
 import { RefreshProvider } from "@/lib/components/common/RefreshContext";
 import ScreenLoading from "@/lib/components/common/ScreenLoading";
+import SwipePager from "@/lib/components/common/SwipePager";
 import InfoPageContent from "@/lib/components/info/InfoPageContent";
 import DidYouMean from "@/lib/components/search/DidYouMean";
 import type { SearchDetail } from "@/lib/types";
@@ -74,24 +75,26 @@ export default function InfoScreen() {
         }}
       />
 
-      {detail.isLoading ? (
-        <ScreenLoading />
-      ) : detail.isNotFound ? (
-        <View style={styles.state}>
-          <EmptyResults
-            icon="search-outline"
-            description={`No typhoon name matches "${name}".`}
-            // Suggestions are a nicety, so a failed lookup degrades to the plain empty state.
-            action={<DidYouMean names={similar.data ?? []} />}
-          />
-        </View>
-      ) : detail.isError && !detail.data ? (
-        <FrownError onRetry={detail.refetch} />
-      ) : (
-        <RefreshProvider value={refreshValue}>
-          <InfoPageContent detail={detail.data} name={name} staleError={detail.isError} />
-        </RefreshProvider>
-      )}
+      <SwipePager enabled={hasPager} onPrev={() => go(prevName)} onNext={() => go(nextName)}>
+        {detail.isLoading ? (
+          <ScreenLoading />
+        ) : detail.isNotFound ? (
+          <View style={styles.state}>
+            <EmptyResults
+              icon="search-outline"
+              description={`No typhoon name matches "${name}".`}
+              // Suggestions are a nicety, so a failed lookup degrades to the plain empty state.
+              action={<DidYouMean names={similar.data ?? []} />}
+            />
+          </View>
+        ) : detail.isError && !detail.data ? (
+          <FrownError onRetry={detail.refetch} />
+        ) : (
+          <RefreshProvider value={refreshValue}>
+            <InfoPageContent detail={detail.data} name={name} staleError={detail.isError} />
+          </RefreshProvider>
+        )}
+      </SwipePager>
     </>
   );
 }

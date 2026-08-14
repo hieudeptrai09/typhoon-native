@@ -1,9 +1,9 @@
-import { COLOR } from "@/lib/constants/theme";
-import { ActivityIndicator, StyleSheet, View } from "react-native";
+import TyphoonSpinner from "@/lib/components/common/TyphoonSpinner";
+import { StyleSheet, View } from "react-native";
 
 const ScreenLoading = () => (
   <View style={styles.root}>
-    <ActivityIndicator size="large" color={COLOR.accent} />
+    <TyphoonSpinner size="large" />
   </View>
 );
 
