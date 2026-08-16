@@ -6,26 +6,104 @@ import type { StormHighlight } from "@/lib/types";
 import { formatStormDateRange } from "@/lib/utils/date";
 import { capitalize } from "@/lib/utils/format";
 import { getPositionSlug, getPositionTitle } from "@/lib/utils/position";
+import { pickAnotherHighlight } from "@/lib/utils/storm/highlights";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
-import { useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  AccessibilityInfo,
+  Animated,
+  Easing,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 
 interface NowCardProps {
   query: QueryState<StormHighlight[]>;
 }
 
+// Spins the icon in place rather than swapping in a spinner, whose different size would shift the
+// counter beside it every time a refetch starts.
+const BusyIcon = ({ name, busy }: { name: "shuffle" | "refresh"; busy: boolean }) => {
+  const spin = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (!busy) {
+      spin.setValue(0);
+      return;
+    }
+
+    let animation: Animated.CompositeAnimation | undefined;
+    let cancelled = false;
+
+    AccessibilityInfo.isReduceMotionEnabled().then((reduced) => {
+      if (reduced || cancelled) return;
+      animation = Animated.loop(
+        Animated.timing(spin, {
+          toValue: 1,
+          duration: 800,
+          easing: Easing.linear,
+          useNativeDriver: true,
+        }),
+      );
+      animation.start();
+    });
+
+    return () => {
+      cancelled = true;
+      animation?.stop();
+    };
+  }, [busy, spin]);
+
+  const rotate = spin.interpolate({ inputRange: [0, 1], outputRange: ["0deg", "360deg"] });
+
+  return (
+    <Animated.View style={{ transform: [{ rotate }] }}>
+      <Ionicons name={name} size={18} color={busy ? COLOR.textFaint : COLOR.accent} />
+    </Animated.View>
+  );
+};
+
 const NowCard = ({ query }: NowCardProps) => {
   const router = useRouter();
-  const { data, isLoading, isError, refetch } = query;
-  const [offset, setOffset] = useState(0);
+  const { data, isLoading, isError, isRefetching, refetch } = query;
+  // Held by name, not by index: a refetch can reorder or shorten the list, and a fixed index would
+  // then land back on the storm the last tap drew away from.
+  const [shownName, setShownName] = useState<string | null>(null);
+  const leftBehind = useRef<string | null>(null);
 
-  // Several storms can be ongoing at once; the rotation only ever has one name coming next.
-  const candidates = data ?? [];
-  // Modulo rather than a clamp: a refetch can hand back a shorter list than the one being cycled.
-  const index = candidates.length > 0 ? offset % candidates.length : 0;
+  const candidates = useMemo(() => data ?? [], [data]);
+  const index = Math.max(0, candidates.findIndex((storm) => storm.name === shownName));
   const current = candidates[index] ?? null;
+  const hasRotation = candidates.length > 1;
+
+  // The tap drew against the list already in hand; this lands the same tap on the fresh one. Only
+  // redraws when that first pick no longer holds, since changing the card twice on one tap reads as
+  // a glitch rather than a shuffle.
+  useEffect(() => {
+    const pending = leftBehind.current;
+    if (pending === null || candidates.length === 0) return;
+    leftBehind.current = null;
+
+    // Functional form keeps shownName out of the deps: a tap writes it one render before the fresh
+    // list lands, which would fire this against the stale list.
+    setShownName((shown) => {
+      const holds = shown !== pending && candidates.some((storm) => storm.name === shown);
+      return holds ? shown : pickAnotherHighlight(candidates, pending);
+    });
+  }, [candidates]);
+
+  // A storm that started since the screen opened only exists on the server, so the draw and the
+  // refetch are one tap.
+  const onRefresh = () => {
+    Haptics.selectionAsync();
+    leftBehind.current = current?.name ?? null;
+    setShownName(pickAnotherHighlight(candidates, current?.name ?? null));
+    if (!isRefetching) refetch();
+  };
 
   if (!isLoading && !isError && !current) return null;
 
@@ -45,26 +123,31 @@ const NowCard = ({ query }: NowCardProps) => {
 
   return (
     <HomeCard
-      icon={isActive ? "pulse-outline" : "arrow-forward-circle-outline"}
+      icon={isActive ? "pulse-outline" : "time-outline"}
       title={isActive ? "Active now" : "Up next"}
       action={
-        candidates.length > 1 ? (
+        // The error state carries its own Retry, which this would duplicate.
+        isLoading || isError ? undefined : (
           <Pressable
-            onPress={() => {
-              Haptics.selectionAsync();
-              setOffset((value) => value + 1);
-            }}
+            onPress={onRefresh}
             hitSlop={12}
-            style={({ pressed }) => [styles.shuffle, pressed && styles.pressed]}
+            style={({ pressed }) => [styles.refreshButton, pressed && styles.pressed]}
             accessibilityRole="button"
-            accessibilityLabel="Show another ongoing storm"
+            accessibilityState={{ busy: isRefetching }}
+            accessibilityLabel={
+              hasRotation
+                ? `Refresh and show another storm, ${index + 1} of ${candidates.length}`
+                : "Refresh"
+            }
           >
-            <Text style={styles.counter}>
-              {index + 1}/{candidates.length}
-            </Text>
-            <Ionicons name="shuffle" size={18} color={COLOR.accent} />
+            {hasRotation && (
+              <Text style={styles.counter}>
+                {index + 1}/{candidates.length}
+              </Text>
+            )}
+            <BusyIcon name={hasRotation ? "shuffle" : "refresh"} busy={isRefetching} />
           </Pressable>
-        ) : undefined
+        )
       }
       isLoading={isLoading}
       isError={isError}
@@ -122,7 +205,7 @@ const styles = StyleSheet.create({
   pressed: {
     opacity: 0.6,
   },
-  shuffle: {
+  refreshButton: {
     flexDirection: "row",
     alignItems: "center",
     gap: 6,

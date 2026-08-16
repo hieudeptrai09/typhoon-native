@@ -39,7 +39,7 @@ export const VIEW_DESCRIPTION: Record<string, string> = {
   highlights: "The record holder in each naming position",
   average: "Mean intensity of the storms in each group",
   recurrence: "Typical gap in years between reuses of a name",
-  avgdate: "When in the season each name usually appears",
+  avgdate: "When in the season each group's storms start and end",
 };
 
 const filterOption = (value: string, label: string): SegmentOption => ({
@@ -69,5 +69,10 @@ export const FILTER_OPTIONS: Record<string, SegmentOption[]> = {
     filterOption("month", "Month"),
   ],
   recurrence: [filterOption("position", "Position"), filterOption("name", "Name")],
-  avgdate: [filterOption("position", "Position"), filterOption("name", "Name")],
+  avgdate: [
+    filterOption("position", "Position"),
+    filterOption("name", "Name"),
+    filterOption("country", "Country"),
+    filterOption("year", "Year"),
+  ],
 };

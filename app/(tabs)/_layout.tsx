@@ -1,23 +1,29 @@
 import { COLOR, SPACE } from "@/lib/constants/theme";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { Link, Tabs } from "expo-router";
-import { Pressable } from "react-native";
+import { Tabs, useRouter } from "expo-router";
+import { Pressable, StyleSheet } from "react-native";
 
 const ACTIVE = COLOR.accent;
 const INACTIVE = COLOR.textMuted;
 
-const AboutButton = () => (
-  <Link href="/about" asChild>
+// Navigates by router rather than wrapping this in <Link asChild>: that path renders through a
+// Radix Slot, which merges `style` by object spread and so flattens a style *function* to {} —
+// silently dropping both the inset and the pressed state.
+const AboutButton = () => {
+  const router = useRouter();
+
+  return (
     <Pressable
+      onPress={() => router.push("/about")}
       hitSlop={12}
-      style={({ pressed }) => ({ marginRight: SPACE.lg, opacity: pressed ? 0.6 : 1 })}
+      style={({ pressed }) => [styles.about, pressed && styles.pressed]}
       accessibilityRole="button"
       accessibilityLabel="About this app"
     >
       <Ionicons name="information-circle-outline" size={24} color={COLOR.textInverse} />
     </Pressable>
-  </Link>
-);
+  );
+};
 
 export default function TabsLayout() {
   return (
@@ -76,3 +82,13 @@ export default function TabsLayout() {
     </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  // Mirrors the 16 that react-navigation insets the header title by, so the two edges match.
+  about: {
+    marginRight: SPACE.lg,
+  },
+  pressed: {
+    opacity: 0.6,
+  },
+});

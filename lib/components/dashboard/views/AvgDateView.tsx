@@ -18,7 +18,7 @@ import {
   type AvgDates,
 } from "@/lib/utils/storm/dates";
 import type { SortField } from "@/lib/utils/table";
-import { useMemo } from "react";
+import { useMemo, type ReactNode } from "react";
 import { StyleSheet, Text } from "react-native";
 
 interface AvgDateViewProps {
@@ -27,10 +27,13 @@ interface AvgDateViewProps {
   onCellClick: (data: number | string, key: string) => void;
 }
 
+type AvgDateFilter = "position" | "name" | "country" | "year";
+
 interface AvgDateRow {
-  position: number;
+  position?: number;
   name?: string;
-  country: string;
+  country?: string;
+  year?: number;
   count: number;
   startDoy: number;
   endDoy: number;
@@ -46,13 +49,19 @@ const DateText = ({ doy }: { doy: number }) => (
 const positionField: SortField<AvgDateRow> = {
   key: "position",
   label: "Position",
-  compare: (a, b) => a.position - b.position,
+  compare: (a, b) => (a.position ?? 0) - (b.position ?? 0),
 };
 
 const countryField: SortField<AvgDateRow> = {
   key: "country",
   label: "Contributed by",
-  compare: (a, b) => a.country.localeCompare(b.country),
+  compare: (a, b) => (a.country ?? "").localeCompare(b.country ?? ""),
+};
+
+const yearField: SortField<AvgDateRow> = {
+  key: "year",
+  label: "Year",
+  compare: (a, b) => (a.year ?? 0) - (b.year ?? 0),
 };
 
 const countField: SortField<AvgDateRow> = {
@@ -85,41 +94,99 @@ const nameField: SortField<AvgDateRow> = {
   compare: (a, b) => (a.name ?? "").localeCompare(b.name ?? ""),
 };
 
-const makeSortFields = (filterType: "position" | "name"): SortField<AvgDateRow>[] =>
-  filterType === "name"
-    ? [nameField, countryField, positionField, countField, startField, endField, durationField]
-    : [positionField, countryField, countField, startField, endField, durationField];
+const makeSortFields = (filterType: AvgDateFilter): SortField<AvgDateRow>[] => {
+  const tail = [countField, startField, endField, durationField];
+
+  switch (filterType) {
+    case "name":
+      return [nameField, countryField, positionField, ...tail];
+    case "country":
+      return [countryField, ...tail];
+    case "year":
+      return [yearField, ...tail];
+    case "position":
+    default:
+      return [positionField, countryField, ...tail];
+  }
+};
 
 const buildRows = (
-  filterType: "position" | "name",
+  filterType: AvgDateFilter,
   avgDateMap: Record<string, AvgDates>,
   groupedStorms: Record<string, Storm[]>,
 ): AvgDateRow[] =>
   Object.entries(avgDateMap).map(([key, dates]) => {
     const storms = groupedStorms[key] || [];
     const base = {
-      country: storms[0]?.country ?? "",
       count: storms.length,
       startDoy: dates.startDoy,
       endDoy: dates.endDoy,
       avgDuration: calculateAvgDuration(storms),
     };
-    return filterType === "name"
-      ? { name: key, position: storms[0]?.position ?? 0, ...base }
-      : { position: parseInt(key), ...base };
+
+    switch (filterType) {
+      case "name":
+        return {
+          name: key,
+          country: storms[0]?.country ?? "",
+          position: storms[0]?.position ?? 0,
+          ...base,
+        };
+      case "country":
+        return { country: key, ...base };
+      case "year":
+        return { year: parseInt(key), ...base };
+      case "position":
+      default:
+        return { position: parseInt(key), country: storms[0]?.country ?? "", ...base };
+    }
   });
 
-const AvgDateView = ({ params, stormsData, onCellClick }: AvgDateViewProps) => {
-  const filterType = (params.filter || "position") as "position" | "name";
+// The naming list only starts in 2000; earlier seasons are a few storms apiece. Same cutoff as the
+// average-by-year list, so the two views agree on which years exist.
+const YEAR_CUTOFF = 2000;
 
-  const avgDateMap = useMemo(
-    () => calculateAvgDatesByGroup(stormsData, filterType),
+const rowKeyOf = (filterType: AvgDateFilter, row: AvgDateRow): string => {
+  switch (filterType) {
+    case "name":
+      return row.name ?? "";
+    case "country":
+      return row.country ?? "";
+    case "year":
+      return String(row.year);
+    case "position":
+    default:
+      return String(row.position);
+  }
+};
+
+const titleOf = (filterType: AvgDateFilter, row: AvgDateRow): ReactNode => {
+  switch (filterType) {
+    case "country":
+      return <CountryFlag country={row.country ?? ""} size={20} showName />;
+    case "position":
+      return getPositionTitle(row.position ?? 0);
+    default:
+      return rowKeyOf(filterType, row);
+  }
+};
+
+const AvgDateView = ({ params, stormsData, onCellClick }: AvgDateViewProps) => {
+  const filterType = (params.filter || "position") as AvgDateFilter;
+
+  const groupSource = useMemo(
+    () => (filterType === "year" ? stormsData.filter((s) => s.year >= YEAR_CUTOFF) : stormsData),
     [stormsData, filterType],
   );
 
+  const avgDateMap = useMemo(
+    () => calculateAvgDatesByGroup(groupSource, filterType),
+    [groupSource, filterType],
+  );
+
   const groupedStorms = useMemo(
-    () => getGroupedStorms(stormsData, filterType),
-    [stormsData, filterType],
+    () => getGroupedStorms(groupSource, filterType),
+    [groupSource, filterType],
   );
 
   const avgDateValuesForGrid = useMemo<Record<number, AvgDates>>(() => {
@@ -152,22 +219,23 @@ const AvgDateView = ({ params, stormsData, onCellClick }: AvgDateViewProps) => {
   }
 
   const data = buildRows(filterType, avgDateMap, groupedStorms);
+  if (filterType === "year") data.sort((a, b) => (a.year ?? 0) - (b.year ?? 0));
 
   return (
     <DataList<AvgDateRow>
       data={data}
-      keyExtractor={(row) => (filterType === "name" ? (row.name ?? "") : String(row.position))}
+      keyExtractor={(row) => rowKeyOf(filterType, row)}
       sortFields={sortFields}
       sortKey={`avgdate/${filterType}`}
-      onRowPress={(row) =>
-        filterType === "name"
-          ? onCellClick(row.name ?? "", "name")
-          : onCellClick(row.position, "position")
-      }
+      onRowPress={(row) => {
+        const value = row[filterType];
+        if (value === undefined) return;
+        onCellClick(value, filterType);
+      }}
       renderCard={(row, index) => (
         <DataCard
           ordinal={index + 1}
-          title={filterType === "name" ? (row.name ?? "") : getPositionTitle(row.position)}
+          title={titleOf(filterType, row)}
           accentColor={getAvgDateColor(getDoyMonth(row.startDoy))}
           trailing={<Text style={styles.duration}>{formatDuration(row.avgDuration)}</Text>}
           fields={[
@@ -183,14 +251,18 @@ const AvgDateView = ({ params, stormsData, onCellClick }: AvgDateViewProps) => {
               wide: true,
             },
             ...(filterType === "name"
-              ? [{ label: "Position", value: getPositionTitle(row.position) }]
+              ? [{ label: "Position", value: getPositionTitle(row.position ?? 0) }]
               : []),
             { label: "Storm count", value: String(row.count) },
-            {
-              label: "Contributed by",
-              value: <CountryFlag country={row.country} size={16} showName />,
-              wide: true,
-            },
+            ...(row.country && filterType !== "country"
+              ? [
+                  {
+                    label: "Contributed by",
+                    value: <CountryFlag country={row.country} size={16} showName />,
+                    wide: true,
+                  },
+                ]
+              : []),
           ]}
           pressable
         />

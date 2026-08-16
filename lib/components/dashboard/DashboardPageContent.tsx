@@ -132,8 +132,11 @@ export default function DashboardPageContent({
     }
 
     if (view === "avgdate") {
-      const title = key === "position" ? getPositionTitle(Number(data)) : String(data);
-      setSelectedData({ title, storms, target });
+      const avgDateTitles: Record<string, string> = {
+        position: getPositionTitle(Number(data)),
+        year: `Year ${data}`,
+      };
+      setSelectedData({ title: avgDateTitles[key] ?? String(data), storms, target });
       setIsAvgDateModalOpen(true);
       return;
     }

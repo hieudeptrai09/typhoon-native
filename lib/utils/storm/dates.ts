@@ -64,7 +64,7 @@ export const calculateAvgDates = (storms: Storm[]): AvgDates => ({
 
 export const calculateAvgDatesByGroup = (
   stormsData: Storm[],
-  groupBy: "position" | "name",
+  groupBy: string,
 ): Record<string, AvgDates> => {
   const grouped = getGroupedStorms(stormsData, groupBy);
   const result: Record<string, AvgDates> = {};

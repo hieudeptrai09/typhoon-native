@@ -14,7 +14,7 @@
     "android": {
       "package": "com.thonglicatra97.typhoonnative",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#FFFFFF",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
@@ -31,7 +31,7 @@
         "expo-splash-screen",
         {
           "image": "./assets/images/splash-icon.png",
-          "imageWidth": 200,
+          "imageWidth": 275,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff",
           "dark": {

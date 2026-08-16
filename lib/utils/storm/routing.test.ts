@@ -67,6 +67,9 @@ describe("slugToParams", () => {
     expect(slugToParams(["average", "month"]).mode).toBe("list");
     expect(slugToParams(["average", "year"]).mode).toBe("list");
     expect(slugToParams(["average", "position"]).mode).toBe("table");
+    expect(slugToParams(["avgdate", "country"]).mode).toBe("list");
+    expect(slugToParams(["avgdate", "year"]).mode).toBe("list");
+    expect(slugToParams(["avgdate", "position"]).mode).toBe("table");
   });
 });
 
@@ -77,6 +80,13 @@ describe("isListOnly / isGridOnly", () => {
     expect(isListOnly("average", "year")).toBe(true);
     expect(isListOnly("average", "position")).toBe(false);
     expect(isListOnly("recurrence", "country")).toBe(false);
+  });
+
+  it("marks the avg-date filters that have no grid to fall back on", () => {
+    expect(isListOnly("avgdate", "country")).toBe(true);
+    expect(isListOnly("avgdate", "year")).toBe(true);
+    expect(isListOnly("avgdate", "position")).toBe(false);
+    expect(isListOnly("avgdate", "name")).toBe(false);
   });
 
   it("marks all-storms-by-position as grid only", () => {
