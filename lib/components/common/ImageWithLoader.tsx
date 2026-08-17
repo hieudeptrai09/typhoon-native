@@ -1,9 +1,20 @@
+import ImageCredit from "@/lib/components/common/ImageCredit";
 import TyphoonSpinner from "@/lib/components/common/TyphoonSpinner";
-import { COLOR } from "@/lib/constants/theme";
+import { COLOR, RADIUS, SPACE } from "@/lib/constants/theme";
+import type { ImageCredit as ImageCreditType } from "@/lib/types";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Image, type ImageContentFit } from "expo-image";
 import { useState } from "react";
-import { StyleSheet, Text, View, type StyleProp, type ViewStyle } from "react-native";
+import {
+  Modal,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+  type StyleProp,
+  type ViewStyle,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface ImageWithLoaderProps {
   source?: string | null;
@@ -13,6 +24,7 @@ interface ImageWithLoaderProps {
   style?: StyleProp<ViewStyle>;
   spinnerSize?: "small" | "medium" | "large";
   showErrorLabel?: boolean;
+  credit?: ImageCreditType;
 }
 
 const ImageWithLoader = ({
@@ -22,10 +34,14 @@ const ImageWithLoader = ({
   style,
   spinnerSize = "medium",
   showErrorLabel = true,
+  credit,
 }: ImageWithLoaderProps) => {
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
+  const [open, setOpen] = useState(false);
+  const insets = useSafeAreaInsets();
 
+  // Nothing to enlarge, so the placeholder stays inert rather than opening an empty viewer.
   if (!source || hasError) {
     return (
       <View
@@ -40,26 +56,63 @@ const ImageWithLoader = ({
   }
 
   return (
-    <View style={[styles.root, style]}>
-      <Image
-        source={{ uri: source }}
-        style={StyleSheet.absoluteFill}
-        contentFit={contentFit}
-        transition={200}
-        accessible
-        accessibilityLabel={label}
-        onLoadEnd={() => setIsLoading(false)}
-        onError={() => {
-          setIsLoading(false);
-          setHasError(true);
-        }}
-      />
-      {isLoading && (
-        <View style={styles.overlay} pointerEvents="none">
-          <TyphoonSpinner size={spinnerSize} />
+    <>
+      <Pressable
+        onPress={() => setOpen(true)}
+        accessibilityRole="imagebutton"
+        accessibilityLabel={`${label}. Tap to enlarge.`}
+      >
+        <View style={[styles.root, style]}>
+          <Image
+            source={{ uri: source }}
+            style={StyleSheet.absoluteFill}
+            contentFit={contentFit}
+            transition={200}
+            accessible
+            accessibilityLabel={label}
+            onLoadEnd={() => setIsLoading(false)}
+            onError={() => {
+              setIsLoading(false);
+              setHasError(true);
+            }}
+          />
+          {isLoading && (
+            <View style={styles.overlay} pointerEvents="none">
+              <TyphoonSpinner size={spinnerSize} />
+            </View>
+          )}
         </View>
-      )}
-    </View>
+      </Pressable>
+
+      <Modal
+        visible={open}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+        onRequestClose={() => setOpen(false)}
+      >
+        <Pressable style={styles.viewer} onPress={() => setOpen(false)} accessibilityRole="button">
+          <Image
+            source={{ uri: source }}
+            style={styles.full}
+            contentFit="contain"
+            transition={150}
+            accessible
+            accessibilityLabel={label}
+          />
+
+          {credit?.author ? (
+            <View style={[styles.caption, { paddingBottom: insets.bottom + SPACE.lg }]}>
+              <ImageCredit credit={credit} align="center" />
+            </View>
+          ) : null}
+
+          <View style={[styles.close, { top: insets.top + SPACE.sm }]}>
+            <Ionicons name="close" size={26} color={COLOR.textInverse} />
+          </View>
+        </Pressable>
+      </Modal>
+    </>
   );
 };
 
@@ -85,6 +138,27 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: COLOR.textFaint,
     textAlign: "center",
+  },
+  viewer: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.92)",
+  },
+  full: {
+    flex: 1,
+  },
+  caption: {
+    paddingHorizontal: SPACE.xl,
+  },
+  // Decoration: the whole backdrop is the dismiss target, so this must not eat the tap itself.
+  close: {
+    position: "absolute",
+    right: SPACE.md,
+    alignItems: "center",
+    justifyContent: "center",
+    width: 44,
+    height: 44,
+    borderRadius: RADIUS.pill,
+    backgroundColor: "rgba(255, 255, 255, 0.15)",
   },
 });
 

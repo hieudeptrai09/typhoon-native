@@ -35,6 +35,7 @@ const SuggestionCard = ({ suggestion }: SuggestionCardProps) => {
               style={styles.image}
               spinnerSize="small"
               showErrorLabel={false}
+              credit={suggestion.imageCredit}
             />
             <ImageCredit credit={suggestion.imageCredit} align="end" />
           </View>

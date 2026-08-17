@@ -75,7 +75,12 @@ const NameDetailsContent = ({
 
       {name.image ? (
         <View>
-          <ImageWithLoader source={name.image} label={name.name} style={styles.image} />
+          <ImageWithLoader
+            source={name.image}
+            label={name.name}
+            style={styles.image}
+            credit={name.imageCredit}
+          />
           <ImageCredit credit={name.imageCredit} />
         </View>
       ) : null}

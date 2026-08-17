@@ -1,10 +1,10 @@
 import CountryFlag from "@/lib/components/common/CountryFlag";
 import EmptyResults from "@/lib/components/common/EmptyResults";
 import ImageCredit from "@/lib/components/common/ImageCredit";
+import ImageWithLoader from "@/lib/components/common/ImageWithLoader";
 import { useRefreshControl } from "@/lib/components/common/RefreshContext";
 import Section from "@/lib/components/common/Section";
 import StaleBanner from "@/lib/components/common/StaleBanner";
-import ZoomableImage from "@/lib/components/common/ZoomableImage";
 import StormCard from "@/lib/components/storm/StormCard";
 import StormStats from "@/lib/components/storm/StormStats";
 import { BACKGROUND_BADGE, TEXT_COLOR_WHITE_BACKGROUND } from "@/lib/constants";
@@ -97,7 +97,7 @@ function NameTimelineItem({ name, storms }: { name: TyphoonName | RetiredName; s
 
         {name.image ? (
           <View style={styles.timelineImageBlock}>
-            <ZoomableImage
+            <ImageWithLoader
               source={name.image}
               label={name.name}
               style={styles.timelineImage}
