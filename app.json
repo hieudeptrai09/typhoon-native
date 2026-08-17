@@ -9,7 +9,8 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.thonglicatra97.typhoonnative"
     },
     "android": {
       "package": "com.thonglicatra97.typhoonnative",
