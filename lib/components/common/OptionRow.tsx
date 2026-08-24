@@ -22,8 +22,12 @@ const OptionRow = ({ option, selected, onPress }: OptionRowProps) => (
     accessibilityState={{ selected }}
     accessibilityLabel={option.label}
   >
-    {option.icon && (
-      <Ionicons name={option.icon} size={18} color={selected ? COLOR.accent : COLOR.textMuted} />
+    {option.swatch ? (
+      <View style={[styles.swatch, { backgroundColor: option.swatch }]} />
+    ) : (
+      option.icon && (
+        <Ionicons name={option.icon} size={18} color={selected ? COLOR.accent : COLOR.textMuted} />
+      )
     )}
     <Text style={[styles.label, selected && styles.labelActive]} numberOfLines={1}>
       {option.label}
@@ -85,6 +89,14 @@ const styles = StyleSheet.create({
   },
   pressed: {
     opacity: 0.7,
+  },
+  // Sized to the icon slot it replaces, so rows with and without a swatch align.
+  swatch: {
+    width: 18,
+    height: 18,
+    borderRadius: 5,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: COLOR.borderStrong,
   },
   label: {
     flex: 1,

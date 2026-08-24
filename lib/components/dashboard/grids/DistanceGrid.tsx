@@ -22,7 +22,7 @@ const DistanceGrid = ({
       const dist = distanceValues?.[position];
       if (dist === undefined) return undefined;
       // A negative gap means there was nothing to measure against.
-      return dist < 0 ? "Recurrence not measurable" : `Avg recurrence ${dist.toFixed(2)} years`;
+      return [dist < 0 ? "Recurrence not measurable" : `Avg recurrence ${dist.toFixed(2)} years`];
     },
     [distanceValues],
   );

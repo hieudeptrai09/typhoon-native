@@ -6,6 +6,8 @@ interface ViewOptionsSheetProps {
   open: boolean;
   onClose: () => void;
   filterOptions: SegmentOption[];
+  /** "Group by" for most views; the intensity view picks a slice, not a grouping. */
+  filterLabel: string;
   filter: string;
   onFilterChange: (filter: string) => void;
   /** Omitted when the current view only supports one layout. */
@@ -18,6 +20,7 @@ const ViewOptionsSheet = ({
   open,
   onClose,
   filterOptions,
+  filterLabel,
   filter,
   onFilterChange,
   modeOptions,
@@ -26,7 +29,7 @@ const ViewOptionsSheet = ({
 }: ViewOptionsSheetProps) => (
   <DefModal open={open} onClose={onClose} title="View options">
     <OptionGroup
-      label="Group by"
+      label={filterLabel}
       options={filterOptions}
       value={filter}
       onChange={onFilterChange}

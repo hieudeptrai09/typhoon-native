@@ -29,9 +29,9 @@ describe("getIntensityFromNumber", () => {
     expect(getIntensityFromNumber(-1)).toBe("TD");
   });
 
-  it("maps ranks below TD onto untracked", () => {
-    expect(getIntensityFromNumber(-2)).toBe("NT");
-    expect(getIntensityFromNumber(-5)).toBe("NT");
+  it("maps ranks below TD onto monsoon depression", () => {
+    expect(getIntensityFromNumber(-2)).toBe("MD");
+    expect(getIntensityFromNumber(-5)).toBe("MD");
   });
 });
 
@@ -56,9 +56,9 @@ describe("calculateAverage", () => {
     expect(calculateAverage([storm({ intensity: "TD" })])).toBe(-1);
   });
 
-  it("ranks storms the JTWC never tracked at -2, below TD", () => {
-    expect(calculateAverage([storm({ intensity: "NT" })])).toBe(-2);
-    expect(calculateAverage([storm({ intensity: "4" }), storm({ intensity: "NT" })])).toBe(1);
+  it("ranks monsoon depressions at -2, below TD", () => {
+    expect(calculateAverage([storm({ intensity: "MD" })])).toBe(-2);
+    expect(calculateAverage([storm({ intensity: "4" }), storm({ intensity: "MD" })])).toBe(1);
   });
 });
 

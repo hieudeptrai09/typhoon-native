@@ -10,7 +10,7 @@ import { StyleSheet, Text, View } from "react-native";
 interface PositionCellGridProps {
   stormsData: Storm[];
   renderCell: (position: number) => GridCell;
-  renderValue?: (position: number) => string | undefined;
+  renderValue?: (position: number) => string[] | undefined;
   onPositionPress?: (position: number) => void;
 }
 
@@ -33,7 +33,7 @@ const PositionCellGrid = ({
   }, [stormsData]);
 
   const renderReadout = (position: number) => {
-    const value = renderValue?.(position);
+    const lines = renderValue?.(position) ?? [];
     const names = namesByPosition.get(position) ?? [];
 
     return (
@@ -42,7 +42,11 @@ const PositionCellGrid = ({
           <Text style={styles.readoutTitle}>{getPositionTitle(position)}</Text>
           <CountryFlag country={countryOf(position)} size={16} showName />
         </View>
-        {value ? <Text style={styles.readoutValue}>{value}</Text> : null}
+        {lines.map((line) => (
+          <Text key={line} style={styles.readoutValue}>
+            {line}
+          </Text>
+        ))}
         <Text style={styles.readoutNames} numberOfLines={2}>
           {names.length > 0 ? names.join(", ") : "No storms recorded"}
         </Text>

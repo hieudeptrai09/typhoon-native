@@ -2,7 +2,7 @@ import { COLOR } from "@/lib/constants/theme";
 import type { IntensityType } from "@/lib/types";
 
 export const BACKGROUND_BADGE: Record<IntensityType, string> = {
-  NT: "#CBD5E1",
+  MD: "#CBD5E1",
   TD: "#00CCFF",
   TS: "#00FF00",
   STS: "#C0FFC0",
@@ -14,19 +14,19 @@ export const BACKGROUND_BADGE: Record<IntensityType, string> = {
 };
 
 export const TEXT_COLOR_BADGE: Record<IntensityType, string> = {
-  NT: "#334155",
+  MD: "#334155",
   TD: "#003D4C",
   TS: "#005500",
   STS: "#004D26",
   1: "#666600",
   2: "#663300",
-  3: "#3D1800",
+  3: "#FFFFFF",
   4: "#FFFFFF",
   5: "#FFFFFF",
 };
 
 export const TEXT_COLOR_WHITE_BACKGROUND: Record<IntensityType, string> = {
-  NT: "#475569",
+  MD: "#475569",
   TD: "#0099CC",
   TS: "#00AC00",
   STS: "#008844",
@@ -62,7 +62,6 @@ export const HIGHLIGHT_CELL_COLOR: Record<string, string> = {
   strongest: "#fda4af",
   first: "#93c5fd",
   last: "#fdba74",
-  untracked: "#cbd5e1",
 };
 
 export const HIGHLIGHT_FALLBACK_COLOR = "#86efac";

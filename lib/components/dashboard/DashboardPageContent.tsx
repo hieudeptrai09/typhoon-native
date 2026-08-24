@@ -13,6 +13,7 @@ import AverageView from "@/lib/components/dashboard/views/AverageView";
 import AvgDateView from "@/lib/components/dashboard/views/AvgDateView";
 import DistanceView from "@/lib/components/dashboard/views/DistanceView";
 import HighlightsView from "@/lib/components/dashboard/views/HighlightsView";
+import IntensityView from "@/lib/components/dashboard/views/IntensityView";
 import StormsView from "@/lib/components/dashboard/views/StormsView";
 import DashboardControlBar from "@/lib/components/dashboard/widgets/DashboardControlBar";
 import { MONTH_NAMES } from "@/lib/constants";
@@ -184,6 +185,8 @@ export default function DashboardPageContent({
             );
           case "highlights":
             return <HighlightsView params={currentParams} stormsData={stormsData} />;
+          case "intensity":
+            return <IntensityView params={currentParams} stormsData={stormsData} />;
           case "average":
             return (
               <AverageView

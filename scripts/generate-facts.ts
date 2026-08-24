@@ -744,7 +744,7 @@ async function generateFacts(): Promise<string[]> {
   // Every storm the JTWC never issued live warnings on (Haiyan included, even though it was
   // later numbered — see the absurdity fact below).
   rowsResult = await rows(
-    `SELECT name, year FROM storms WHERE intensity = 'NT' ORDER BY year, name`,
+    `SELECT name, year FROM storms WHERE intensity = 'MD' ORDER BY year, name`,
   );
   if (rowsResult.length > 0) {
     const items = rowsResult.map((r) => `${r.name} (${r.year})`);
@@ -763,7 +763,7 @@ async function generateFacts(): Promise<string[]> {
     SELECT s.name, s.year, LPAD(s.jtwcnumber::text, 2, '0') || p.suffix::text AS designation
     FROM storms s
     INNER JOIN positions p ON s.position = p.id
-    WHERE s.intensity = 'NT' AND s.jtwcnumber IS NOT NULL
+    WHERE s.intensity = 'MD' AND s.jtwcnumber IS NOT NULL
     ORDER BY s.year, s.name
   `);
   if (rowsResult.length > 0) {

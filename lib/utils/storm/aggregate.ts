@@ -11,7 +11,7 @@ export const getIntensityFromNumber = (avgNumber: number): IntensityType => {
   if (rounded === 1) return "1";
   if (rounded === 0) return "TS";
   if (rounded === -1) return "TD";
-  if (rounded <= -2) return "NT";
+  if (rounded <= -2) return "MD";
   return "TD";
 };
 

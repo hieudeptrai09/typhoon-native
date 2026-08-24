@@ -26,7 +26,7 @@ const AverageGrid = ({
     (position: number) => {
       const avg = averageValues?.[position];
       if (avg === undefined) return undefined;
-      return `Avg ${avg.toFixed(2)} — ${INTENSITY_LABEL[getIntensityFromNumber(avg)]}`;
+      return [`Avg ${avg.toFixed(2)} — ${INTENSITY_LABEL[getIntensityFromNumber(avg)]}`];
     },
     [averageValues],
   );

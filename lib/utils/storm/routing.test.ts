@@ -17,7 +17,7 @@ describe("isValidStormsSlug", () => {
   });
 
   it("rejects every one-segment slug — the filter is never optional", () => {
-    for (const slug of ["all", "highlights", "average", "recurrence", "avgdate"]) {
+    for (const slug of ["all", "highlights", "intensity", "average", "recurrence", "avgdate"]) {
       expect(isValidStormsSlug([slug])).toBe(false);
     }
     for (const slug of ["list", "names", "positions", "storms"]) {
@@ -29,6 +29,10 @@ describe("isValidStormsSlug", () => {
     expect(isValidStormsSlug(["average", "country"])).toBe(true);
     expect(isValidStormsSlug(["all", "position"])).toBe(true);
     expect(isValidStormsSlug(["all", "country"])).toBe(false); // country is average-only
+    expect(isValidStormsSlug(["intensity", "md"])).toBe(true);
+    expect(isValidStormsSlug(["intensity", "cat5"])).toBe(true);
+    expect(isValidStormsSlug(["intensity", "untracked"])).toBe(false); // not an intensity slug
+    expect(isValidStormsSlug(["intensity", "5"])).toBe(false); // the filter keys on the slug, not the enum
     expect(isValidStormsSlug(["list", "position"])).toBe(false); // list is not a view
   });
 
@@ -98,6 +102,11 @@ describe("isListOnly / isGridOnly", () => {
 describe("paramsForView / paramsForFilter", () => {
   it("pairs a view with its default filter and a legal mode", () => {
     expect(paramsForView("all")).toEqual({ view: "all", filter: "position", mode: "table" });
+    expect(paramsForView("intensity")).toEqual({
+      view: "intensity",
+      filter: "md",
+      mode: "table",
+    });
     expect(paramsForView("average")).toEqual({
       view: "average",
       filter: "position",
@@ -175,6 +184,14 @@ describe("getCanonicalStormsSlugs", () => {
     expect(canonical).toContainEqual(["all", "position"]);
     expect(canonical).toContainEqual(["all", "name", "list"]);
   });
+
+  it("gives every intensity both a grid and a list page", () => {
+    expect(canonical).toContainEqual(["intensity", "md"]);
+    expect(canonical).toContainEqual(["intensity", "md", "list"]);
+    expect(canonical).toContainEqual(["intensity", "cat5"]);
+    expect(canonical).toContainEqual(["intensity", "cat5", "list"]);
+    expect(canonical.filter(([view]) => view === "intensity")).toHaveLength(18);
+  });
 });
 
 describe("getLegendKind", () => {
@@ -195,11 +212,13 @@ describe("getLegendKind", () => {
     expect(kind("average", "position", "table")).toBe("intensity");
     expect(kind("average", "name", "table")).toBe("intensity");
     expect(kind("average", "year", "list")).toBe("intensity");
+    expect(kind("intensity", "cat5", "table")).toBe("intensity");
+    expect(kind("intensity", "md", "list")).toBe("intensity");
   });
 
   it("gives the categorical cell tints their own mini-key", () => {
     expect(kind("highlights", "strongest", "table")).toBe("highlight");
-    expect(kind("highlights", "untracked", "table")).toBe("highlight");
+    expect(kind("highlights", "last", "table")).toBe("highlight");
   });
 
   it("keeps the gap and month legends on their own views", () => {

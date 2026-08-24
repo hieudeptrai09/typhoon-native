@@ -1,6 +1,7 @@
 import {
   DASHBOARD_ICON_MAP,
   FILTER_OPTIONS,
+  getFilterLabel,
   MODE_OPTIONS,
   VIEW_DESCRIPTION,
   VIEW_TABS,
@@ -29,6 +30,8 @@ const DashboardControlBar = ({ params, onChange, onSelectView }: DashboardContro
 
   const filterOptions = FILTER_OPTIONS[view] ?? [];
   const activeFilter = filterOptions.find((option) => option.value === filter) ?? filterOptions[0];
+  const filterLabel = getFilterLabel(view);
+  const pillLabel = activeFilter?.shortLabel ?? activeFilter?.label ?? filter;
 
   const layoutLocked = isGridOnly(view, filter) || isListOnly(view, filter);
   const modeLabel = MODE_OPTIONS.find((option) => option.value === mode)?.label;
@@ -56,6 +59,10 @@ const DashboardControlBar = ({ params, onChange, onSelectView }: DashboardContro
                   isActive && styles.tabActive,
                   pressed && !isActive && styles.pressed,
                 ]}
+                // The circle is narrower than a comfortable target so six tabs and a readable
+                // label fit a 360dp screen; 3dp each side meets its neighbour exactly in the
+                // 6dp gap, leaving no dead strip between them.
+                hitSlop={{ left: 3, right: 3, top: 8, bottom: 8 }}
                 accessibilityRole="tab"
                 accessibilityState={{ selected: isActive }}
                 accessibilityLabel={label}
@@ -90,15 +97,19 @@ const DashboardControlBar = ({ params, onChange, onSelectView }: DashboardContro
           onPress={() => setSheetOpen(true)}
           style={({ pressed }) => [styles.options, pressed && styles.pressed]}
           accessibilityRole="button"
-          accessibilityLabel={`View options. Grouped by ${activeFilter?.label ?? filter}${
+          accessibilityLabel={`View options. ${filterLabel}: ${activeFilter?.label ?? filter}${
             layoutLocked ? "" : `, ${modeLabel} layout`
           }`}
         >
-          {activeFilter?.icon && (
-            <Ionicons name={activeFilter.icon} size={15} color={COLOR.accent} />
+          {activeFilter?.swatch ? (
+            <View style={[styles.swatch, { backgroundColor: activeFilter.swatch }]} />
+          ) : (
+            activeFilter?.icon && (
+              <Ionicons name={activeFilter.icon} size={15} color={COLOR.accent} />
+            )
           )}
           <Text style={styles.optionsLabel} numberOfLines={1}>
-            {activeFilter?.label ?? filter}
+            {pillLabel}
             {layoutLocked ? "" : ` · ${modeLabel}`}
           </Text>
           <Ionicons name="chevron-down" size={14} color={COLOR.accent} />
@@ -109,6 +120,7 @@ const DashboardControlBar = ({ params, onChange, onSelectView }: DashboardContro
         open={sheetOpen}
         onClose={() => setSheetOpen(false)}
         filterOptions={filterOptions}
+        filterLabel={filterLabel}
         filter={filter}
         onFilterChange={(next) => onChange(paramsForFilter(view, next, mode))}
         modeOptions={layoutLocked ? undefined : MODE_OPTIONS}
@@ -130,13 +142,14 @@ const styles = StyleSheet.create({
   tabs: {
     flexDirection: "row",
     alignItems: "center",
-    gap: SPACE.sm,
+    gap: 6,
     paddingHorizontal: SPACE.lg,
   },
-  // Every tab keeps its slot in one row, so the strip never scrolls and never reflows: the four
-  // unselected ones hold a fixed circle and the selected one takes whatever is left.
+  // Every tab keeps its slot in one row, so the strip never scrolls and never reflows: the five
+  // unselected ones hold a fixed circle and the selected one takes whatever is left. Widening the
+  // circle costs the active label five times over, so the tap target comes from hitSlop instead.
   slot: {
-    width: 40,
+    width: 36,
   },
   slotActive: {
     flex: 1,
@@ -146,8 +159,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 6,
-    height: 40,
-    borderRadius: 20,
+    // Square against `slot`'s width, so an inactive tab is a circle rather than a tall oval; the
+    // active one stretches into a pill at the same radius.
+    height: 36,
+    borderRadius: 18,
     borderWidth: 1,
     borderColor: COLOR.borderStrong,
     backgroundColor: COLOR.surface,
@@ -155,7 +170,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   tabActive: {
-    paddingHorizontal: 14,
+    paddingHorizontal: 12,
     backgroundColor: COLOR.accent,
     borderColor: COLOR.accent,
   },
@@ -193,6 +208,13 @@ const styles = StyleSheet.create({
     backgroundColor: COLOR.accentSoft,
     borderWidth: 1,
     borderColor: COLOR.accentBorder,
+  },
+  swatch: {
+    width: 14,
+    height: 14,
+    borderRadius: 4,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: COLOR.borderStrong,
   },
   optionsLabel: {
     flexShrink: 1,

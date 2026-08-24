@@ -7,9 +7,10 @@ CREATE SCHEMA IF NOT EXISTS catfisha_typhoons;
 SET search_path TO catfisha_typhoons, public;
 
 -- Saffir-Simpson category for typhoons ('1'-'5'), below-typhoon strength otherwise.
--- 'NT' is not a step on the scale: the JTWC never issued warnings on that storm, so it has
--- no category at all. It sorts first so the enum order still runs weakest to strongest.
-CREATE TYPE storms_intensity AS ENUM ('NT', 'TD', 'TS', 'STS', '1', '2', '3', '4', '5');
+-- 'MD' (monsoon depression) is not a step on the scale: the JTWC never issued warnings on
+-- that storm, so it has no category at all. It sorts first so the enum order still runs
+-- weakest to strongest.
+CREATE TYPE storms_intensity AS ENUM ('MD', 'TD', 'TS', 'STS', '1', '2', '3', '4', '5');
 
 -- JTWC basin letter appended to the storm number, e.g. jtwcnumber 11 + 'W' -> "11W".
 CREATE TYPE suffix AS ENUM ('W', 'E', 'B', 'C');
@@ -106,7 +107,7 @@ CREATE TABLE storms (
     -- list entry; NULL otherwise.
     correctspelling character varying(10),
     isstrongest boolean DEFAULT false NOT NULL,     -- strongest storm to carry this name
-    -- Combined with positions.suffix into "12W". Set even for a few 'NT' storms, which the
+    -- Combined with positions.suffix into "12W". Set even for a few 'MD' storms, which the
     -- JTWC numbered in post-season reanalysis without ever having tracked them live.
     jtwcnumber integer,
     isfirst boolean DEFAULT false NOT NULL,         -- first storm of its season

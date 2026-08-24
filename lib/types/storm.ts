@@ -1,4 +1,4 @@
-export type IntensityType = "NT" | "TD" | "TS" | "STS" | "1" | "2" | "3" | "4" | "5";
+export type IntensityType = "MD" | "TD" | "TS" | "STS" | "1" | "2" | "3" | "4" | "5";
 
 export interface Storm {
   name: string;

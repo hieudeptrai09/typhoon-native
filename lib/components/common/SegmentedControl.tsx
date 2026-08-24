@@ -7,7 +7,11 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 export interface SegmentOption<T extends string = string> {
   value: T;
   label: string;
+  /** Used wherever the full label would not fit, e.g. the dashboard's filter pill. */
+  shortLabel?: string;
   icon?: IconName;
+  /** Colour chip drawn in place of `icon`, for options whose colour is the thing being picked. */
+  swatch?: string;
   disabled?: boolean;
 }
 

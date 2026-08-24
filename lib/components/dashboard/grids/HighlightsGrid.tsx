@@ -23,7 +23,7 @@ const HighlightsGrid = ({ stormsData, highlightedStorms, highlightType }: Highli
     (position: number) => {
       const storms = byPosition.get(position);
       if (!storms || storms.length === 0) return undefined;
-      return storms.map((storm) => `${storm.name} (${storm.year})`).join(", ");
+      return storms.map((storm) => `${storm.name} (${storm.year})`);
     },
     [byPosition],
   );

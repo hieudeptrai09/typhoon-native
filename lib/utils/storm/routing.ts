@@ -1,8 +1,10 @@
 import type { DashboardParams } from "@/lib/types";
+import { INTENSITY_SLUGS_BY_STRENGTH } from "@/lib/utils/storm/intensity";
 
 const VALID_FILTERS: Record<string, string[]> = {
   all: ["position", "name"],
-  highlights: ["strongest", "first", "last", "untracked"],
+  highlights: ["strongest", "first", "last"],
+  intensity: INTENSITY_SLUGS_BY_STRENGTH,
   average: ["position", "name", "country", "year", "month"],
   recurrence: ["position", "name"],
   avgdate: ["position", "name", "country", "year"],
@@ -16,6 +18,7 @@ const LIST_ONLY_FILTERS: Record<string, string[]> = {
 export const DEFAULT_FILTER: Record<string, string> = {
   all: "position",
   highlights: "strongest",
+  intensity: "md",
   average: "position",
   recurrence: "position",
   avgdate: "position",
@@ -95,6 +98,7 @@ export const getLegendKind = ({ view, mode, filter }: DashboardParams): LegendKi
       return "avgdate";
     case "highlights":
       return mode === "list" ? "intensity" : "highlight";
+    case "intensity":
     case "average":
       return "intensity";
     case "all":

@@ -28,7 +28,7 @@ const StormsGrid = ({ stormsData, onCellClick, isClickable = true }: StormsGridP
   const renderValue = useCallback(
     (position: number) => {
       const count = countByPosition.get(position) ?? 0;
-      return `${count} storm${count === 1 ? "" : "s"}`;
+      return [`${count} storm${count === 1 ? "" : "s"}`];
     },
     [countByPosition],
   );

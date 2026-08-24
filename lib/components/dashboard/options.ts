@@ -1,10 +1,13 @@
 import type { SegmentOption } from "@/lib/components/common/SegmentedControl";
+import { BACKGROUND_BADGE, INTENSITY_LABEL, INTENSITY_SHORT_LABEL } from "@/lib/constants";
 import type { IconName } from "@/lib/types";
+import { getIntensitySlug, INTENSITIES_BY_STRENGTH } from "@/lib/utils/storm/intensity";
 
 export const DASHBOARD_ICON_MAP: Record<string, Record<string, IconName>> = {
   view: {
     all: "thunderstorm-outline",
     highlights: "star-outline",
+    intensity: "speedometer-outline",
     average: "pulse-outline",
     recurrence: "repeat-outline",
     avgdate: "calendar-number-outline",
@@ -13,7 +16,6 @@ export const DASHBOARD_ICON_MAP: Record<string, Record<string, IconName>> = {
     strongest: "flash-outline",
     first: "medal-outline",
     last: "download-outline",
-    untracked: "eye-off-outline",
     position: "location-outline",
     name: "pricetag-outline",
     country: "globe-outline",
@@ -29,6 +31,7 @@ export const DASHBOARD_ICON_MAP: Record<string, Record<string, IconName>> = {
 export const VIEW_TABS: { key: string; label: string }[] = [
   { key: "all", label: "Storms" },
   { key: "highlights", label: "Highlights" },
+  { key: "intensity", label: "Intensity" },
   { key: "average", label: "Average" },
   { key: "recurrence", label: "Recurrence" },
   { key: "avgdate", label: "Avg. Date" },
@@ -37,6 +40,7 @@ export const VIEW_TABS: { key: string; label: string }[] = [
 export const VIEW_DESCRIPTION: Record<string, string> = {
   all: "Every storm that has used each name",
   highlights: "The record holder in each naming position",
+  intensity: "Every storm that peaked at one point on the scale",
   average: "Mean intensity of the storms in each group",
   recurrence: "Typical gap in years between reuses of a name",
   avgdate: "When in the season each group's storms start and end",
@@ -59,8 +63,14 @@ export const FILTER_OPTIONS: Record<string, SegmentOption[]> = {
     filterOption("strongest", "Strongest"),
     filterOption("first", "First"),
     filterOption("last", "Last"),
-    filterOption("untracked", "Untracked"),
   ],
+  intensity: INTENSITIES_BY_STRENGTH.map((intensity) => ({
+    value: getIntensitySlug(intensity),
+    label: INTENSITY_LABEL[intensity],
+    shortLabel: INTENSITY_SHORT_LABEL[intensity],
+    // Nine icons would be noise; the badge colour is what the grid and the legend key on anyway.
+    swatch: BACKGROUND_BADGE[intensity],
+  })),
   average: [
     filterOption("position", "Position"),
     filterOption("name", "Name"),
@@ -76,3 +86,10 @@ export const FILTER_OPTIONS: Record<string, SegmentOption[]> = {
     filterOption("year", "Year"),
   ],
 };
+
+// "Group by" is wrong where the options pick one slice of the data rather than a grouping.
+const FILTER_LABEL: Record<string, string> = {
+  intensity: "Intensity",
+};
+
+export const getFilterLabel = (view: string): string => FILTER_LABEL[view] ?? "Group by";

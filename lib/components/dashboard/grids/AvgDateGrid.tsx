@@ -25,7 +25,7 @@ const AvgDateGrid = ({
     (position: number) => {
       const dates = avgDateValues?.[position];
       if (!hasDates(dates)) return undefined;
-      return `${formatDayOfYear(dates.startDoy)} – ${formatDayOfYear(dates.endDoy)}`;
+      return [`${formatDayOfYear(dates.startDoy)} – ${formatDayOfYear(dates.endDoy)}`];
     },
     [avgDateValues],
   );

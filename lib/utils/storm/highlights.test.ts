@@ -2,6 +2,7 @@ import type { StormHighlight } from "@/lib/types";
 import {
   getEffectiveMonth,
   getHighlights,
+  getStormsByIntensity,
   pickAnotherHighlight,
 } from "@/lib/utils/storm/highlights";
 import { storm } from "@/lib/utils/storm/testFixtures";
@@ -11,18 +12,34 @@ describe("getHighlights", () => {
     storm({ name: "Yagi", isStrongest: true }),
     storm({ name: "Haiyan", isFirst: true }),
     storm({ name: "Nakri", isLast: true }),
-    storm({ name: "Krathon", intensity: "NT" }),
   ];
 
   it("selects by the requested flag", () => {
     expect(getHighlights(storms, "strongest").map((s) => s.name)).toEqual(["Yagi"]);
     expect(getHighlights(storms, "first").map((s) => s.name)).toEqual(["Haiyan"]);
     expect(getHighlights(storms, "last").map((s) => s.name)).toEqual(["Nakri"]);
-    expect(getHighlights(storms, "untracked").map((s) => s.name)).toEqual(["Krathon"]);
   });
 
   it("returns nothing for an unknown highlight type", () => {
     expect(getHighlights(storms, "bogus")).toEqual([]);
+  });
+});
+
+describe("getStormsByIntensity", () => {
+  const storms = [
+    storm({ name: "Krathon", intensity: "MD" }),
+    storm({ name: "Yagi", intensity: "5" }),
+    storm({ name: "Trami", intensity: "MD" }),
+  ];
+
+  it("keeps only the storms that peaked at the given intensity", () => {
+    expect(getStormsByIntensity(storms, "MD").map((s) => s.name)).toEqual(["Krathon", "Trami"]);
+    expect(getStormsByIntensity(storms, "5").map((s) => s.name)).toEqual(["Yagi"]);
+    expect(getStormsByIntensity(storms, "TD")).toEqual([]);
+  });
+
+  it("selects nothing when the slug did not resolve to an intensity", () => {
+    expect(getStormsByIntensity(storms, null)).toEqual([]);
   });
 });
 
