@@ -6,181 +6,134 @@ import type { StormHighlight } from "@/lib/types";
 import { formatStormDateRange } from "@/lib/utils/date";
 import { capitalize } from "@/lib/utils/format";
 import { getPositionSlug, getPositionTitle } from "@/lib/utils/position";
-import { pickAnotherHighlight } from "@/lib/utils/storm/highlights";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
-import { useEffect, useMemo, useRef, useState } from "react";
-import {
-  AccessibilityInfo,
-  Animated,
-  Easing,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 interface NowCardProps {
   query: QueryState<StormHighlight[]>;
 }
 
-// Spins the icon in place rather than swapping in a spinner, whose different size would shift the
-// counter beside it every time a refetch starts.
-const BusyIcon = ({ name, busy }: { name: "shuffle" | "refresh"; busy: boolean }) => {
-  const spin = useRef(new Animated.Value(0)).current;
+// Both parts stay missing until the extended get_storm_highlight is deployed.
+const activeMeta = (storm: StormHighlight): string =>
+  [
+    storm.intensity ? INTENSITY_LABEL[storm.intensity] : null,
+    storm.dateStart ? formatStormDateRange(storm.dateStart) : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
 
-  useEffect(() => {
-    if (!busy) {
-      spin.setValue(0);
-      return;
-    }
+const nameColorOf = (storm: StormHighlight): string =>
+  storm.status === "active" && storm.intensity
+    ? TEXT_COLOR_WHITE_BACKGROUND[storm.intensity]
+    : COLOR.accent;
 
-    let animation: Animated.CompositeAnimation | undefined;
-    let cancelled = false;
+interface StormProps {
+  storm: StormHighlight;
+  onOpen: () => void;
+}
 
-    AccessibilityInfo.isReduceMotionEnabled().then((reduced) => {
-      if (reduced || cancelled) return;
-      animation = Animated.loop(
-        Animated.timing(spin, {
-          toValue: 1,
-          duration: 800,
-          easing: Easing.linear,
-          useNativeDriver: true,
-        }),
-      );
-      animation.start();
-    });
-
-    return () => {
-      cancelled = true;
-      animation?.stop();
-    };
-  }, [busy, spin]);
-
-  const rotate = spin.interpolate({ inputRange: [0, 1], outputRange: ["0deg", "360deg"] });
+const HeroStorm = ({
+  storm,
+  onOpen,
+  onOpenPosition,
+}: StormProps & { onOpenPosition: () => void }) => {
+  const meta = storm.status === "active" ? activeMeta(storm) : "Next name in the rotation";
 
   return (
-    <Animated.View style={{ transform: [{ rotate }] }}>
-      <Ionicons name={name} size={18} color={busy ? COLOR.textFaint : COLOR.accent} />
-    </Animated.View>
+    <View style={styles.hero}>
+      <Pressable
+        onPress={onOpen}
+        style={({ pressed }) => [styles.heroRow, pressed && styles.pressed]}
+        accessibilityRole="link"
+        accessibilityLabel={`Open ${storm.name}`}
+      >
+        <View style={styles.heroBlock}>
+          <Text style={[styles.heroName, { color: nameColorOf(storm) }]} numberOfLines={1}>
+            {capitalize(storm.name.toLowerCase())}
+          </Text>
+          {meta ? <Text style={styles.heroMeta}>{meta}</Text> : null}
+        </View>
+        <Ionicons name="chevron-forward" size={20} color={COLOR.textFaint} />
+      </Pressable>
+
+      <Pressable
+        onPress={onOpenPosition}
+        hitSlop={8}
+        style={({ pressed }) => [styles.positionChip, pressed && styles.pressed]}
+        accessibilityRole="link"
+        accessibilityLabel={`Open position ${getPositionTitle(storm.position)}`}
+      >
+        <Ionicons name="grid-outline" size={13} color={COLOR.accent} />
+        <Text style={styles.positionLabel}>{getPositionTitle(storm.position)}</Text>
+      </Pressable>
+    </View>
   );
 };
 
+// No position link on purpose: two tap targets on one 44pt row is a miss waiting to happen.
+const StormRow = ({ storm, onOpen }: StormProps) => (
+  <Pressable
+    onPress={onOpen}
+    style={({ pressed }) => [styles.row, pressed && styles.pressed]}
+    accessibilityRole="link"
+    accessibilityLabel={`Open ${storm.name}`}
+  >
+    <View style={styles.rowBlock}>
+      <Text style={[styles.rowName, { color: nameColorOf(storm) }]} numberOfLines={1}>
+        {capitalize(storm.name.toLowerCase())}
+      </Text>
+      <Text style={styles.rowMeta} numberOfLines={1}>
+        {activeMeta(storm)}
+      </Text>
+    </View>
+    <Ionicons name="chevron-forward" size={18} color={COLOR.textFaint} />
+  </Pressable>
+);
+
+// get_storm_highlight never mixes the two: it answers with every ongoing storm, or — when none
+// are — with a single upcoming name.
 const NowCard = ({ query }: NowCardProps) => {
   const router = useRouter();
-  const { data, isLoading, isError, isRefetching, refetch } = query;
-  // Held by name, not by index: a refetch can reorder or shorten the list, and a fixed index would
-  // then land back on the storm the last tap drew away from.
-  const [shownName, setShownName] = useState<string | null>(null);
-  const leftBehind = useRef<string | null>(null);
+  const { data, isLoading, isError, refetch } = query;
 
-  const candidates = useMemo(() => data ?? [], [data]);
-  const index = Math.max(0, candidates.findIndex((storm) => storm.name === shownName));
-  const current = candidates[index] ?? null;
-  const hasRotation = candidates.length > 1;
+  const storms = data ?? [];
+  const isActive = storms.length > 0 && storms[0].status === "active";
 
-  // The tap drew against the list already in hand; this lands the same tap on the fresh one. Only
-  // redraws when that first pick no longer holds, since changing the card twice on one tap reads as
-  // a glitch rather than a shuffle.
-  useEffect(() => {
-    const pending = leftBehind.current;
-    if (pending === null || candidates.length === 0) return;
-    leftBehind.current = null;
+  if (!isLoading && !isError && storms.length === 0) return null;
 
-    // Functional form keeps shownName out of the deps: a tap writes it one render before the fresh
-    // list lands, which would fire this against the stale list.
-    setShownName((shown) => {
-      const holds = shown !== pending && candidates.some((storm) => storm.name === shown);
-      return holds ? shown : pickAnotherHighlight(candidates, pending);
-    });
-  }, [candidates]);
-
-  // A storm that started since the screen opened only exists on the server, so the draw and the
-  // refetch are one tap.
-  const onRefresh = () => {
-    Haptics.selectionAsync();
-    leftBehind.current = current?.name ?? null;
-    setShownName(pickAnotherHighlight(candidates, current?.name ?? null));
-    if (!isRefetching) refetch();
-  };
-
-  if (!isLoading && !isError && !current) return null;
-
-  const isActive = current?.status === "active";
-  const nameColor =
-    isActive && current?.intensity ? TEXT_COLOR_WHITE_BACKGROUND[current.intensity] : COLOR.accent;
-
-  // Both parts stay missing until the extended get_storm_highlight is deployed.
-  const meta = isActive
-    ? [
-        current?.intensity ? INTENSITY_LABEL[current.intensity] : null,
-        current?.dateStart ? formatStormDateRange(current.dateStart) : null,
-      ]
-        .filter(Boolean)
-        .join(" · ")
-    : "Next name in the rotation";
+  const openStorm = (name: string) => router.push(`/info/${name.toLowerCase()}`);
+  const openPosition = (position: number) => router.push(`/positions/${getPositionSlug(position)}`);
 
   return (
     <HomeCard
       icon={isActive ? "pulse-outline" : "time-outline"}
       title={isActive ? "Active now" : "Up next"}
       action={
-        // The error state carries its own Retry, which this would duplicate.
-        isLoading || isError ? undefined : (
-          <Pressable
-            onPress={onRefresh}
-            hitSlop={12}
-            style={({ pressed }) => [styles.refreshButton, pressed && styles.pressed]}
-            accessibilityRole="button"
-            accessibilityState={{ busy: isRefetching }}
-            accessibilityLabel={
-              hasRotation
-                ? `Refresh and show another storm, ${index + 1} of ${candidates.length}`
-                : "Refresh"
-            }
-          >
-            {hasRotation && (
-              <Text style={styles.counter}>
-                {index + 1}/{candidates.length}
-              </Text>
-            )}
-            <BusyIcon name={hasRotation ? "shuffle" : "refresh"} busy={isRefetching} />
-          </Pressable>
-        )
+        isActive && storms.length > 1 ? (
+          <Text style={styles.count}>{storms.length} storms</Text>
+        ) : undefined
       }
       isLoading={isLoading}
       isError={isError}
       onRetry={refetch}
       skeletonLines={2}
     >
-      {current && (
-        <View style={styles.body}>
-          <Pressable
-            onPress={() => router.push(`/info/${current.name.toLowerCase()}`)}
-            style={({ pressed }) => [styles.nameRow, pressed && styles.pressed]}
-            accessibilityRole="link"
-            accessibilityLabel={`Open ${current.name}`}
-          >
-            <View style={styles.nameBlock}>
-              <Text style={[styles.name, { color: nameColor }]} numberOfLines={1}>
-                {capitalize(current.name.toLowerCase())}
-              </Text>
-              {meta ? <Text style={styles.meta}>{meta}</Text> : null}
-            </View>
-            <Ionicons name="chevron-forward" size={20} color={COLOR.textFaint} />
-          </Pressable>
-
-          <Pressable
-            onPress={() => router.push(`/positions/${getPositionSlug(current.position)}`)}
-            hitSlop={8}
-            style={({ pressed }) => [styles.positionChip, pressed && styles.pressed]}
-            accessibilityRole="link"
-            accessibilityLabel={`Open position ${getPositionTitle(current.position)}`}
-          >
-            <Ionicons name="grid-outline" size={13} color={COLOR.accent} />
-            <Text style={styles.positionLabel}>{getPositionTitle(current.position)}</Text>
-          </Pressable>
+      {storms.length === 1 ? (
+        <HeroStorm
+          storm={storms[0]}
+          onOpen={() => openStorm(storms[0].name)}
+          onOpenPosition={() => openPosition(storms[0].position)}
+        />
+      ) : (
+        <View style={styles.list}>
+          {storms.map((storm) => (
+            <StormRow
+              key={`${storm.name}-${storm.position}`}
+              storm={storm}
+              onOpen={() => openStorm(storm.name)}
+            />
+          ))}
         </View>
       )}
     </HomeCard>
@@ -188,42 +141,58 @@ const NowCard = ({ query }: NowCardProps) => {
 };
 
 const styles = StyleSheet.create({
-  body: {
+  count: {
+    fontFamily: "OpenSans_600SemiBold",
+    fontSize: 13,
+    color: COLOR.textMuted,
+  },
+  hero: {
     gap: SPACE.md,
     alignItems: "flex-start",
   },
-  nameRow: {
+  heroRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: SPACE.sm,
     alignSelf: "stretch",
   },
-  nameBlock: {
+  heroBlock: {
     flex: 1,
     gap: 2,
   },
-  pressed: {
-    opacity: 0.6,
-  },
-  refreshButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-  counter: {
-    fontFamily: "OpenSans_600SemiBold",
-    fontSize: 12,
-    color: COLOR.textFaint,
-    fontVariant: ["tabular-nums"],
-  },
-  name: {
+  heroName: {
     fontFamily: "OpenSans_700Bold",
     fontSize: 26,
   },
-  meta: {
+  heroMeta: {
     fontFamily: "OpenSans_400Regular",
     fontSize: 14,
     color: COLOR.textBody,
+  },
+  list: {
+    gap: SPACE.xs,
+  },
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: SPACE.sm,
+    paddingVertical: SPACE.sm,
+  },
+  rowBlock: {
+    flex: 1,
+    gap: 1,
+  },
+  rowName: {
+    fontFamily: "OpenSans_700Bold",
+    fontSize: 18,
+  },
+  rowMeta: {
+    fontFamily: "OpenSans_400Regular",
+    fontSize: 13,
+    color: COLOR.textMuted,
+  },
+  pressed: {
+    opacity: 0.6,
   },
   positionChip: {
     flexDirection: "row",

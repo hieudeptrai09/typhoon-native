@@ -2,8 +2,9 @@ import { useApiQuery } from "@/lib/api/client";
 import FunFactCard from "@/lib/components/home/FunFactCard";
 import NowCard from "@/lib/components/home/NowCard";
 import OnThisDayCard from "@/lib/components/home/OnThisDayCard";
+import SeasonCard from "@/lib/components/home/SeasonCard";
 import { COLOR, SPACE } from "@/lib/constants/theme";
-import type { ActiveOnThisDayStorm, OnThisDayStorm, StormHighlight } from "@/lib/types";
+import type { ActiveOnThisDayStorm, OnThisDayStorm, Storm, StormHighlight } from "@/lib/types";
 import { useEffect, useRef, useState } from "react";
 import { RefreshControl, ScrollView, StyleSheet } from "react-native";
 
@@ -12,12 +13,17 @@ export default function TodayScreen() {
   const dayParams = `day=${today.getDate()}&month=${today.getMonth() + 1}`;
 
   const highlight = useApiQuery<StormHighlight[]>("/api/v1/storm-highlight");
+  const storms = useApiQuery<Storm[]>("/api/v1/storms");
   const events = useApiQuery<OnThisDayStorm[]>(`/api/v1/on-this-day?${dayParams}`);
   const active = useApiQuery<ActiveOnThisDayStorm[]>(`/api/v1/on-this-day-active?${dayParams}`);
   const fact = useApiQuery<string | null>("/api/v1/random-fact");
 
   const isAnyLoading =
-    highlight.isLoading || events.isLoading || active.isLoading || fact.isLoading;
+    highlight.isLoading ||
+    storms.isLoading ||
+    events.isLoading ||
+    active.isLoading ||
+    fact.isLoading;
 
   const [isRefreshing, setIsRefreshing] = useState(false);
   // refetch() only flips isLoading on the render after the one that queued it, so clearing the
@@ -39,6 +45,7 @@ export default function TodayScreen() {
   const onRefresh = () => {
     setIsRefreshing(true);
     highlight.refetch();
+    storms.refetch();
     events.refetch();
     active.refetch();
     fact.refetch();
@@ -59,6 +66,7 @@ export default function TodayScreen() {
       }
     >
       <NowCard query={highlight} />
+      <SeasonCard query={storms} />
       <OnThisDayCard events={events} active={active} />
       <FunFactCard query={fact} />
     </ScrollView>

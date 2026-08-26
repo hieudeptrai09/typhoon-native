@@ -1,9 +1,9 @@
 import type { QueryState } from "@/lib/api/client";
 import HomeCard from "@/lib/components/home/HomeCard";
-import { COLOR } from "@/lib/constants/theme";
+import { COLOR, SPACE } from "@/lib/constants/theme";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import * as Haptics from "expo-haptics";
-import { Pressable, StyleSheet, Text } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 interface FunFactCardProps {
   query: QueryState<string | null>;
@@ -35,7 +35,9 @@ const FunFactCard = ({ query }: FunFactCardProps) => {
       onRetry={refetch}
       skeletonLines={2}
     >
-      <Text style={styles.fact}>{data ?? "No facts available."}</Text>
+      <View style={styles.body}>
+        <Text style={styles.fact}>{data ?? "No facts available."}</Text>
+      </View>
     </HomeCard>
   );
 };
@@ -44,10 +46,15 @@ const styles = StyleSheet.create({
   pressed: {
     opacity: 0.6,
   },
+  body: {
+    borderLeftWidth: 2,
+    borderLeftColor: COLOR.accentBorder,
+    paddingLeft: SPACE.md,
+  },
   fact: {
     fontFamily: "OpenSans_400Regular",
     fontSize: 15,
-    lineHeight: 23,
+    lineHeight: 24,
     color: COLOR.textBody,
   },
 });
