@@ -9,6 +9,9 @@ import {
   HIGHLIGHT_FALLBACK_COLOR,
   RETIRED_REASON_COLOR,
   RETIRED_REASON_FALLBACK_COLOR,
+  SEASON_PACE_AHEAD_COLOR,
+  SEASON_PACE_BEHIND_COLOR,
+  SEASON_PACE_EVEN_COLOR,
 } from "@/lib/constants/colors";
 import { COLOR } from "@/lib/constants/theme";
 import type { RetirementReason } from "@/lib/types";
@@ -23,6 +26,12 @@ export const getDistanceColor = (years: number): string => {
 
 export const getAvgDateColor = (month: number): string =>
   AVG_DATE_MONTH_COLOR[month] ?? AVG_DATE_FALLBACK_COLOR;
+
+export const getSeasonPaceColor = (delta: number): string => {
+  if (delta > 0) return SEASON_PACE_AHEAD_COLOR;
+  if (delta < 0) return SEASON_PACE_BEHIND_COLOR;
+  return SEASON_PACE_EVEN_COLOR;
+};
 
 export const getHighlightCellColor = (highlightType: string): string =>
   HIGHLIGHT_CELL_COLOR[highlightType] ?? HIGHLIGHT_FALLBACK_COLOR;

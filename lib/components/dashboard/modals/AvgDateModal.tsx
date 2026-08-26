@@ -1,3 +1,6 @@
+import ComparisonBarList, {
+  type ComparisonBarRow,
+} from "@/lib/components/common/ComparisonBarList";
 import DefModal from "@/lib/components/common/DefModal";
 import OpenDetailButton, { type DetailTarget } from "@/lib/components/common/OpenDetailButton";
 import StatTile from "@/lib/components/common/StatTile";
@@ -13,10 +16,7 @@ import {
   formatDuration,
   getDoyMonth,
 } from "@/lib/utils/storm/dates";
-import Ionicons from "@expo/vector-icons/Ionicons";
-import * as Haptics from "expo-haptics";
-import { useState } from "react";
-import { LayoutAnimation, Pressable, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 
 interface AvgDateModalProps extends BaseModalProps {
   title: string;
@@ -50,18 +50,27 @@ const groupByStartMonth = (storms: Storm[]): MonthGroup[] => {
 };
 
 const AvgDateModal = ({ isOpen, onClose, title, storms, target }: AvgDateModalProps) => {
-  const [expanded, setExpanded] = useState<number | null>(null);
-
   const { startDoy, endDoy } = calculateAvgDates(storms);
   const avgDuration = calculateAvgDuration(storms);
-  const monthGroups = groupByStartMonth(storms);
-  const maxCount = monthGroups.reduce((max, group) => Math.max(max, group.count), 0);
-
-  const toggle = (month: number) => {
-    Haptics.selectionAsync();
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    setExpanded((current) => (current === month ? null : month));
-  };
+  const rows: ComparisonBarRow[] = groupByStartMonth(storms).map((group) => ({
+    key: group.label,
+    label: group.label,
+    color: getAvgDateColor(group.month),
+    count: group.count,
+    details: (
+      <>
+        {group.storms.map((storm) => (
+          <Text key={`${storm.name}-${storm.year}`} style={styles.storm}>
+            <Text style={styles.stormName}>{storm.name}</Text> {storm.year}
+            <Text style={styles.stormDates}>
+              {" · "}
+              {formatStormDateRange(storm.dateStart, storm.dateEnd)}
+            </Text>
+          </Text>
+        ))}
+      </>
+    ),
+  }));
 
   return (
     <DefModal
@@ -96,68 +105,11 @@ const AvgDateModal = ({ isOpen, onClose, title, storms, target }: AvgDateModalPr
         </View>
       </View>
 
-      <Text style={styles.heading}>Storms by start month:</Text>
-
-      {monthGroups.length === 0 ? (
-        <Text style={styles.empty}>No storms to show.</Text>
-      ) : (
-        <View style={styles.groups}>
-          {monthGroups.map((group) => {
-            const monthColor = getAvgDateColor(group.month);
-            const isExpanded = expanded === group.month;
-
-            return (
-              <View key={group.label}>
-                <Pressable
-                  onPress={() => toggle(group.month)}
-                  style={({ pressed }) => [
-                    styles.group,
-                    { borderLeftColor: monthColor },
-                    pressed && styles.pressed,
-                  ]}
-                  accessibilityRole="button"
-                  accessibilityState={{ expanded: isExpanded }}
-                  accessibilityLabel={`${group.label}, ${group.count} storms`}
-                >
-                  <Text style={styles.groupLabel}>{group.label}</Text>
-
-                  <View style={styles.groupStats}>
-                    <View
-                      style={[
-                        styles.bar,
-                        {
-                          width: maxCount > 0 ? Math.max(8, (group.count / maxCount) * 96) : 8,
-                          backgroundColor: monthColor,
-                        },
-                      ]}
-                    />
-                    <Text style={styles.count}>{group.count}</Text>
-                    <Ionicons
-                      name={isExpanded ? "chevron-up" : "chevron-down"}
-                      size={14}
-                      color={COLOR.textFaint}
-                    />
-                  </View>
-                </Pressable>
-
-                {isExpanded && (
-                  <View style={styles.stormList}>
-                    {group.storms.map((storm) => (
-                      <Text key={`${storm.name}-${storm.year}`} style={styles.storm}>
-                        <Text style={styles.stormName}>{storm.name}</Text> {storm.year}
-                        <Text style={styles.stormDates}>
-                          {" "}
-                          · {formatStormDateRange(storm.dateStart, storm.dateEnd)}
-                        </Text>
-                      </Text>
-                    ))}
-                  </View>
-                )}
-              </View>
-            );
-          })}
-        </View>
-      )}
+      <ComparisonBarList
+        heading="Storms by start month:"
+        emptyText="No storms to show."
+        rows={rows}
+      />
     </DefModal>
   );
 };
@@ -177,63 +129,6 @@ const styles = StyleSheet.create({
   },
   duration: {
     color: COLOR.textSecondary,
-  },
-  heading: {
-    fontFamily: "OpenSans_400Regular",
-    fontSize: 14,
-    color: COLOR.textBody,
-    marginTop: 16,
-    marginBottom: 8,
-  },
-  empty: {
-    fontFamily: "OpenSans_400Regular",
-    fontSize: 13,
-    color: COLOR.textMuted,
-  },
-  groups: {
-    gap: 8,
-  },
-  group: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 8,
-    minHeight: 48,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    borderLeftWidth: 4,
-    backgroundColor: COLOR.surfaceSubtle,
-  },
-  pressed: {
-    backgroundColor: COLOR.surfaceSunken,
-  },
-  groupLabel: {
-    flexShrink: 1,
-    fontFamily: "OpenSans_600SemiBold",
-    fontSize: 14,
-    color: COLOR.textSecondary,
-  },
-  groupStats: {
-    flexShrink: 0,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  bar: {
-    height: 8,
-    borderRadius: 4,
-  },
-  count: {
-    fontFamily: "OpenSans_600SemiBold",
-    fontSize: 13,
-    color: COLOR.textBody,
-    fontVariant: ["tabular-nums"],
-  },
-  stormList: {
-    gap: 4,
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 4,
   },
   storm: {
     fontFamily: "OpenSans_400Regular",

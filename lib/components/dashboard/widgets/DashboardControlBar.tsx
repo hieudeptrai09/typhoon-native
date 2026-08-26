@@ -14,7 +14,6 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import * as Haptics from "expo-haptics";
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import Animated, { FadeIn, FadeOut, LinearTransition } from "react-native-reanimated";
 
 interface DashboardControlBarProps {
   params: DashboardParams;
@@ -22,11 +21,11 @@ interface DashboardControlBarProps {
   onSelectView: (view: string) => void;
 }
 
-const SLIDE = LinearTransition.duration(220);
-
 const DashboardControlBar = ({ params, onChange, onSelectView }: DashboardControlBarProps) => {
   const [sheetOpen, setSheetOpen] = useState(false);
   const { view, filter, mode } = params;
+
+  const viewLabel = VIEW_TABS.find((tab) => tab.key === view)?.label ?? "";
 
   const filterOptions = FILTER_OPTIONS[view] ?? [];
   const activeFilter = filterOptions.find((option) => option.value === filter) ?? filterOptions[0];
@@ -43,11 +42,7 @@ const DashboardControlBar = ({ params, onChange, onSelectView }: DashboardContro
           const isActive = view === key;
 
           return (
-            <Animated.View
-              key={key}
-              layout={SLIDE}
-              style={isActive ? styles.slotActive : styles.slot}
-            >
+            <View key={key} style={styles.slot}>
               <Pressable
                 onPress={() => {
                   if (isActive) return;
@@ -59,61 +54,56 @@ const DashboardControlBar = ({ params, onChange, onSelectView }: DashboardContro
                   isActive && styles.tabActive,
                   pressed && !isActive && styles.pressed,
                 ]}
-                // The circle is narrower than a comfortable target so six tabs and a readable
-                // label fit a 360dp screen; 3dp each side meets its neighbour exactly in the
-                // 6dp gap, leaving no dead strip between them.
-                hitSlop={{ left: 3, right: 3, top: 8, bottom: 8 }}
+                hitSlop={4}
                 accessibilityRole="tab"
                 accessibilityState={{ selected: isActive }}
+                // The glyph carries no name of its own, so the label has to come from here; it is
+                // spelled out under the strip for everyone else.
                 accessibilityLabel={label}
               >
                 <Ionicons
                   name={DASHBOARD_ICON_MAP.view[key]}
-                  size={16}
+                  size={20}
                   color={isActive ? COLOR.textInverse : COLOR.textBody}
                 />
-                {isActive && (
-                  <Animated.Text
-                    entering={FadeIn.duration(140).delay(80)}
-                    exiting={FadeOut.duration(60)}
-                    style={styles.tabLabel}
-                    numberOfLines={1}
-                  >
-                    {label}
-                  </Animated.Text>
-                )}
               </Pressable>
-            </Animated.View>
+            </View>
           );
         })}
       </View>
 
       <View style={styles.summary}>
+        <View style={styles.headingRow}>
+          <Text style={styles.title} numberOfLines={1}>
+            {viewLabel}
+          </Text>
+
+          <Pressable
+            onPress={() => setSheetOpen(true)}
+            style={({ pressed }) => [styles.options, pressed && styles.pressed]}
+            accessibilityRole="button"
+            accessibilityLabel={`View options. ${filterLabel}: ${activeFilter?.label ?? filter}${
+              layoutLocked ? "" : `, ${modeLabel} layout`
+            }`}
+          >
+            {activeFilter?.swatch ? (
+              <View style={[styles.swatch, { backgroundColor: activeFilter.swatch }]} />
+            ) : (
+              activeFilter?.icon && (
+                <Ionicons name={activeFilter.icon} size={15} color={COLOR.accent} />
+              )
+            )}
+            <Text style={styles.optionsLabel} numberOfLines={1}>
+              {pillLabel}
+              {layoutLocked ? "" : ` · ${modeLabel}`}
+            </Text>
+            <Ionicons name="chevron-down" size={14} color={COLOR.accent} />
+          </Pressable>
+        </View>
+
         <Text style={styles.description} numberOfLines={2}>
           {VIEW_DESCRIPTION[view]}
         </Text>
-
-        <Pressable
-          onPress={() => setSheetOpen(true)}
-          style={({ pressed }) => [styles.options, pressed && styles.pressed]}
-          accessibilityRole="button"
-          accessibilityLabel={`View options. ${filterLabel}: ${activeFilter?.label ?? filter}${
-            layoutLocked ? "" : `, ${modeLabel} layout`
-          }`}
-        >
-          {activeFilter?.swatch ? (
-            <View style={[styles.swatch, { backgroundColor: activeFilter.swatch }]} />
-          ) : (
-            activeFilter?.icon && (
-              <Ionicons name={activeFilter.icon} size={15} color={COLOR.accent} />
-            )
-          )}
-          <Text style={styles.optionsLabel} numberOfLines={1}>
-            {pillLabel}
-            {layoutLocked ? "" : ` · ${modeLabel}`}
-          </Text>
-          <Ionicons name="chevron-down" size={14} color={COLOR.accent} />
-        </Pressable>
       </View>
 
       <ViewOptionsSheet
@@ -133,7 +123,7 @@ const DashboardControlBar = ({ params, onChange, onSelectView }: DashboardContro
 
 const styles = StyleSheet.create({
   root: {
-    gap: SPACE.sm,
+    gap: SPACE.md,
     paddingTop: SPACE.md,
     paddingBottom: SPACE.sm,
     borderBottomWidth: StyleSheet.hairlineWidth,
@@ -142,55 +132,50 @@ const styles = StyleSheet.create({
   tabs: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
     paddingHorizontal: SPACE.lg,
   },
-  // Every tab keeps its slot in one row, so the strip never scrolls and never reflows: the five
-  // unselected ones hold a fixed circle and the selected one takes whatever is left. Widening the
-  // circle costs the active label five times over, so the tap target comes from hitSlop instead.
+  // Every tab is the same width whether or not it is selected, so the strip never scrolls, never
+  // reflows, and needs no layout animation. The slot spreads the row's slack evenly; the circle
+  // inside keeps a fixed size, so it stays round on a wide screen instead of stretching.
   slot: {
-    width: 36,
-  },
-  slotActive: {
     flex: 1,
+    alignItems: "center",
   },
   tab: {
-    flexDirection: "row",
+    width: 40,
+    height: 40,
     alignItems: "center",
     justifyContent: "center",
-    gap: 6,
-    // Square against `slot`'s width, so an inactive tab is a circle rather than a tall oval; the
-    // active one stretches into a pill at the same radius.
-    height: 36,
-    borderRadius: 18,
+    borderRadius: 20,
     borderWidth: 1,
     borderColor: COLOR.borderStrong,
     backgroundColor: COLOR.surface,
-    // The label is mid-fade while the pill is still resizing; without this it spills past the edge.
-    overflow: "hidden",
   },
   tabActive: {
-    paddingHorizontal: 12,
     backgroundColor: COLOR.accent,
     borderColor: COLOR.accent,
   },
   pressed: {
     opacity: 0.6,
   },
-  tabLabel: {
-    flexShrink: 1,
-    fontFamily: "OpenSans_600SemiBold",
-    fontSize: 13,
-    color: COLOR.textInverse,
-  },
   summary: {
+    gap: 2,
+    paddingHorizontal: SPACE.lg,
+  },
+  headingRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: SPACE.md,
-    paddingHorizontal: SPACE.lg,
+  },
+  // Names the icon that is lit above it: the strip itself is wordless, so this is the only place
+  // the current view is spelled out.
+  title: {
+    flex: 1,
+    fontFamily: "OpenSans_700Bold",
+    fontSize: 18,
+    color: COLOR.text,
   },
   description: {
-    flex: 1,
     fontFamily: "OpenSans_400Regular",
     fontSize: 12,
     lineHeight: 16,

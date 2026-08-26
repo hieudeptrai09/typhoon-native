@@ -11,6 +11,7 @@ import NameListModal from "@/lib/components/dashboard/modals/NameListModal";
 import StormDetailModal from "@/lib/components/dashboard/modals/StormDetailModal";
 import AverageView from "@/lib/components/dashboard/views/AverageView";
 import AvgDateView from "@/lib/components/dashboard/views/AvgDateView";
+import CalendarView from "@/lib/components/dashboard/views/CalendarView";
 import DistanceView from "@/lib/components/dashboard/views/DistanceView";
 import HighlightsView from "@/lib/components/dashboard/views/HighlightsView";
 import IntensityView from "@/lib/components/dashboard/views/IntensityView";
@@ -19,6 +20,7 @@ import DashboardControlBar from "@/lib/components/dashboard/widgets/DashboardCon
 import { MONTH_NAMES } from "@/lib/constants";
 import { COLOR, SPACE } from "@/lib/constants/theme";
 import type { DashboardParams, Storm } from "@/lib/types";
+import { monthDayOf, todayISO } from "@/lib/utils/date";
 import { getPositionTitle } from "@/lib/utils/position";
 import {
   calculateAverage,
@@ -68,6 +70,10 @@ export default function DashboardPageContent({
   const [isDistanceModalOpen, setIsDistanceModalOpen] = useState(false);
   const [isAvgDateModalOpen, setIsAvgDateModalOpen] = useState(false);
   const [selectedData, setSelectedData] = useState<SelectedData | null>(null);
+  // Lives here rather than in CalendarView, which unmounts whenever another view tab is picked:
+  // the chosen date has to survive that the way the web build's query string did.
+  const [today] = useState(() => monthDayOf(todayISO()));
+  const [calendarDate, setCalendarDate] = useState(today);
 
   const { view, filter } = currentParams;
 
@@ -210,6 +216,16 @@ export default function DashboardPageContent({
                 params={currentParams}
                 stormsData={stormsData}
                 onCellClick={handleCellClick}
+              />
+            );
+          case "calendar":
+            return (
+              <CalendarView
+                params={currentParams}
+                stormsData={stormsData}
+                monthDay={calendarDate}
+                today={today}
+                onMonthDayChange={setCalendarDate}
               />
             );
           default:

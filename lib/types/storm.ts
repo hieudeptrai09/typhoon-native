@@ -14,6 +14,7 @@ export interface Storm {
   dateStart: string; // "YYYY-MM-DD"; always set — a storm can't exist without a start
   dateEnd?: string; // "YYYY-MM-DD"; missing while a storm is ongoing
   jtwcDesignation?: string;
+  jmaNumber?: string; // "YYnn", the JMA international number; absent for storms JMA never numbered
 }
 
 export interface StormHistoryEntry {

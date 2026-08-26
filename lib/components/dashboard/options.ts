@@ -11,6 +11,7 @@ export const DASHBOARD_ICON_MAP: Record<string, Record<string, IconName>> = {
     average: "pulse-outline",
     recurrence: "repeat-outline",
     avgdate: "calendar-number-outline",
+    calendar: "calendar-outline",
   },
   filter: {
     strongest: "flash-outline",
@@ -21,6 +22,10 @@ export const DASHBOARD_ICON_MAP: Record<string, Record<string, IconName>> = {
     country: "globe-outline",
     year: "sunny-outline",
     month: "moon-outline",
+    started: "play-outline",
+    ended: "stop-outline",
+    active: "water-outline",
+    todate: "trending-up-outline",
   },
   mode: {
     table: "grid-outline",
@@ -35,6 +40,7 @@ export const VIEW_TABS: { key: string; label: string }[] = [
   { key: "average", label: "Average" },
   { key: "recurrence", label: "Recurrence" },
   { key: "avgdate", label: "Avg. Date" },
+  { key: "calendar", label: "Calendar" },
 ];
 
 export const VIEW_DESCRIPTION: Record<string, string> = {
@@ -44,6 +50,7 @@ export const VIEW_DESCRIPTION: Record<string, string> = {
   average: "Mean intensity of the storms in each group",
   recurrence: "Typical gap in years between reuses of a name",
   avgdate: "When in the season each group's storms start and end",
+  calendar: "Which seasons a single day of the year belongs to",
 };
 
 const filterOption = (value: string, label: string): SegmentOption => ({
@@ -85,11 +92,18 @@ export const FILTER_OPTIONS: Record<string, SegmentOption[]> = {
     filterOption("country", "Country"),
     filterOption("year", "Year"),
   ],
+  calendar: [
+    filterOption("started", "Started"),
+    filterOption("ended", "Ended"),
+    filterOption("active", "Active"),
+    filterOption("todate", "So Far"),
+  ],
 };
 
 // "Group by" is wrong where the options pick one slice of the data rather than a grouping.
 const FILTER_LABEL: Record<string, string> = {
   intensity: "Intensity",
+  calendar: "Show",
 };
 
 export const getFilterLabel = (view: string): string => FILTER_LABEL[view] ?? "Group by";

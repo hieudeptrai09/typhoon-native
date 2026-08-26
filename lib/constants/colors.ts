@@ -52,6 +52,12 @@ export const AVG_DATE_MONTH_COLOR: Record<number, string> = {
 
 export const AVG_DATE_FALLBACK_COLOR = "#374151";
 
+// A season ahead of the average pace runs warm, one behind it runs cool. Neither is good nor bad,
+// so this deliberately avoids the green/red of a status colour.
+export const SEASON_PACE_AHEAD_COLOR = "#c2410c";
+export const SEASON_PACE_BEHIND_COLOR = "#1d4ed8";
+export const SEASON_PACE_EVEN_COLOR = "#475569";
+
 // Index 0 is "one storm"; the last bucket is open-ended.
 export const STORM_COUNT_COLORS = ["#dbeafe", "#93c5fd", "#60a5fa", "#3b82f6", "#1d4ed8"];
 

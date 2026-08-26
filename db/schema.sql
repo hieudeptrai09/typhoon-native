@@ -15,14 +15,12 @@ CREATE TYPE storms_intensity AS ENUM ('MD', 'TD', 'TS', 'STS', '1', '2', '3', '4
 -- JTWC basin letter appended to the storm number, e.g. jtwcnumber 11 + 'W' -> "11W".
 CREATE TYPE suffix AS ENUM ('W', 'E', 'B', 'C');
 
--- Why a name left rotation.
 CREATE TYPE typhoonnames_retirementreason AS ENUM ('destructive', 'language', 'misspell', 'special');
 
--- License lookup shared by typhoonnames.image and suggestednames.image.
 CREATE TABLE imagelicenses (
     id smallint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     name character varying NOT NULL UNIQUE,
-    url character varying                    -- NULL for licenses with no canonical deed URL
+    url character varying
 );
 
 INSERT INTO imagelicenses (id, name, url) OVERRIDING SYSTEM VALUE
@@ -55,7 +53,7 @@ CREATE TABLE typhoonnames (
     -- True once a replacement name has actually been selected; a name can be retired
     -- while the committee is still deciding, in which case suggestednames holds the candidates.
     isreplaced boolean DEFAULT false NOT NULL,
-    replacementname character varying(10),          -- NULL for names still in rotation
+    replacementname character varying(10),
     note text,
     language character varying(20) NOT NULL,
     lastyear integer,                               -- final season the name was used; NULL while in rotation
@@ -68,7 +66,6 @@ CREATE TABLE typhoonnames (
     originaltext text,                              -- name in its native script, e.g. ヤギ
     pronunciationfile text,                         -- filename under public/, e.g. "Yagi.mp3"
     retirementreason typhoonnames_retirementreason,
-    -- A name has a retirement reason exactly when it is retired.
     CONSTRAINT typhoonnames_retirementreason_requires_retired
         CHECK ((retirementreason IS NULL) = (NOT isretired)),
     CONSTRAINT typhoonnames_ibfk_1 FOREIGN KEY ("position")
@@ -103,17 +100,21 @@ CREATE TABLE storms (
     intensity storms_intensity NOT NULL,
     map character varying(200) DEFAULT NULL,        -- track map URL
     year integer NOT NULL,
-    -- Set only for the handful of storms whose official spelling differs from the
-    -- list entry; NULL otherwise.
+    -- Set only for the handful of storms whose official spelling differs from the list entry.
     correctspelling character varying(10),
     isstrongest boolean DEFAULT false NOT NULL,     -- strongest storm to carry this name
     -- Combined with positions.suffix into "12W". Set even for a few 'MD' storms, which the
     -- JTWC numbered in post-season reanalysis without ever having tracked them live.
     jtwcnumber integer,
+    -- JMA international number, "YYnn" for the nn-th storm of season YY, e.g. '2411' for
+    -- Yagi 2024. Text, not integer, so the 2000-2009 seasons keep their leading zero ('0919').
+    -- NULL for storms that entered the basin already named by another agency, which JMA
+    -- numbers only if they are still at tropical-storm strength on arrival.
+    jmanumber character(4) UNIQUE,
     isfirst boolean DEFAULT false NOT NULL,         -- first storm of its season
     islast boolean DEFAULT false NOT NULL,          -- last storm of its season
     startdate date NOT NULL,
-    enddate date,                                   -- NULL while a storm is still ongoing
+    enddate date,
     CONSTRAINT storms_date_order_check
         CHECK (enddate IS NULL OR enddate >= startdate),
     CONSTRAINT storms_ibfk_1 FOREIGN KEY ("position")
@@ -124,12 +125,12 @@ CREATE INDEX idx_17761_position ON storms USING btree ("position");
 
 INSERT INTO storms (
     id, "position", name, intensity, map, year, correctspelling,
-    isstrongest, jtwcnumber, isfirst, islast, startdate, enddate
+    isstrongest, jtwcnumber, jmanumber, isfirst, islast, startdate, enddate
 )
 VALUES (
     591, 19, 'Yagi', '5',
     'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Yagi_2024_track.png/960px-Yagi_2024_track.png',
-    2024, NULL, true, 12, false, false, '2024-08-31', '2024-09-09'
+    2024, NULL, true, 12, '2411', false, false, '2024-08-31', '2024-09-09'
 );
 
 -- Candidate replacements proposed for a retired name. Several candidates per retired name;

@@ -28,7 +28,10 @@ SELECT
     s.enddate::text                                                     AS "dateEnd",
     LPAD(s.jtwcnumber::text, 2, '0') || p.suffix::text                   AS "jtwcDesignation",
     s.isfirst                                                           AS "isFirst",
-    s.islast                                                            AS "isLast"
+    s.islast                                                            AS "isLast",
+    -- Appended rather than slotted next to "jtwcDesignation": CREATE OR REPLACE VIEW only ever
+    -- adds columns at the end, and get_storms depends on this view so it cannot be dropped.
+    s.jmanumber::text                                                   AS "jmaNumber"
 FROM catfisha_typhoons.storms s
 INNER JOIN catfisha_typhoons.positions p ON s.position = p.id;
 
@@ -64,6 +67,10 @@ LEFT JOIN catfisha_typhoons.imagelicenses il ON tn.imagelicenseid = il.id;
 -- Storms
 -- ============================================================================================
 
+-- Dropped first because CREATE OR REPLACE cannot widen a function's RETURNS TABLE; the drop is
+-- safe because nothing in the database depends on it, only the app's routes do.
+DROP FUNCTION IF EXISTS public.get_storms(integer);
+
 CREATE OR REPLACE FUNCTION public.get_storms(p_position integer DEFAULT NULL)
 RETURNS TABLE (
     "position" integer,
@@ -77,6 +84,7 @@ RETURNS TABLE (
     "dateStart" text,
     "dateEnd" text,
     "jtwcDesignation" text,
+    "jmaNumber" text,
     "isFirst" boolean,
     "isLast" boolean
 )
@@ -87,7 +95,8 @@ SET search_path = catfisha_typhoons, public
 AS $$
     SELECT
         v.position, v.country, v.name, v.intensity, v.map, v."correctSpelling", v.year,
-        v."isStrongest", v."dateStart", v."dateEnd", v."jtwcDesignation", v."isFirst", v."isLast"
+        v."isStrongest", v."dateStart", v."dateEnd", v."jtwcDesignation", v."jmaNumber",
+        v."isFirst", v."isLast"
     FROM catfisha_typhoons.v_storms v
     WHERE p_position IS NULL OR v.position = p_position
     ORDER BY v.year ASC, v.position;

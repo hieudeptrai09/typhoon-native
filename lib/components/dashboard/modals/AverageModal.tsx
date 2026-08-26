@@ -1,3 +1,6 @@
+import ComparisonBarList, {
+  type ComparisonBarRow,
+} from "@/lib/components/common/ComparisonBarList";
 import DefModal from "@/lib/components/common/DefModal";
 import OpenDetailButton, { type DetailTarget } from "@/lib/components/common/OpenDetailButton";
 import {
@@ -11,7 +14,6 @@ import { COLOR } from "@/lib/constants/theme";
 import type { BaseModalProps, IntensityType, Storm } from "@/lib/types";
 import { getGroupedStorms, getIntensityFromNumber } from "@/lib/utils/storm/aggregate";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import * as Haptics from "expo-haptics";
 import { useState } from "react";
 import { LayoutAnimation, Pressable, StyleSheet, Text, View } from "react-native";
 
@@ -108,7 +110,6 @@ const AverageModal = ({
   target,
 }: AverageModalProps) => {
   const [showFormula, setShowFormula] = useState(false);
-  const [expanded, setExpanded] = useState<IntensityType | null>(null);
 
   const { heading, empty } = CRITERIA_TEXT[criteria];
   const intensityGroups = getGroupedStorms(storms, "intensity");
@@ -119,13 +120,28 @@ const AverageModal = ({
       storms: [...groupStorms].sort((a, b) => a.year - b.year),
     }))
     .sort((a, b) => SORTING_RANK[b.intensity] - SORTING_RANK[a.intensity]);
-  const maxCount = intensityData.reduce((max, data) => Math.max(max, data.count), 0);
 
-  const toggle = (intensity: IntensityType) => {
-    Haptics.selectionAsync();
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    setExpanded((current) => (current === intensity ? null : intensity));
-  };
+  const rows: ComparisonBarRow[] = intensityData.map((data) => ({
+    key: data.intensity,
+    label: INTENSITY_LABEL[data.intensity],
+    labelColor: TEXT_COLOR_WHITE_BACKGROUND[data.intensity],
+    color: BACKGROUND_BADGE[data.intensity],
+    count: data.count,
+    details: (
+      <>
+        {data.storms.map((storm) => (
+          <Text key={`${storm.name}-${storm.year}`} style={styles.storm}>
+            <Text
+              style={[styles.stormName, { color: TEXT_COLOR_WHITE_BACKGROUND[data.intensity] }]}
+            >
+              {storm.name}
+            </Text>{" "}
+            {storm.year}
+          </Text>
+        ))}
+      </>
+    ),
+  }));
 
   return (
     <DefModal
@@ -169,66 +185,7 @@ const AverageModal = ({
         <AverageFormula average={average} intensityData={intensityData} total={storms.length} />
       )}
 
-      <Text style={styles.heading}>{heading(title)}</Text>
-
-      {intensityData.length === 0 && <Text style={styles.empty}>{empty(title)}</Text>}
-
-      <View style={styles.groups}>
-        {intensityData.map((data) => {
-          const bgColor = BACKGROUND_BADGE[data.intensity];
-          const textColor = TEXT_COLOR_WHITE_BACKGROUND[data.intensity];
-          const isExpanded = expanded === data.intensity;
-
-          return (
-            <View key={data.intensity}>
-              <Pressable
-                onPress={() => toggle(data.intensity)}
-                style={({ pressed }) => [
-                  styles.group,
-                  { borderLeftColor: bgColor },
-                  pressed && styles.pressed,
-                ]}
-                accessibilityRole="button"
-                accessibilityState={{ expanded: isExpanded }}
-                accessibilityLabel={`${INTENSITY_LABEL[data.intensity]}, ${data.count} storms`}
-              >
-                <Text style={[styles.groupLabel, { color: textColor }]} numberOfLines={1}>
-                  {INTENSITY_LABEL[data.intensity]}
-                </Text>
-
-                <View style={styles.groupStats}>
-                  <View
-                    style={[
-                      styles.bar,
-                      {
-                        width: maxCount > 0 ? Math.max(8, (data.count / maxCount) * 96) : 8,
-                        backgroundColor: bgColor,
-                      },
-                    ]}
-                  />
-                  <Text style={styles.count}>{data.count}</Text>
-                  <Ionicons
-                    name={isExpanded ? "chevron-up" : "chevron-down"}
-                    size={14}
-                    color={COLOR.textFaint}
-                  />
-                </View>
-              </Pressable>
-
-              {isExpanded && (
-                <View style={styles.stormList}>
-                  {data.storms.map((storm) => (
-                    <Text key={`${storm.name}-${storm.year}`} style={styles.storm}>
-                      <Text style={[styles.stormName, { color: textColor }]}>{storm.name}</Text>{" "}
-                      {storm.year}
-                    </Text>
-                  ))}
-                </View>
-              )}
-            </View>
-          );
-        })}
-      </View>
+      <ComparisonBarList heading={heading(title)} emptyText={empty(title)} rows={rows} />
     </DefModal>
   );
 };
@@ -272,62 +229,6 @@ const styles = StyleSheet.create({
   formulaResult: {
     fontFamily: "OpenSans_700Bold",
     color: COLOR.text,
-  },
-  heading: {
-    fontFamily: "OpenSans_400Regular",
-    fontSize: 14,
-    color: COLOR.textBody,
-    marginTop: 16,
-    marginBottom: 8,
-  },
-  empty: {
-    fontFamily: "OpenSans_400Regular",
-    fontSize: 13,
-    color: COLOR.textMuted,
-  },
-  groups: {
-    gap: 8,
-  },
-  group: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 8,
-    minHeight: 48,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    borderLeftWidth: 4,
-    backgroundColor: COLOR.surfaceSubtle,
-  },
-  pressed: {
-    backgroundColor: COLOR.surfaceSunken,
-  },
-  groupLabel: {
-    flexShrink: 1,
-    fontFamily: "OpenSans_600SemiBold",
-    fontSize: 14,
-  },
-  groupStats: {
-    flexShrink: 0,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  bar: {
-    height: 8,
-    borderRadius: 4,
-  },
-  count: {
-    fontFamily: "OpenSans_600SemiBold",
-    fontSize: 13,
-    color: COLOR.textBody,
-    fontVariant: ["tabular-nums"],
-  },
-  stormList: {
-    gap: 4,
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 4,
   },
   storm: {
     fontFamily: "OpenSans_400Regular",

@@ -1,13 +1,12 @@
 import ImageWithLoader from "@/lib/components/common/ImageWithLoader";
+import ZoomEarthLink from "@/lib/components/common/ZoomEarthLink";
 import StormHighlightBadges, { hasHighlight } from "@/lib/components/storm/StormHighlightBadges";
 import { BACKGROUND_BADGE, INTENSITY_LABEL, TEXT_COLOR_BADGE } from "@/lib/constants";
 import { COLOR } from "@/lib/constants/theme";
 import type { Storm } from "@/lib/types";
 import { formatStormDateRange } from "@/lib/utils/date";
-import { getZoomEarthUrl } from "@/lib/utils/format";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import * as WebBrowser from "expo-web-browser";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 
 const StormCard = ({ storm }: { storm: Storm }) => {
   const bgColor = BACKGROUND_BADGE[storm.intensity];
@@ -47,15 +46,7 @@ const StormCard = ({ storm }: { storm: Storm }) => {
         style={styles.map}
       />
 
-      <Pressable
-        onPress={() => WebBrowser.openBrowserAsync(getZoomEarthUrl(storm.name, storm.year))}
-        style={({ pressed }) => [styles.link, pressed && styles.pressed]}
-        accessibilityRole="link"
-        accessibilityLabel={`View ${storm.name} ${storm.year} on Zoom Earth`}
-      >
-        <Text style={styles.linkLabel}>Zoom Earth</Text>
-        <Ionicons name="open-outline" size={12} color={COLOR.accent} />
-      </Pressable>
+      <ZoomEarthLink storm={storm} variant="row" />
     </View>
   );
 };
@@ -96,23 +87,6 @@ const styles = StyleSheet.create({
     height: 176,
     width: "100%",
     backgroundColor: COLOR.surfaceSubtle,
-  },
-  link: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    minHeight: 44,
-    paddingHorizontal: 16,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: COLOR.border,
-  },
-  pressed: {
-    backgroundColor: COLOR.surfaceMuted,
-  },
-  linkLabel: {
-    fontFamily: "OpenSans_600SemiBold",
-    fontSize: 12,
-    color: COLOR.accent,
   },
 });
 

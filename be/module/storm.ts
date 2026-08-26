@@ -14,6 +14,7 @@ export interface StormRow {
   dateStart: string;
   dateEnd: string | null;
   jtwcDesignation: string | null;
+  jmaNumber: string | null;
   isFirst: boolean;
   isLast: boolean;
 }
@@ -30,6 +31,7 @@ export const toStorm = (row: StormRow): Storm => ({
   dateStart: row.dateStart,
   dateEnd: row.dateEnd ?? undefined,
   jtwcDesignation: row.jtwcDesignation ?? undefined,
+  jmaNumber: row.jmaNumber ?? undefined,
   isFirst: row.isFirst,
   isLast: row.isLast,
 });

@@ -1,18 +1,16 @@
 import CountryFlag from "@/lib/components/common/CountryFlag";
 import EmptyResults from "@/lib/components/common/EmptyResults";
 import ImageWithLoader from "@/lib/components/common/ImageWithLoader";
+import ZoomEarthLink from "@/lib/components/common/ZoomEarthLink";
 import StormHighlightBadges, { hasHighlight } from "@/lib/components/storm/StormHighlightBadges";
 import StormStats from "@/lib/components/storm/StormStats";
 import { BACKGROUND_BADGE, INTENSITY_LABEL, TEXT_COLOR_WHITE_BACKGROUND } from "@/lib/constants";
 import { COLOR } from "@/lib/constants/theme";
 import type { Storm } from "@/lib/types";
 import { formatStormDateRange } from "@/lib/utils/date";
-import { getZoomEarthUrl } from "@/lib/utils/format";
 import { isExternalPosition } from "@/lib/utils/position";
-import Ionicons from "@expo/vector-icons/Ionicons";
-import * as WebBrowser from "expo-web-browser";
 import { useState } from "react";
-import { Pressable, StyleSheet, Switch, Text, View } from "react-native";
+import { StyleSheet, Switch, Text, View } from "react-native";
 
 export interface StormListContentProps {
   storms: Storm[];
@@ -48,16 +46,7 @@ function StormRow({ storm, showMap }: { storm: Storm; showMap: boolean }) {
 
       <View style={styles.rowFooter}>
         <Text style={styles.rowDate}>{dateRange}</Text>
-        <Pressable
-          onPress={() => WebBrowser.openBrowserAsync(getZoomEarthUrl(storm.name, storm.year))}
-          hitSlop={8}
-          style={({ pressed }) => [styles.link, pressed && styles.pressed]}
-          accessibilityRole="link"
-          accessibilityLabel={`View ${storm.name} ${storm.year} on Zoom Earth`}
-        >
-          <Text style={styles.linkLabel}>Zoom Earth</Text>
-          <Ionicons name="open-outline" size={12} color={COLOR.accent} />
-        </Pressable>
+        <ZoomEarthLink storm={storm} />
       </View>
     </View>
   );
@@ -195,19 +184,6 @@ const styles = StyleSheet.create({
     fontFamily: "OpenSans_400Regular",
     fontSize: 12,
     color: COLOR.textMuted,
-  },
-  link: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-  },
-  pressed: {
-    opacity: 0.6,
-  },
-  linkLabel: {
-    fontFamily: "OpenSans_600SemiBold",
-    fontSize: 12,
-    color: COLOR.accent,
   },
 });
 

@@ -1,5 +1,5 @@
 import type { Storm } from "@/lib/types";
-import { daysBetween, parseStormDate } from "@/lib/utils/date";
+import { daysBetween, parseStormDate, todayISO } from "@/lib/utils/date";
 import { getGroupedStorms } from "@/lib/utils/storm/aggregate";
 
 // Dates are averaged as a day-of-year in a fixed non-leap reference year, so a
@@ -18,21 +18,13 @@ const stormStartDoy = (s: Storm): number => {
   return toDayOfYear(start.month, start.day);
 };
 
-// Today as a "YYYY-MM-DD" string, matching how storm dates travel. A storm with
-// no end date is still active, so its end can only be later than today — today
-// stands in for the missing end rather than dropping the storm from an average.
-const today = (): string => {
-  const now = new Date(Date.now());
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
-};
-
 // A storm that crossed into the new year has its January end treated as "month
 // 13": one full year later. This keeps a Dec→Jan storm's end after its start
-// when averaging and measuring span.
+// when averaging and measuring span. A storm with no end date is still active, so
+// today stands in for the missing end rather than dropping it from the average.
 const stormEndDoy = (s: Storm): number => {
   const start = parseStormDate(s.dateStart);
-  const end = parseStormDate(s.dateEnd ?? today());
+  const end = parseStormDate(s.dateEnd ?? todayISO());
   const doy = toDayOfYear(end.month, end.day);
   return end.year > start.year ? doy + DAYS_IN_YEAR : doy;
 };
@@ -87,7 +79,7 @@ export const getDoyMonth = (doy: number): number => (doy < 0 ? -1 : fromDayOfYea
 // measured to today, on the same basis as its stand-in end date.
 export const calculateAvgDuration = (storms: Storm[]): number => {
   const durations = storms
-    .map((s) => daysBetween(s.dateStart, s.dateEnd ?? today()))
+    .map((s) => daysBetween(s.dateStart, s.dateEnd ?? todayISO()))
     .filter((v): v is number => v !== null);
   return average(durations);
 };
