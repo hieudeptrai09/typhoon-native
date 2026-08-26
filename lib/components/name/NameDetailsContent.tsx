@@ -45,6 +45,7 @@ const NameDetailsContent = ({
   const replacementName =
     !hideReplacedBy && "replacementName" in name ? name.replacementName : undefined;
   const lastYear = "lastYear" in name ? name.lastYear : undefined;
+  const note = "note" in name ? name.note?.trim() : undefined;
   const pronunciationFile = name.pronunciationFile?.trim();
   const crossRef: { icon: IconName; label: string; value: string } | undefined = correctSpelling
     ? { icon: "text-outline", label: "Correct spelling", value: correctSpelling }
@@ -130,6 +131,14 @@ const NameDetailsContent = ({
             </Text>
           </InfoRow>
         )}
+
+        {note ? (
+          <InfoRow
+            icon={<Ionicons name="information-circle-outline" size={16} color={ROW_ICON_COLOR} />}
+          >
+            <Text style={styles.note}>{note}</Text>
+          </InfoRow>
+        ) : null}
       </View>
     </View>
   );
@@ -230,6 +239,12 @@ const styles = StyleSheet.create({
   crossRefValue: {
     fontFamily: "OpenSans_600SemiBold",
     color: COLOR.accent,
+  },
+  note: {
+    fontFamily: "OpenSans_400Regular_Italic",
+    fontSize: 13,
+    lineHeight: 19,
+    color: COLOR.textMuted,
   },
 });
 

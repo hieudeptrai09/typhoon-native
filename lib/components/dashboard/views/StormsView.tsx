@@ -99,14 +99,13 @@ const StormsView = ({ params, stormsData, averageValues, onCellClick }: StormsVi
             title={row.name}
             titleColor={color}
             accentColor={color}
-            trailing={`×${row.count}`}
             fields={[
+              { label: "Storm count", value: String(row.count) },
               { label: "Position", value: getPositionTitle(row.position) },
               { label: "Last year", value: String(row.year) },
               {
                 label: "Contributed by",
                 value: <CountryFlag country={row.country} size={16} showName />,
-                wide: true,
               },
             ]}
             pressable

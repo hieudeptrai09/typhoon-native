@@ -1,6 +1,7 @@
 import CountryFlag from "@/lib/components/common/CountryFlag";
 import DataList, { DataCard } from "@/lib/components/common/DataList";
 import EmptyResults from "@/lib/components/common/EmptyResults";
+import { RETIRED_REASON_LABEL } from "@/lib/constants";
 import type { RetiredName } from "@/lib/types";
 import { getRetiredReasonColor } from "@/lib/utils/colors";
 import { getPositionTitle } from "@/lib/utils/position";
@@ -51,15 +52,20 @@ const RetiredNamesTable = ({ retiredNames, onNamePress }: RetiredNamesTableProps
             title={name.name}
             titleColor={color}
             accentColor={color}
-            trailing={`Last used ${name.lastYear}`}
             fields={[
+              { label: "Last used", value: String(name.lastYear) },
               {
                 label: "Contributed by",
                 value: <CountryFlag country={name.country} size={16} showName />,
               },
               { label: "Position", value: getPositionTitle(name.position) },
-              { label: "Meaning", value: name.meaning || "—", wide: true },
-              ...(name.note ? [{ label: "Note", value: name.note, wide: true }] : []),
+              {
+                label: "Reason",
+                value: name.retirementReason
+                  ? RETIRED_REASON_LABEL[name.retirementReason]
+                  : "Retired",
+              },
+              { label: "Meaning", value: name.meaning || "—" },
             ]}
             pressable
           />

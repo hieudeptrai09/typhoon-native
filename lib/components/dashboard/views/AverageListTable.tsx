@@ -125,7 +125,10 @@ const titleOf = (row: AverageData, filterType: string): string => {
 };
 
 const fieldsOf = (row: AverageData, filterType: string): DataField[] => {
-  const fields: DataField[] = [{ label: "Storm count", value: String(row.count) }];
+  const fields: DataField[] = [
+    { label: "Average intensity", value: row.average },
+    { label: "Storm count", value: String(row.count) },
+  ];
 
   if (filterType === "name" && row.position !== undefined) {
     fields.push({ label: "Position", value: getPositionTitle(row.position) });
@@ -134,7 +137,6 @@ const fieldsOf = (row: AverageData, filterType: string): DataField[] => {
     fields.push({
       label: "Contributed by",
       value: <CountryFlag country={row.country} size={16} showName />,
-      wide: true,
     });
   }
   return fields;
@@ -207,7 +209,6 @@ const AverageListTable = ({ filter, stormsData, onCellClick }: AverageListTableP
               )
             }
             accentColor={color}
-            trailing={row.average}
             fields={fieldsOf(row, filter)}
             pressable
           />

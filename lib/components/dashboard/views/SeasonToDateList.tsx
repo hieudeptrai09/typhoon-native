@@ -103,8 +103,8 @@ const SeasonToDateList = ({ rows, onSeasonPress }: SeasonToDateListProps) => {
           ordinal={index + 1}
           title={String(row.year)}
           accentColor={getSeasonPaceColor(row.delta)}
-          trailing={String(row.toDate)}
           fields={[
+            { label: "By this date", value: String(row.toDate) },
             {
               label: "vs. Average",
               value: (

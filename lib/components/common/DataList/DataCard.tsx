@@ -6,7 +6,6 @@ import { StyleSheet, Text, View } from "react-native";
 export interface DataField {
   label: string;
   value: ReactNode;
-  wide?: boolean;
 }
 
 interface DataCardProps {
@@ -14,7 +13,6 @@ interface DataCardProps {
   title: ReactNode;
   titleColor?: string;
   subtitle?: ReactNode;
-  trailing?: ReactNode;
   accentColor?: string;
   fields?: DataField[];
   pressable?: boolean;
@@ -32,7 +30,6 @@ const DataCard = ({
   title,
   titleColor,
   subtitle,
-  trailing,
   accentColor,
   fields,
   pressable = false,
@@ -53,20 +50,25 @@ const DataCard = ({
           {subtitle !== undefined && asNode(subtitle, styles.subtitle)}
         </View>
 
-        {trailing !== undefined && (
-          <View style={styles.trailing}>{asNode(trailing, styles.trailingText)}</View>
-        )}
         {pressable && <Ionicons name="chevron-forward" size={16} color={COLOR.textFaint} />}
       </View>
 
       {fields && fields.length > 0 && (
         <View style={styles.fields}>
-          {fields.map((field) => (
-            <View key={field.label} style={field.wide ? styles.fieldWide : styles.field}>
-              <Text style={styles.fieldLabel}>{field.label.toUpperCase()}</Text>
-              {asNode(field.value, styles.fieldValue)}
-            </View>
-          ))}
+          {fields.map((field, index, all) => {
+            // Every cell is exactly half the row, so an even index is always the left column.
+            const isLeft = index % 2 === 0;
+            const spansRow = isLeft && index === all.length - 1;
+            return (
+              <View
+                key={field.label}
+                style={[styles.field, spansRow ? styles.fieldFull : isLeft && styles.fieldGutter]}
+              >
+                <Text style={styles.fieldLabel}>{field.label.toUpperCase()}</Text>
+                {asNode(field.value, styles.fieldValue)}
+              </View>
+            );
+          })}
         </View>
       )}
     </View>
@@ -123,14 +125,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: COLOR.textMuted,
   },
-  trailing: {
-    alignItems: "flex-end",
-  },
-  trailingText: {
-    fontFamily: "OpenSans_600SemiBold",
-    fontSize: 14,
-    color: COLOR.textSecondary,
-  },
   fields: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -139,11 +133,12 @@ const styles = StyleSheet.create({
   field: {
     width: "50%",
     gap: 2,
-    paddingRight: 8,
   },
-  fieldWide: {
+  fieldGutter: {
+    paddingRight: 12,
+  },
+  fieldFull: {
     width: "100%",
-    gap: 2,
   },
   fieldLabel: {
     fontFamily: "OpenSans_600SemiBold",

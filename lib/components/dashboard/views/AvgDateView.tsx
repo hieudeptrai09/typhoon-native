@@ -237,7 +237,6 @@ const AvgDateView = ({ params, stormsData, onCellClick }: AvgDateViewProps) => {
           ordinal={index + 1}
           title={titleOf(filterType, row)}
           accentColor={getAvgDateColor(getDoyMonth(row.startDoy))}
-          trailing={<Text style={styles.duration}>{formatDuration(row.avgDuration)}</Text>}
           fields={[
             {
               label: "Avg. season",
@@ -248,7 +247,10 @@ const AvgDateView = ({ params, stormsData, onCellClick }: AvgDateViewProps) => {
                   <DateText doy={row.endDoy} />
                 </Text>
               ),
-              wide: true,
+            },
+            {
+              label: "Avg. duration",
+              value: <Text style={styles.duration}>{formatDuration(row.avgDuration)}</Text>,
             },
             ...(filterType === "name"
               ? [{ label: "Position", value: getPositionTitle(row.position ?? 0) }]
@@ -259,7 +261,6 @@ const AvgDateView = ({ params, stormsData, onCellClick }: AvgDateViewProps) => {
                   {
                     label: "Contributed by",
                     value: <CountryFlag country={row.country} size={16} showName />,
-                    wide: true,
                   },
                 ]
               : []),
@@ -281,9 +282,10 @@ const styles = StyleSheet.create({
     color: COLOR.textFaint,
   },
   duration: {
-    fontFamily: "OpenSans_600SemiBold",
+    fontFamily: "OpenSans_500Medium",
     fontSize: 13,
-    color: COLOR.textSecondary,
+    lineHeight: 19,
+    color: COLOR.text,
     fontVariant: ["tabular-nums"],
   },
 });

@@ -6,6 +6,7 @@ import type { TyphoonName } from "@/lib/types";
 import { getNameStatusColor } from "@/lib/utils/colors";
 import { getPositionTitle } from "@/lib/utils/position";
 import type { SortCriterion, SortField } from "@/lib/utils/table";
+import { StyleSheet, Text, View } from "react-native";
 
 interface FilteredNamesTableProps {
   filteredNames: TyphoonName[];
@@ -35,6 +36,11 @@ const sortFields: SortField<TyphoonName>[] = [
 // Module-level so the identity is stable: DataList memoises the sorted rows off this.
 const BY_NAME: SortCriterion[] = [{ key: "name", order: "ascend" }];
 
+const statusLabel = (name: TyphoonName): string => {
+  if (name.retirementReason === "misspell") return "Misspelled";
+  return name.isRetired ? "Retired" : "Active";
+};
+
 const indexField = {
   key: "name",
   letterOf: (name: TyphoonName) => name.name.charAt(0).toUpperCase(),
@@ -59,21 +65,29 @@ const FilteredNamesTable = ({ filteredNames, onNamePress }: FilteredNamesTablePr
           title={name.name}
           titleColor={getNameStatusColor(name)}
           accentColor={getNameStatusColor(name)}
-          trailing={
-            <NameStatusIcon
-              isRetired={name.isRetired}
-              retirementReason={name.retirementReason}
-              size={20}
-            />
-          }
           fields={[
+            {
+              label: "Status",
+              value: (
+                <View style={styles.status}>
+                  <NameStatusIcon
+                    isRetired={name.isRetired}
+                    retirementReason={name.retirementReason}
+                    size={16}
+                  />
+                  <Text style={[styles.statusText, { color: getNameStatusColor(name) }]}>
+                    {statusLabel(name)}
+                  </Text>
+                </View>
+              ),
+            },
             {
               label: "Contributed by",
               value: <CountryFlag country={name.country} size={16} showName />,
             },
             { label: "Language", value: name.language || "—" },
             { label: "Position", value: getPositionTitle(name.position) },
-            { label: "Meaning", value: name.meaning || "—", wide: true },
+            { label: "Meaning", value: name.meaning || "—" },
           ]}
           pressable
         />
@@ -81,5 +95,18 @@ const FilteredNamesTable = ({ filteredNames, onNamePress }: FilteredNamesTablePr
     />
   );
 };
+
+const styles = StyleSheet.create({
+  status: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  statusText: {
+    fontFamily: "OpenSans_500Medium",
+    fontSize: 13,
+    lineHeight: 19,
+  },
+});
 
 export default FilteredNamesTable;

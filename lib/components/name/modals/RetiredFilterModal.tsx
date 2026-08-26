@@ -2,6 +2,7 @@ import DefModal from "@/lib/components/common/DefModal";
 import OptionPicker from "@/lib/components/common/OptionPicker";
 import TextField from "@/lib/components/common/TextField";
 import PositionSelect from "@/lib/components/name/widgets/PositionSelect";
+import { RETIRED_REASON_LABEL } from "@/lib/constants";
 import { COLOR } from "@/lib/constants/theme";
 import {
   type BaseModalProps,
@@ -41,12 +42,10 @@ const YEAR_OPTIONS = Array.from({ length: new Date().getFullYear() - FIRST_YEAR 
   String(new Date().getFullYear() - idx),
 ).map((year) => ({ value: year, label: year }));
 
-const REASON_OPTIONS: { value: RetirementReason; label: string }[] = [
-  { value: "destructive", label: "Destructive Storm" },
-  { value: "language", label: "Language Problem" },
-  { value: "misspell", label: "Misspelling" },
-  { value: "special", label: "Special Storm" },
-];
+const REASON_OPTIONS = Object.entries(RETIRED_REASON_LABEL).map(([value, label]) => ({
+  value: value as RetirementReason,
+  label,
+}));
 
 const toFilters = (values: FormValues): RetiredFilterParams => {
   const position = positionFromValue(values.position);

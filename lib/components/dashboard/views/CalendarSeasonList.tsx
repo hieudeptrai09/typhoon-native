@@ -57,8 +57,10 @@ const CalendarSeasonList = ({
         ordinal={index + 1}
         title={String(season.year)}
         accentColor={TEXT_COLOR_WHITE_BACKGROUND[peakOf(season.storms).intensity]}
-        trailing={String(season.storms.length)}
-        fields={[{ label: "Names", value: <NamesCell storms={season.storms} />, wide: true }]}
+        fields={[
+          { label: "Storm count", value: String(season.storms.length) },
+          { label: "Names", value: <NamesCell storms={season.storms} /> },
+        ]}
         pressable
       />
     )}

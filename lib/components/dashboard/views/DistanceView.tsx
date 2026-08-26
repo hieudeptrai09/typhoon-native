@@ -144,8 +144,8 @@ const DistanceView = ({ params, stormsData, onCellClick }: DistanceViewProps) =>
           ordinal={index + 1}
           title={filterType === "name" ? (row.name ?? "") : getPositionTitle(row.position)}
           accentColor={getDistanceColor(row.distanceNumber)}
-          trailing={row.distance}
           fields={[
+            { label: "Avg recurrence", value: row.distance },
             ...(filterType === "name"
               ? [{ label: "Position", value: getPositionTitle(row.position) }]
               : []),
@@ -153,7 +153,6 @@ const DistanceView = ({ params, stormsData, onCellClick }: DistanceViewProps) =>
             {
               label: "Contributed by",
               value: <CountryFlag country={row.country} size={16} showName />,
-              wide: true,
             },
           ]}
           pressable

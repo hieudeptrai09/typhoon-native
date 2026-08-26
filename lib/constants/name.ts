@@ -1,4 +1,11 @@
-import type { RetiredName, TyphoonName } from "@/lib/types";
+import type { RetiredName, RetirementReason, TyphoonName } from "@/lib/types";
+
+export const RETIRED_REASON_LABEL: Record<RetirementReason, string> = {
+  destructive: "Destructive Storm",
+  language: "Language Problem",
+  misspell: "Misspelling",
+  special: "Special Storm",
+};
 
 export const defaultTyphoonName: TyphoonName = {
   id: 0,

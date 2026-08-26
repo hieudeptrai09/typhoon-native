@@ -84,14 +84,20 @@ const StormRowsList = ({ storms, sortKey, showIntensity = true }: StormRowsListP
           ordinal={index + 1}
           title={row.name}
           subtitle={`${row.startMonth}/${row.startYear}`}
-          trailing={showIntensity ? <IntensityBadge intensity={row.intensity} /> : undefined}
           fields={[
+            ...(showIntensity
+              ? [
+                  {
+                    label: "Intensity",
+                    value: <IntensityBadge intensity={row.intensity} size={28} />,
+                  },
+                ]
+              : []),
             { label: "Year", value: String(row.year) },
             { label: "Position", value: getPositionTitle(row.position) },
             {
               label: "Contributed by",
               value: <CountryFlag country={row.country} size={16} showName />,
-              wide: true,
             },
           ]}
         />
