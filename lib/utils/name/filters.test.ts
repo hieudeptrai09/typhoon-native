@@ -111,18 +111,16 @@ describe("applyRetiredFilters", () => {
 
 describe("filter chips", () => {
   it("gives every value of a multi-select its own chip", () => {
-    const chips = nameFilterChips(withFilters({ country: "China|Macao" }), false);
+    const chips = nameFilterChips(withFilters({ country: "China|Macao" }));
     expect(chips.map((chip) => chip.key)).toEqual(["country:China", "country:Macao"]);
   });
 
-  it("hides the status chip outside the history scope", () => {
-    const filters = withFilters({ status: "retired" });
-    expect(nameFilterChips(filters, false)).toEqual([]);
-    expect(nameFilterChips(filters, true).map((chip) => chip.label)).toEqual(["Retired"]);
+  it("never chips status, which the history toggle owns rather than the filter sheet", () => {
+    expect(nameFilterChips(withFilters({ status: "current" }))).toEqual([]);
   });
 
   it("labels a position by its grid cell", () => {
-    const chips = nameFilterChips(withFilters({ position: "3" }), false);
+    const chips = nameFilterChips(withFilters({ position: "3" }));
     expect(chips).toEqual([{ key: "position", label: "1C" }]);
   });
 

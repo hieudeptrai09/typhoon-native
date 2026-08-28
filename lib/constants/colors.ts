@@ -58,11 +58,10 @@ export const SEASON_PACE_AHEAD_COLOR = "#c2410c";
 export const SEASON_PACE_BEHIND_COLOR = "#1d4ed8";
 export const SEASON_PACE_EVEN_COLOR = "#475569";
 
-// Index 0 is "one storm"; the last bucket is open-ended.
-export const STORM_COUNT_COLORS = ["#dbeafe", "#93c5fd", "#60a5fa", "#3b82f6", "#1d4ed8"];
-
-// Index 0 is "used once"; the last bucket is open-ended.
-export const NAME_REUSE_COLORS = [COLOR.success, COLOR.accent, COLOR.warning, COLOR.danger];
+// The grid only ever separates the busiest positions from the ones a storm behind them: with 140
+// positions all holding four or five storms, a longer ramp would leave most of itself undrawn.
+// Index 0 is the count below the busiest; index 1 is the busiest.
+export const STORM_COUNT_COLORS = ["#3b82f6", "#1d4ed8"];
 
 export const HIGHLIGHT_CELL_COLOR: Record<string, string> = {
   strongest: "#fda4af",

@@ -5,6 +5,7 @@ import {
   DISTANCE_NA_COLOR,
   DISTANCE_SHORT_COLOR,
   DISTANCE_STANDARD_COLOR,
+  GRID_EMPTY_CELL_COLOR,
   HIGHLIGHT_CELL_COLOR,
   HIGHLIGHT_FALLBACK_COLOR,
   RETIRED_REASON_COLOR,
@@ -12,6 +13,7 @@ import {
   SEASON_PACE_AHEAD_COLOR,
   SEASON_PACE_BEHIND_COLOR,
   SEASON_PACE_EVEN_COLOR,
+  STORM_COUNT_COLORS,
 } from "@/lib/constants/colors";
 import { COLOR } from "@/lib/constants/theme";
 import type { RetirementReason } from "@/lib/types";
@@ -23,6 +25,20 @@ export const getDistanceColor = (years: number): string => {
   if (years === 6.0) return DISTANCE_STANDARD_COLOR;
   return DISTANCE_LONG_COLOR;
 };
+
+/**
+ * The scale rides the top of the data: the busiest positions take the darker colour, the ones a
+ * storm behind take the lighter, and everything further down shares the lighter one. So a table
+ * that climbs from five storms to six hands both colours down a count rather than restaging
+ * itself, and the two shades keep meaning "busiest" and "one below".
+ */
+const countStop = (count: number, maxCount: number): number => {
+  const shift = Math.max(0, maxCount - STORM_COUNT_COLORS.length);
+  return Math.min(STORM_COUNT_COLORS.length - 1, Math.max(0, count - 1 - shift));
+};
+
+export const getStormCountColor = (count: number, maxCount: number): string =>
+  count <= 0 ? GRID_EMPTY_CELL_COLOR : STORM_COUNT_COLORS[countStop(count, maxCount)];
 
 export const getAvgDateColor = (month: number): string =>
   AVG_DATE_MONTH_COLOR[month] ?? AVG_DATE_FALLBACK_COLOR;

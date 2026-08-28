@@ -1,115 +1,102 @@
 import type { DashboardParams } from "@/lib/types";
-import { INTENSITY_SLUGS_BY_STRENGTH } from "@/lib/utils/storm/intensity";
+import { INTENSITY_SLUGS_BY_STRENGTH, intensityFromSlug } from "@/lib/utils/storm/intensity";
 
-const VALID_FILTERS: Record<string, string[]> = {
+export const VIEWS = ["all", "records", "stats"] as const;
+
+export const STATS_METRICS = ["intensity", "recurrence", "dates"] as const;
+
+const VIEW_FILTERS: Record<string, string[]> = {
   all: ["position", "name"],
-  highlights: ["strongest", "first", "last"],
-  intensity: INTENSITY_SLUGS_BY_STRENGTH,
-  average: ["position", "name", "country", "year", "month"],
+  records: ["strongest", "first", "last", ...INTENSITY_SLUGS_BY_STRENGTH],
+  stats: ["position", "name", "country", "year", "month"],
+};
+
+// Groupings a metric can actually be computed over, rather than every grouping the view offers.
+const METRIC_GROUPS: Record<string, string[]> = {
+  intensity: ["position", "name", "country", "year", "month"],
   recurrence: ["position", "name"],
-  avgdate: ["position", "name", "country", "year"],
-  calendar: ["started", "ended", "active", "todate"],
+  dates: ["position", "name", "country", "year"],
 };
 
-const LIST_ONLY_FILTERS: Record<string, string[]> = {
-  average: ["country", "month", "year"],
-  avgdate: ["country", "year"],
-  calendar: ["started", "ended", "active", "todate"],
-};
-
-export const DEFAULT_FILTER: Record<string, string> = {
+const DEFAULT_FILTER: Record<string, string> = {
   all: "position",
-  highlights: "strongest",
-  intensity: "md",
-  average: "position",
-  recurrence: "position",
-  avgdate: "position",
-  calendar: "started",
+  records: "strongest",
+  stats: "position",
 };
 
-export const isValidStormsSlug = (slug: string[]): boolean => {
-  const [first, second, third] = slug;
+// The heatmap and the names pager are both laid out on the naming table, so only those two
+// groupings have a grid to draw into. Country, year and month have nowhere to go but a list.
+const GRIDDABLE_GROUPS = new Set(["position", "name"]);
 
-  if (slug.length === 2) {
-    const validFilters = VALID_FILTERS[first];
-    if (!validFilters) return false;
-    return validFilters.includes(second);
+export const isKnownView = (view: string): boolean => VIEW_FILTERS[view] !== undefined;
+
+export const filtersForView = (view: string, metric: string): string[] =>
+  view === "stats" ? (METRIC_GROUPS[metric] ?? []) : (VIEW_FILTERS[view] ?? []);
+
+export const hasGrid = (view: string, filter: string): boolean =>
+  view !== "stats" || GRIDDABLE_GROUPS.has(filter);
+
+// The storms list is a flat run of storms, which is what "by name" already means. Grouping by
+// position has nothing to list that the grid does not say better, so the pairing does not exist.
+export const hasList = (view: string, filter: string): boolean =>
+  view !== "all" || filter === "name";
+
+/**
+ * Why an option is offered but cannot be picked. Returning the reason rather than hiding the
+ * option is the point: a control that silently changes shape between views reads as a bug.
+ */
+export const groupBlockedReason = (
+  view: string,
+  metric: string,
+  filter: string,
+  mode: string,
+): string | null => {
+  if (view === "all") {
+    return mode === "list" && !hasList(view, filter) ? "Not available in the list layout" : null;
   }
-  if (slug.length === 3) {
-    const validFilters = VALID_FILTERS[first];
-    if (!validFilters || !validFilters.includes(second)) return false;
-    return third === "list";
-  }
-  return false;
+  if (view !== "stats" || METRIC_GROUPS[metric]?.includes(filter)) return null;
+  return "Not available for this metric";
 };
 
-export const isListOnly = (view: string, filter: string): boolean =>
-  LIST_ONLY_FILTERS[view]?.includes(filter) ?? false;
-
-export const isGridOnly = (view: string, filter: string): boolean =>
-  view === "all" && filter === "position";
-
-export const paramsForView = (view: string): DashboardParams => {
-  const filter = DEFAULT_FILTER[view] ?? "";
-  return { view, filter, mode: isListOnly(view, filter) ? "list" : "table" };
+export const layoutBlockedReason = (view: string, filter: string, mode: string): string | null => {
+  const available = mode === "list" ? hasList(view, filter) : hasGrid(view, filter);
+  return available ? null : "Not available for this grouping";
 };
 
-export const paramsForFilter = (view: string, filter: string, mode: string): DashboardParams => {
-  if (isGridOnly(view, filter)) return { view, filter, mode: "table" };
-  if (isListOnly(view, filter)) return { view, filter, mode: "list" };
-  return { view, filter, mode };
+/** The one place params are made legal, so no caller has to know which pairings exist. */
+export const normalizeParams = ({
+  view,
+  metric,
+  filter,
+  mode,
+}: DashboardParams): DashboardParams => {
+  const safeView = isKnownView(view) ? view : "all";
+  const safeMetric =
+    safeView === "stats" ? (METRIC_GROUPS[metric] ? metric : STATS_METRICS[0]) : "";
+
+  const allowed = filtersForView(safeView, safeMetric);
+  const fallback = DEFAULT_FILTER[safeView];
+  const safeFilter = allowed.includes(filter)
+    ? filter
+    : allowed.includes(fallback)
+      ? fallback
+      : allowed[0];
+
+  const wantsList = mode === "list";
+  const safeMode =
+    wantsList && hasList(safeView, safeFilter)
+      ? "list"
+      : hasGrid(safeView, safeFilter)
+        ? "table"
+        : "list";
+
+  return { view: safeView, metric: safeMetric, filter: safeFilter, mode: safeMode };
 };
 
-export const slugToParams = (slug: string[]): DashboardParams => {
-  const [view, filter, third] = slug;
-
-  let mode = third === "list" ? "list" : "table";
-  if (isGridOnly(view, filter)) mode = "table";
-  if (isListOnly(view, filter)) mode = "list";
-
-  return { view, mode, filter };
-};
-
-export const paramsToPath = (params: DashboardParams): string => {
-  const { view, mode, filter } = params;
-
-  const base = `/storms/${view}/${filter}/`;
-  return mode === "list" ? `${base}list/` : base;
-};
-
-export const slugToPath = (slug: string[]): string => `/storms/${slug.join("/")}/`;
-
-const ALL_SLUGS: string[][] = [
-  ...Object.entries(VALID_FILTERS).flatMap(([view, filters]) =>
-    filters.flatMap((filter) => [
-      [view, filter],
-      [view, filter, "list"],
-    ]),
-  ),
-];
-
-export const getCanonicalStormsSlugs = (): string[][] =>
-  ALL_SLUGS.filter((slug) => paramsToPath(slugToParams(slug)) === slugToPath(slug));
-
-export type LegendKind = "intensity" | "recurrence" | "avgdate" | "highlight" | "count" | null;
-
-export const getLegendKind = ({ view, mode, filter }: DashboardParams): LegendKind => {
-  switch (view) {
-    case "recurrence":
-      return "recurrence";
-    case "avgdate":
-      return "avgdate";
-    case "calendar":
-      return filter === "todate" ? null : "intensity";
-    case "highlights":
-      return mode === "list" ? "intensity" : "highlight";
-    case "intensity":
-    case "average":
-      return "intensity";
-    case "all":
-      if (mode === "list") return filter === "name" ? "intensity" : null;
-      return filter === "position" ? "count" : null;
-    default:
-      return null;
-  }
-};
+export const paramsForView = (view: string): DashboardParams =>
+  normalizeParams({
+    view,
+    metric: STATS_METRICS[0],
+    filter: DEFAULT_FILTER[view] ?? "",
+    mode: "table",
+  });

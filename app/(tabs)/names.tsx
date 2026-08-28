@@ -4,33 +4,19 @@ import FrownError from "@/lib/components/common/FrownError";
 import { RefreshProvider } from "@/lib/components/common/RefreshContext";
 import ScreenLoading from "@/lib/components/common/ScreenLoading";
 import NamesPageContent from "@/lib/components/name/NamesPageContent";
-import type { NamesLayout, NamesScope } from "@/lib/components/name/options";
-import type {
-  FilterParams,
-  RetiredFilterParams,
-  RetiredName,
-  StormHistoryEntry,
-  SuggestionWithNameId,
-} from "@/lib/types";
+import type { NamesScope } from "@/lib/components/name/options";
+import type { FilterParams, RetiredFilterParams, RetiredName } from "@/lib/types";
 import { EMPTY_NAME_FILTERS, EMPTY_RETIRED_FILTERS } from "@/lib/utils/name/filters";
 import { useState } from "react";
 
 export default function NamesScreen() {
-  const [scope, setScope] = useState<NamesScope>("current");
-  const [layout, setLayout] = useState<NamesLayout>("grid");
+  const [scope, setScope] = useState<NamesScope>("names");
+  const [showHistory, setShowHistory] = useState(false);
   const [showName, setShowName] = useState(true);
   const [nameFilters, setNameFilters] = useState<FilterParams>(EMPTY_NAME_FILTERS);
   const [retiredFilters, setRetiredFilters] = useState<RetiredFilterParams>(EMPTY_RETIRED_FILTERS);
 
   const names = useApiQuery<RetiredName[]>("/api/v1/typhoon-names");
-
-  // Both are only read by one scope each, so they stay unfetched until that scope is opened.
-  const history = useApiQuery<StormHistoryEntry[]>(
-    scope === "history" ? "/api/v1/storm-history" : null,
-  );
-  const suggested = useApiQuery<SuggestionWithNameId[]>(
-    scope === "retired" ? "/api/v1/suggestions" : null,
-  );
 
   if (names.isLoading) return <ScreenLoading />;
   if (!names.data) return <FrownError onRetry={names.refetch} />;
@@ -40,12 +26,10 @@ export default function NamesScreen() {
       <SortMemoryProvider>
         <NamesPageContent
           allNames={names.data}
-          stormHistory={history.data ?? []}
-          suggestedNames={suggested.data ?? []}
           scope={scope}
           onScopeChange={setScope}
-          layout={layout}
-          onLayoutChange={setLayout}
+          showHistory={showHistory}
+          onShowHistoryChange={setShowHistory}
           showName={showName}
           onShowNameChange={setShowName}
           nameFilters={nameFilters}

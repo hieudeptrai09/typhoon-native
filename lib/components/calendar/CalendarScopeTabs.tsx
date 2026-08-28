@@ -1,18 +1,26 @@
-import { NAME_SCOPE_TABS, type NamesScope } from "@/lib/components/name/options";
 import { COLOR, RADIUS, SPACE } from "@/lib/constants/theme";
+import type { IconName } from "@/lib/types";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import * as Haptics from "expo-haptics";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
-interface NamesScopeTabsProps {
-  activeScope: NamesScope;
-  onChange: (scope: NamesScope) => void;
+export type CalendarScope = "started" | "ended" | "active";
+
+export const CALENDAR_SCOPES: { key: CalendarScope; label: string; icon: IconName }[] = [
+  { key: "started", label: "Started", icon: "play-outline" },
+  { key: "ended", label: "Ended", icon: "stop-outline" },
+  { key: "active", label: "Active", icon: "water-outline" },
+];
+
+interface CalendarScopeTabsProps {
+  scope: CalendarScope;
+  onChange: (scope: CalendarScope) => void;
 }
 
-const NamesScopeTabs = ({ activeScope, onChange }: NamesScopeTabsProps) => (
+const CalendarScopeTabs = ({ scope, onChange }: CalendarScopeTabsProps) => (
   <View style={styles.root} accessibilityRole="tablist">
-    {NAME_SCOPE_TABS.map(({ key, label, icon }) => {
-      const isActive = activeScope === key;
+    {CALENDAR_SCOPES.map(({ key, label, icon }) => {
+      const isActive = scope === key;
 
       return (
         <Pressable
@@ -76,4 +84,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default NamesScopeTabs;
+export default CalendarScopeTabs;

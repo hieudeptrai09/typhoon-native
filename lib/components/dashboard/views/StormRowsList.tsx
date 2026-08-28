@@ -1,12 +1,15 @@
 import CountryFlag from "@/lib/components/common/CountryFlag";
 import DataList, { DataCard } from "@/lib/components/common/DataList";
 import IntensityBadge from "@/lib/components/storm/IntensityBadge";
-import { SORTING_RANK } from "@/lib/constants";
+import { INTENSITY_LABEL, SORTING_RANK } from "@/lib/constants";
+import { COLOR } from "@/lib/constants/theme";
 import type { IntensityType, Storm } from "@/lib/types";
 import { parseStormDate } from "@/lib/utils/date";
 import { getPositionTitle } from "@/lib/utils/position";
-import type { SortField } from "@/lib/utils/table";
+import type { SortCriterion, SortField } from "@/lib/utils/table";
+import { router } from "expo-router";
 import { useMemo } from "react";
+import { StyleSheet, Text, View } from "react-native";
 
 interface StormRow {
   name: string;
@@ -55,14 +58,30 @@ const toRow = (storm: Storm): StormRow => {
   };
 };
 
+// The badge alone is a code. Spelling the scale out here is what lets the screen carry no legend.
+const IntensityCell = ({ intensity }: { intensity: IntensityType }) => (
+  <View style={styles.intensity}>
+    <IntensityBadge intensity={intensity} size={26} />
+    <Text style={styles.intensityLabel}>{INTENSITY_LABEL[intensity]}</Text>
+  </View>
+);
+
+const NAME_INDEX = { key: "name", letterOf: (row: StormRow) => row.name[0]?.toUpperCase() ?? "#" };
+
 interface StormRowsListProps {
   storms: Storm[];
   sortKey: string;
   /** Off where every row shares one intensity — the badge would repeat what the view already states. */
   showIntensity?: boolean;
+  defaultSort?: SortCriterion[];
 }
 
-const StormRowsList = ({ storms, sortKey, showIntensity = true }: StormRowsListProps) => {
+const StormRowsList = ({
+  storms,
+  sortKey,
+  showIntensity = true,
+  defaultSort,
+}: StormRowsListProps) => {
   const data = useMemo(() => storms.map(toRow), [storms]);
   const sortFields = useMemo(
     () =>
@@ -78,7 +97,10 @@ const StormRowsList = ({ storms, sortKey, showIntensity = true }: StormRowsListP
       keyExtractor={(row) => `${row.name}-${row.year}`}
       sortFields={sortFields}
       sortKey={sortKey}
+      defaultSort={defaultSort}
+      indexField={NAME_INDEX}
       countLabel={(count) => `${count} storm${count === 1 ? "" : "s"}`}
+      onRowPress={(row) => router.push(`/info/${encodeURIComponent(row.name)}`)}
       renderCard={(row, index) => (
         <DataCard
           ordinal={index + 1}
@@ -86,12 +108,7 @@ const StormRowsList = ({ storms, sortKey, showIntensity = true }: StormRowsListP
           subtitle={`${row.startMonth}/${row.startYear}`}
           fields={[
             ...(showIntensity
-              ? [
-                  {
-                    label: "Intensity",
-                    value: <IntensityBadge intensity={row.intensity} size={28} />,
-                  },
-                ]
+              ? [{ label: "Intensity", value: <IntensityCell intensity={row.intensity} /> }]
               : []),
             { label: "Year", value: String(row.year) },
             { label: "Position", value: getPositionTitle(row.position) },
@@ -100,10 +117,26 @@ const StormRowsList = ({ storms, sortKey, showIntensity = true }: StormRowsListP
               value: <CountryFlag country={row.country} size={16} showName />,
             },
           ]}
+          pressable
         />
       )}
     />
   );
 };
+
+const styles = StyleSheet.create({
+  intensity: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  intensityLabel: {
+    flexShrink: 1,
+    fontFamily: "OpenSans_500Medium",
+    fontSize: 12,
+    lineHeight: 16,
+    color: COLOR.textBody,
+  },
+});
 
 export default StormRowsList;

@@ -4,10 +4,18 @@ import Section from "@/lib/components/common/Section";
 import StaleBanner from "@/lib/components/common/StaleBanner";
 import NameDetailsContent from "@/lib/components/name/NameDetailsContent";
 import NameStatusIcon from "@/lib/components/name/NameStatusIcon";
+import SuggestionCard from "@/lib/components/name/widgets/SuggestionCard";
 import StormCard from "@/lib/components/storm/StormCard";
 import StormStats from "@/lib/components/storm/StormStats";
 import { COLOR, RADIUS, SPACE } from "@/lib/constants/theme";
-import type { RetiredName, RetirementReason, SearchDetail, Storm, TyphoonName } from "@/lib/types";
+import type {
+  RetiredName,
+  RetirementReason,
+  SearchDetail,
+  Storm,
+  Suggestion,
+  TyphoonName,
+} from "@/lib/types";
 import { getNameStatusBgColor, getNameStatusColor } from "@/lib/utils/colors";
 import { isExternalPosition } from "@/lib/utils/position";
 import { FlatList, StyleSheet, Text, View } from "react-native";
@@ -16,6 +24,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 interface InfoPageContentProps {
   detail: SearchDetail | null;
   name: string;
+  suggestions?: Suggestion[];
   staleError?: boolean;
 }
 
@@ -47,6 +56,7 @@ function StatusBadge({
 export default function InfoPageContent({
   detail,
   name,
+  suggestions = [],
   staleError = false,
 }: InfoPageContentProps) {
   const refreshControl = useRefreshControl();
@@ -102,6 +112,16 @@ export default function InfoPageContent({
         <Section title="Name Details">
           {/* The page header already carries the status badge. */}
           <NameDetailsContent name={nameData} correctSpelling={correctSpelling} hideStatus />
+        </Section>
+      )}
+
+      {suggestions.length > 0 && (
+        <Section title={`Proposed Replacements (${suggestions.length})`}>
+          <View style={styles.suggestions}>
+            {suggestions.map((suggestion) => (
+              <SuggestionCard key={suggestion.replacementName} suggestion={suggestion} />
+            ))}
+          </View>
         </Section>
       )}
 
@@ -180,6 +200,9 @@ const styles = StyleSheet.create({
   badgeLabel: {
     fontFamily: "OpenSans_600SemiBold",
     fontSize: 13,
+  },
+  suggestions: {
+    gap: SPACE.md,
   },
   listTitle: {
     fontFamily: "OpenSans_700Bold",

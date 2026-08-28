@@ -11,8 +11,9 @@ import {
   NAMING_LIST_FIRST_YEAR,
 } from "@/lib/utils/storm/calendar";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import { router } from "expo-router";
 import { useMemo } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 // Below this the two seasons are close enough that an arrow would overstate the gap.
 const EVEN_THRESHOLD = 0.05;
@@ -134,6 +135,16 @@ const SeasonCard = ({ query }: SeasonCardProps) => {
             Busiest by this day since {NAMING_LIST_FIRST_YEAR}: {season.busiest.year} with{" "}
             {season.busiest.toDate}
           </Text>
+
+          <Pressable
+            onPress={() => router.push("/season")}
+            style={({ pressed }) => [styles.more, pressed && styles.pressed]}
+            accessibilityRole="button"
+            accessibilityLabel="Compare every season by this day"
+          >
+            <Text style={styles.moreLabel}>Compare every season</Text>
+            <Ionicons name="chevron-forward" size={14} color={COLOR.accent} />
+          </Pressable>
         </View>
       )}
     </HomeCard>
@@ -231,6 +242,21 @@ const styles = StyleSheet.create({
     fontFamily: "OpenSans_400Regular",
     fontSize: 12,
     color: COLOR.textMuted,
+  },
+  more: {
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "flex-start",
+    gap: 4,
+    minHeight: 32,
+  },
+  pressed: {
+    opacity: 0.6,
+  },
+  moreLabel: {
+    fontFamily: "OpenSans_600SemiBold",
+    fontSize: 13,
+    color: COLOR.accent,
   },
 });
 

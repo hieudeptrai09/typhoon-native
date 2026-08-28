@@ -1,3 +1,4 @@
+import { RETIRED_REASON_LABEL } from "@/lib/constants";
 import type {
   FilterParams,
   RetiredFilterParams,
@@ -23,19 +24,6 @@ export const EMPTY_RETIRED_FILTERS: RetiredFilterParams = {
   country: "",
   reason: "",
   position: "",
-};
-
-export const NAME_STATUS_LABEL: Record<string, string> = {
-  active: "Active",
-  retired: "Retired",
-  current: "Current",
-};
-
-export const RETIREMENT_REASON_LABEL: Record<string, string> = {
-  destructive: "Destructive Storm",
-  language: "Language Problem",
-  misspell: "Misspelling",
-  special: "Special Storm",
 };
 
 export const applyNameFilters = (names: TyphoonName[], filters: FilterParams): TyphoonName[] => {
@@ -93,22 +81,24 @@ const multiChips = (
 const singleChip = (field: string, value: string, label: string): FilterChip[] =>
   value ? [{ key: field, label }] : [];
 
-export const nameFilterChips = (filters: FilterParams, showStatus: boolean): FilterChip[] => [
+// `status` has no chip: it is never set from the filter sheet, only implied by the history toggle.
+export const nameFilterChips = (filters: FilterParams): FilterChip[] => [
   ...singleChip("name", filters.name, `"${filters.name}"`),
   ...multiChips("country", filters.country),
   ...multiChips("language", filters.language),
   ...multiChips("tag", filters.tag),
   ...singleChip("position", filters.position, getPositionTitle(Number(filters.position))),
-  ...(showStatus
-    ? singleChip("status", filters.status, NAME_STATUS_LABEL[filters.status] ?? filters.status)
-    : []),
 ];
 
 export const retiredFilterChips = (filters: RetiredFilterParams): FilterChip[] => [
   ...singleChip("name", filters.name, `"${filters.name}"`),
   ...singleChip("year", filters.year, filters.year),
   ...multiChips("country", filters.country),
-  ...multiChips("reason", filters.reason, (value) => RETIREMENT_REASON_LABEL[value] ?? value),
+  ...multiChips(
+    "reason",
+    filters.reason,
+    (value) => RETIRED_REASON_LABEL[value as RetirementReason] ?? value,
+  ),
   ...singleChip("position", filters.position, getPositionTitle(Number(filters.position))),
 ];
 

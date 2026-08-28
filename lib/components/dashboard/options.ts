@@ -1,109 +1,112 @@
-import type { SegmentOption } from "@/lib/components/common/SegmentedControl";
 import { BACKGROUND_BADGE, INTENSITY_LABEL, INTENSITY_SHORT_LABEL } from "@/lib/constants";
-import type { IconName } from "@/lib/types";
+import type { IconName, SegmentOption } from "@/lib/types";
 import { getIntensitySlug, INTENSITIES_BY_STRENGTH } from "@/lib/utils/storm/intensity";
 
-export const DASHBOARD_ICON_MAP: Record<string, Record<string, IconName>> = {
-  view: {
-    all: "thunderstorm-outline",
-    highlights: "star-outline",
-    intensity: "speedometer-outline",
-    average: "pulse-outline",
-    recurrence: "repeat-outline",
-    avgdate: "calendar-number-outline",
-    calendar: "calendar-outline",
+export const VIEW_TABS: SegmentOption[] = [
+  {
+    value: "all",
+    label: "Storms",
+    icon: "thunderstorm-outline",
+    description: "Every storm the naming table has ever carried",
   },
-  filter: {
-    strongest: "flash-outline",
-    first: "medal-outline",
-    last: "download-outline",
-    position: "location-outline",
-    name: "pricetag-outline",
-    country: "globe-outline",
-    year: "sunny-outline",
-    month: "moon-outline",
-    started: "play-outline",
-    ended: "stop-outline",
-    active: "water-outline",
-    todate: "trending-up-outline",
+  {
+    value: "records",
+    label: "Records",
+    icon: "star-outline",
+    description: "One slice of the record book at a time",
   },
-  mode: {
-    table: "grid-outline",
-    list: "list-outline",
+  {
+    value: "stats",
+    label: "Stats",
+    icon: "stats-chart-outline",
+    description: "One statistic worked out for every group",
   },
-};
-
-export const VIEW_TABS: { key: string; label: string }[] = [
-  { key: "all", label: "Storms" },
-  { key: "highlights", label: "Highlights" },
-  { key: "intensity", label: "Intensity" },
-  { key: "average", label: "Average" },
-  { key: "recurrence", label: "Recurrence" },
-  { key: "avgdate", label: "Avg. Date" },
-  { key: "calendar", label: "Calendar" },
 ];
 
-export const VIEW_DESCRIPTION: Record<string, string> = {
-  all: "Every storm that has used each name",
-  highlights: "The record holder in each naming position",
-  intensity: "Every storm that peaked at one point on the scale",
-  average: "Mean intensity of the storms in each group",
-  recurrence: "Typical gap in years between reuses of a name",
-  avgdate: "When in the season each group's storms start and end",
-  calendar: "Which seasons a single day of the year belongs to",
+export const METRIC_OPTIONS: SegmentOption[] = [
+  {
+    value: "intensity",
+    label: "Avg. intensity",
+    shortLabel: "Intensity",
+    icon: "pulse-outline",
+    description: "Mean intensity of the storms in each group",
+  },
+  {
+    value: "recurrence",
+    label: "Recurrence",
+    icon: "repeat-outline",
+    description:
+      "Typical gap in years between reuses. The 140-position list takes about six years to come round, so the grid reads against six.",
+  },
+  {
+    value: "dates",
+    label: "Season dates",
+    shortLabel: "Dates",
+    icon: "calendar-number-outline",
+    description: "When in the season each group's storms start and end",
+  },
+];
+
+const GROUP_ICON: Record<string, IconName> = {
+  position: "location-outline",
+  name: "pricetag-outline",
+  country: "globe-outline",
+  year: "sunny-outline",
+  month: "moon-outline",
 };
 
-const filterOption = (value: string, label: string): SegmentOption => ({
+const groupOption = (value: string, label: string): SegmentOption => ({
   value,
   label,
-  icon: DASHBOARD_ICON_MAP.filter[value],
+  icon: GROUP_ICON[value],
 });
 
-export const MODE_OPTIONS: SegmentOption[] = [
-  { value: "table", label: "Grid", icon: DASHBOARD_ICON_MAP.mode.table },
-  { value: "list", label: "List", icon: DASHBOARD_ICON_MAP.mode.list },
+const GROUP_OPTIONS: SegmentOption[] = [
+  groupOption("position", "Position"),
+  groupOption("name", "Name"),
+  groupOption("country", "Country"),
+  groupOption("year", "Year"),
+  groupOption("month", "Month"),
 ];
 
-export const FILTER_OPTIONS: Record<string, SegmentOption[]> = {
-  all: [filterOption("position", "Position"), filterOption("name", "Name")],
-  highlights: [
-    filterOption("strongest", "Strongest"),
-    filterOption("first", "First"),
-    filterOption("last", "Last"),
-  ],
-  intensity: INTENSITIES_BY_STRENGTH.map((intensity) => ({
+const RECORD_OPTIONS: SegmentOption[] = [
+  {
+    value: "strongest",
+    label: "Strongest",
+    icon: "flash-outline",
+    description: "The peak storm of each naming position",
+  },
+  {
+    value: "first",
+    label: "First",
+    icon: "medal-outline",
+    description: "The first storm to use each name",
+  },
+  {
+    value: "last",
+    label: "Last",
+    icon: "download-outline",
+    description: "The most recent storm at each position",
+  },
+  ...INTENSITIES_BY_STRENGTH.map((intensity) => ({
     value: getIntensitySlug(intensity),
     label: INTENSITY_LABEL[intensity],
     shortLabel: INTENSITY_SHORT_LABEL[intensity],
     // Nine icons would be noise; the badge colour is what the grid and the legend key on anyway.
     swatch: BACKGROUND_BADGE[intensity],
   })),
-  average: [
-    filterOption("position", "Position"),
-    filterOption("name", "Name"),
-    filterOption("country", "Country"),
-    filterOption("year", "Year"),
-    filterOption("month", "Month"),
-  ],
-  recurrence: [filterOption("position", "Position"), filterOption("name", "Name")],
-  avgdate: [
-    filterOption("position", "Position"),
-    filterOption("name", "Name"),
-    filterOption("country", "Country"),
-    filterOption("year", "Year"),
-  ],
-  calendar: [
-    filterOption("started", "Started"),
-    filterOption("ended", "Ended"),
-    filterOption("active", "Active"),
-    filterOption("todate", "So Far"),
-  ],
-};
+];
 
-// "Group by" is wrong where the options pick one slice of the data rather than a grouping.
-const FILTER_LABEL: Record<string, string> = {
-  intensity: "Intensity",
-  calendar: "Show",
-};
+export const MODE_OPTIONS: SegmentOption[] = [
+  { value: "table", label: "Grid", icon: "grid-outline" },
+  { value: "list", label: "List", icon: "list-outline" },
+];
 
-export const getFilterLabel = (view: string): string => FILTER_LABEL[view] ?? "Group by";
+export const filterOptionsFor = (view: string): SegmentOption[] =>
+  view === "records" ? RECORD_OPTIONS : GROUP_OPTIONS.slice(0, view === "all" ? 2 : undefined);
+
+// "Group by" is wrong on records, where the options pick one slice rather than a grouping.
+export const filterLabelFor = (view: string): string => (view === "records" ? "Show" : "Group by");
+
+export const optionFor = (options: SegmentOption[], value: string): SegmentOption | undefined =>
+  options.find((option) => option.value === value);

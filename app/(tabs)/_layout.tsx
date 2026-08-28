@@ -62,6 +62,15 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
+        name="calendar"
+        options={{
+          title: "Calendar",
+          tabBarIcon: ({ color, size, focused }) => (
+            <Ionicons name={focused ? "calendar" : "calendar-outline"} color={color} size={size} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="names"
         options={{
           title: "Names",

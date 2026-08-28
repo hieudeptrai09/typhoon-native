@@ -5,38 +5,46 @@ import { RefreshProvider } from "@/lib/components/common/RefreshContext";
 import ScreenLoading from "@/lib/components/common/ScreenLoading";
 import DashboardPageContent from "@/lib/components/dashboard/DashboardPageContent";
 import type { DashboardParams, Storm } from "@/lib/types";
-import { paramsForView } from "@/lib/utils/storm/routing";
-import { useCallback, useState } from "react";
+import { usePersistedState } from "@/lib/utils/persistedState";
+import { normalizeParams, paramsForView } from "@/lib/utils/storm/routing";
+import { useCallback, useEffect, useMemo, useRef } from "react";
+
+const STORAGE_KEY = "storms.params";
 
 export default function StormsScreen() {
-  const [view, setView] = useState("all");
-  const [byView, setByView] = useState<Record<string, DashboardParams>>(() => ({
-    all: paramsForView("all"),
-  }));
+  const [stored, setStored] = usePersistedState<DashboardParams>(STORAGE_KEY, paramsForView("all"));
+  const params = useMemo(() => normalizeParams(stored), [stored]);
+
+  // Each view keeps the axes it was last left on, so flipping between them does not throw away a
+  // grouping the reader had just set up. A ref, not state: nothing renders off it.
+  const byView = useRef<Record<string, DashboardParams>>({});
+  useEffect(() => {
+    byView.current[params.view] = params;
+  }, [params]);
 
   const { data, isLoading, isError, isRefetching, refetch } =
     useApiQuery<Storm[]>("/api/v1/storms");
 
-  const selectView = useCallback((next: string) => {
-    setView(next);
-    setByView((current) => (current[next] ? current : { ...current, [next]: paramsForView(next) }));
-  }, []);
+  const refreshValue = useMemo(
+    () => ({ refreshing: isRefetching, onRefresh: refetch }),
+    [isRefetching, refetch],
+  );
 
-  const changeParams = useCallback(
-    (next: DashboardParams) => setByView((current) => ({ ...current, [next.view]: next })),
-    [],
+  const selectView = useCallback(
+    (view: string) => setStored(byView.current[view] ?? paramsForView(view)),
+    [setStored],
   );
 
   if (isLoading) return <ScreenLoading />;
   if (isError && !data) return <FrownError onRetry={refetch} />;
 
   return (
-    <RefreshProvider value={{ refreshing: isRefetching, onRefresh: refetch }}>
+    <RefreshProvider value={refreshValue}>
       <SortMemoryProvider>
         <DashboardPageContent
           stormsData={data}
-          params={byView[view] ?? paramsForView(view)}
-          onParamsChange={changeParams}
+          params={params}
+          onParamsChange={setStored}
           onSelectView={selectView}
           staleError={isError}
         />

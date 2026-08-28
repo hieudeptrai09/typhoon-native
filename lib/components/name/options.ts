@@ -1,24 +1,15 @@
-import type { SegmentOption } from "@/lib/components/common/SegmentedControl";
-import type { IconName } from "@/lib/types";
+import type { IconName, SegmentOption } from "@/lib/types";
 
-export type NamesScope = "current" | "history" | "retired";
-export type NamesLayout = "grid" | "list";
+export type NamesScope = "names" | "retired";
 
 export const NAME_SCOPE_TABS: { key: NamesScope; label: string; icon: IconName }[] = [
-  { key: "current", label: "Current", icon: "flame-outline" },
-  { key: "history", label: "History", icon: "time-outline" },
+  { key: "names", label: "Naming table", icon: "grid-outline" },
   { key: "retired", label: "Retired", icon: "skull-outline" },
 ];
 
-export const NAME_SCOPE_DESCRIPTION: Record<NamesScope, string> = {
-  current: "The names in the rotation as it stands today",
-  history: "Every name each position has carried, and how often it was used",
-  retired: "Names withdrawn for good, and what was proposed to replace them",
-};
-
-export const LAYOUT_OPTIONS: SegmentOption<NamesLayout>[] = [
-  { value: "grid", label: "Table", icon: "grid-outline" },
-  { value: "list", label: "List", icon: "list-outline" },
+export const HISTORY_OPTIONS: SegmentOption[] = [
+  { value: "current", label: "Current rotation", icon: "flame-outline" },
+  { value: "history", label: "Every name ever", icon: "time-outline" },
 ];
 
 export const GRID_CONTENT_OPTIONS: SegmentOption[] = [

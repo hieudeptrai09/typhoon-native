@@ -3,6 +3,7 @@ import EdgeFade from "@/lib/components/common/EdgeFade";
 import { GRID_COLS, GRID_ROWS } from "@/lib/constants/position";
 import { COLOR, SPACE } from "@/lib/constants/theme";
 import { getPositionTitle, positionColumnLetter } from "@/lib/utils/position";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import * as Haptics from "expo-haptics";
 import { useRef, useState, type ReactNode } from "react";
 import {
@@ -21,17 +22,11 @@ interface CountryPagerProps {
   renderPosition: (position: number) => ReactNode;
   onPositionPress?: (position: number) => void;
   positionEnabled?: (position: number) => boolean;
-  footer?: ReactNode;
 }
 
 const TAB_WIDTH = 56;
 
-const CountryPager = ({
-  renderPosition,
-  onPositionPress,
-  positionEnabled,
-  footer,
-}: CountryPagerProps) => {
+const CountryPager = ({ renderPosition, onPositionPress, positionEnabled }: CountryPagerProps) => {
   const [pageWidth, setPageWidth] = useState(0);
   const [index, setIndex] = useState(0);
   const pagerRef = useRef<FlatList<string>>(null);
@@ -87,6 +82,7 @@ const CountryPager = ({
               <Text style={styles.positionText}>{getPositionTitle(position)}</Text>
             </View>
             <View style={styles.rowContent}>{renderPosition(position)}</View>
+            {enabled && <Ionicons name="chevron-forward" size={16} color={COLOR.textFaint} />}
           </Pressable>
         );
       })}
@@ -139,8 +135,6 @@ const CountryPager = ({
           />
         )}
       </View>
-
-      {footer ? <View style={styles.footer}>{footer}</View> : null}
     </View>
   );
 };
@@ -224,10 +218,6 @@ const styles = StyleSheet.create({
   },
   rowContent: {
     flex: 1,
-  },
-  // Unpadded: what goes here is a LegendShell, which spans the full width and brings its own gutters.
-  footer: {
-    flexShrink: 0,
   },
 });
 

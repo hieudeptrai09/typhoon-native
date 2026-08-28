@@ -1,44 +1,48 @@
 import DefModal from "@/lib/components/common/DefModal";
 import { OptionGroup } from "@/lib/components/common/OptionRow";
-import type { SegmentOption } from "@/lib/components/common/SegmentedControl";
+import { COLOR, SPACE } from "@/lib/constants/theme";
+import type { SegmentOption } from "@/lib/types";
+import { StyleSheet, Text } from "react-native";
+
+export interface OptionAxis {
+  label: string;
+  options: SegmentOption[];
+  value: string;
+  onChange: (value: string) => void;
+}
 
 interface ViewOptionsSheetProps {
   open: boolean;
   onClose: () => void;
-  filterOptions: SegmentOption[];
-  /** "Group by" for most views; the intensity view picks a slice, not a grouping. */
-  filterLabel: string;
-  filter: string;
-  onFilterChange: (filter: string) => void;
-  /** Omitted when the current view only supports one layout. */
-  modeOptions?: SegmentOption[];
-  mode: string;
-  onModeChange: (mode: string) => void;
+  /** Names the view the axes below belong to; the tab strip only shows its label. */
+  subtitle: string;
+  axes: OptionAxis[];
 }
 
-const ViewOptionsSheet = ({
-  open,
-  onClose,
-  filterOptions,
-  filterLabel,
-  filter,
-  onFilterChange,
-  modeOptions,
-  mode,
-  onModeChange,
-}: ViewOptionsSheetProps) => (
+const ViewOptionsSheet = ({ open, onClose, subtitle, axes }: ViewOptionsSheetProps) => (
   <DefModal open={open} onClose={onClose} title="View options">
-    <OptionGroup
-      label={filterLabel}
-      options={filterOptions}
-      value={filter}
-      onChange={onFilterChange}
-    />
+    <Text style={styles.subtitle}>{subtitle}</Text>
 
-    {modeOptions && modeOptions.length > 1 && (
-      <OptionGroup label="Layout" options={modeOptions} value={mode} onChange={onModeChange} />
-    )}
+    {axes.map((axis) => (
+      <OptionGroup
+        key={axis.label}
+        label={axis.label}
+        options={axis.options}
+        value={axis.value}
+        onChange={axis.onChange}
+      />
+    ))}
   </DefModal>
 );
+
+const styles = StyleSheet.create({
+  subtitle: {
+    fontFamily: "OpenSans_400Regular",
+    fontSize: 13,
+    lineHeight: 18,
+    color: COLOR.textMuted,
+    marginBottom: SPACE.lg,
+  },
+});
 
 export default ViewOptionsSheet;

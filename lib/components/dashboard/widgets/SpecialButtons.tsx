@@ -1,80 +1,47 @@
-import { SPECIAL_POSITIONS, TEXT_COLOR_WHITE_BACKGROUND } from "@/lib/constants";
+import { SPECIAL_POSITIONS } from "@/lib/constants";
 import { COLOR } from "@/lib/constants/theme";
-import { getAvgDateColor, getDistanceColor } from "@/lib/utils/colors";
-import { getIntensityFromNumber } from "@/lib/utils/storm/aggregate";
-import { formatDayOfYear, getDoyMonth, type AvgDates } from "@/lib/utils/storm/dates";
 import * as Haptics from "expo-haptics";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
-interface SpecialButtonsProps {
-  onCellClick: (data: number, key: string) => void;
-  isAverageView?: boolean;
-  averageValues?: Record<number, number> | null;
-  distanceValues?: Record<number, number> | null;
-  avgDateValues?: Record<number, AvgDates> | null;
+export interface SpecialValue {
+  color: string;
+  suffix?: string;
 }
 
-const SpecialButtons = ({
-  onCellClick,
-  isAverageView = false,
-  averageValues = null,
-  distanceValues = null,
-  avgDateValues = null,
-}: SpecialButtonsProps) => {
-  const getButtonContent = (buttonId: number): { color: string; suffix: string } => {
-    if (avgDateValues && avgDateValues[buttonId] !== undefined) {
-      const { startDoy, endDoy } = avgDateValues[buttonId];
-      return {
-        color: getAvgDateColor(getDoyMonth(startDoy)),
-        suffix:
-          startDoy < 0 && endDoy < 0
-            ? ""
-            : `${formatDayOfYear(startDoy)}–${formatDayOfYear(endDoy)}`,
-      };
-    }
-    if (distanceValues && distanceValues[buttonId] !== undefined) {
-      const dist = distanceValues[buttonId];
-      return {
-        color: getDistanceColor(dist),
-        suffix: dist < 0 ? "" : `${dist.toFixed(2)}y`,
-      };
-    }
-    if (isAverageView && averageValues && averageValues[buttonId]) {
-      return {
-        color: TEXT_COLOR_WHITE_BACKGROUND[getIntensityFromNumber(averageValues[buttonId])],
-        suffix: "",
-      };
-    }
-    return { color: COLOR.textSecondary, suffix: "" };
-  };
+interface SpecialButtonsProps {
+  onPress: (position: number) => void;
+  /** Metric readout per agency position, so the grid's colour scale reaches these too. */
+  values?: Record<number, SpecialValue>;
+}
 
-  return (
-    <View style={styles.root}>
-      <Text style={styles.heading}>Other Regions</Text>
-      <View style={styles.row}>
-        {SPECIAL_POSITIONS.map((button) => {
-          const { color, suffix } = getButtonContent(button.id);
+// CPHC, NHC and IMD name storms outside the naming table, so they have no cell on the grid. The
+// lists reach them as ordinary rows; the grid needs this strip or they vanish with the layout.
+const SpecialButtons = ({ onPress, values }: SpecialButtonsProps) => (
+  <View style={styles.root}>
+    <Text style={styles.heading}>Other Regions</Text>
+    <View style={styles.row}>
+      {SPECIAL_POSITIONS.map((button) => {
+        const { color, suffix } = values?.[button.id] ?? { color: COLOR.textSecondary };
 
-          return (
-            <Pressable
-              key={button.id}
-              onPress={() => {
-                Haptics.selectionAsync();
-                onCellClick(button.id, "position");
-              }}
-              style={({ pressed }) => [styles.button, pressed && styles.pressed]}
-              accessibilityRole="button"
-              accessibilityLabel={`View storms from ${button.label} region`}
-            >
-              <Text style={[styles.label, { color }]}>{button.label}</Text>
-              {suffix ? <Text style={styles.suffix}>{suffix}</Text> : null}
-            </Pressable>
-          );
-        })}
-      </View>
+        return (
+          <Pressable
+            key={button.id}
+            onPress={() => {
+              Haptics.selectionAsync();
+              onPress(button.id);
+            }}
+            style={({ pressed }) => [styles.button, pressed && styles.pressed]}
+            accessibilityRole="button"
+            accessibilityLabel={`View storms from ${button.label} region`}
+          >
+            <Text style={[styles.label, { color }]}>{button.label}</Text>
+            {suffix ? <Text style={styles.suffix}>{suffix}</Text> : null}
+          </Pressable>
+        );
+      })}
     </View>
-  );
-};
+  </View>
+);
 
 const styles = StyleSheet.create({
   root: {

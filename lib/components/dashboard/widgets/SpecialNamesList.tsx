@@ -1,134 +1,203 @@
-import EdgeFade from "@/lib/components/common/EdgeFade";
 import { SPECIAL_POSITIONS } from "@/lib/constants";
 import { COLOR, RADIUS, SPACE } from "@/lib/constants/theme";
 import type { Storm } from "@/lib/types";
 import { sortNamesByFirstYear } from "@/lib/utils/storm/aggregate";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import * as Haptics from "expo-haptics";
-import type { ReactNode } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useMemo, useState, type ReactNode } from "react";
+import {
+  LayoutAnimation,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  useWindowDimensions,
+  View,
+} from "react-native";
 
 interface SpecialNamesListProps {
   stormsData: Storm[];
-  onNameClick: (name: string, storms: Storm[]) => void;
+  onNameClick: (name: string) => void;
   nameColors?: Record<string, string>;
   nameSubtitles?: Record<string, ReactNode>;
 }
 
+/**
+ * CPHC, NHC and IMD name storms outside the naming table, so they have no cell on the grid. Folded
+ * away by default: the grid above is the screen, and collapsing this is what lets the names below
+ * wrap onto as many lines as they need instead of hiding in a sideways scroller.
+ */
 const SpecialNamesList = ({
   stormsData,
   onNameClick,
   nameColors,
   nameSubtitles,
 }: SpecialNamesListProps) => {
-  const stormsByPosition = SPECIAL_POSITIONS.map(({ id, label }) => {
-    const positionStorms = stormsData.filter((storm) => storm.position === id);
+  const [expanded, setExpanded] = useState(false);
+  const { height } = useWindowDimensions();
 
-    const nameMap = positionStorms.reduce<Record<string, Storm[]>>((acc, storm) => {
-      if (!acc[storm.name]) acc[storm.name] = [];
-      acc[storm.name].push(storm);
-      return acc;
-    }, {});
+  const regions = useMemo(
+    () =>
+      SPECIAL_POSITIONS.map(({ id, label }) => {
+        const grouped = stormsData.reduce<Record<string, Storm[]>>((acc, storm) => {
+          if (storm.position === id) (acc[storm.name] ??= []).push(storm);
+          return acc;
+        }, {});
 
-    const names = sortNamesByFirstYear(Object.entries(nameMap)).map(([name, nameStorms]) => ({
-      name,
-      color: nameColors?.[name] ?? COLOR.textSecondary,
-      storms: nameStorms,
-    }));
+        return {
+          id,
+          label,
+          names: sortNamesByFirstYear(Object.entries(grouped)).map(([name]) => name),
+        };
+      }),
+    [stormsData],
+  );
 
-    return { id, label, names };
-  });
+  const total = regions.reduce((sum, region) => sum + region.names.length, 0);
+  if (total === 0) return null;
 
-  if (stormsByPosition.every((position) => position.names.length === 0)) return null;
+  const toggle = () => {
+    Haptics.selectionAsync();
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setExpanded((current) => !current);
+  };
 
   return (
     <View style={styles.root}>
-      <Text style={styles.heading}>Other Regions</Text>
+      <Pressable
+        onPress={toggle}
+        style={({ pressed }) => [styles.head, pressed && styles.pressed]}
+        accessibilityRole="button"
+        accessibilityState={{ expanded }}
+        accessibilityLabel={`Other regions, ${total} name${total === 1 ? "" : "s"}`}
+      >
+        <Text style={styles.heading}>Other Regions</Text>
+        <Text style={styles.count}>{total}</Text>
+        <Ionicons
+          name={expanded ? "chevron-down" : "chevron-up"}
+          size={16}
+          color={COLOR.textMuted}
+        />
+      </Pressable>
 
-      <View style={styles.card}>
-        {stormsByPosition.map(({ id, label, names }, index) => (
-          <View key={id} style={[styles.row, index > 0 && styles.rowDivided]}>
-            <Text style={styles.rowLabel}>{label}</Text>
+      {/* Capped and scrolled internally: the grid above it is the screen, and a region with many
+          names would otherwise push the whole stack past the bottom with no way to reach it. */}
+      {expanded && (
+        <ScrollView
+          style={[styles.card, { maxHeight: height * 0.32 }]}
+          contentContainerStyle={styles.cardContent}
+          showsVerticalScrollIndicator={false}
+          nestedScrollEnabled
+        >
+          {regions.map(({ id, label, names }, index) => (
+            <View key={id} style={[styles.row, index > 0 && styles.rowDivided]}>
+              <Text style={styles.rowLabel}>{label}</Text>
 
-            {names.length === 0 ? (
-              <Text style={styles.empty}>—</Text>
-            ) : (
-              <EdgeFade
-                style={styles.chipRow}
-                contentContainerStyle={styles.chips}
-                backgroundColor={COLOR.surface}
-                accessibilityLabel={`${label} region names`}
-              >
-                {names.map(({ name, color, storms }) => (
-                  <Pressable
-                    key={name}
-                    onPress={() => {
-                      Haptics.selectionAsync();
-                      onNameClick(name, storms);
-                    }}
-                    style={({ pressed }) => [styles.chip, pressed && styles.pressed]}
-                    accessibilityRole="button"
-                    accessibilityLabel={`${name}, ${label} region`}
-                  >
-                    <Text style={[styles.chipName, { color }]}>{name}</Text>
-                    {nameSubtitles?.[name] !== undefined && (
-                      <Text style={styles.subtitle}>{nameSubtitles[name]}</Text>
-                    )}
-                  </Pressable>
-                ))}
-              </EdgeFade>
-            )}
-          </View>
-        ))}
-      </View>
+              {names.length === 0 ? (
+                <Text style={styles.empty}>—</Text>
+              ) : (
+                <View style={styles.chips}>
+                  {names.map((name) => (
+                    <Pressable
+                      key={name}
+                      onPress={() => {
+                        Haptics.selectionAsync();
+                        onNameClick(name);
+                      }}
+                      style={({ pressed }) => [styles.chip, pressed && styles.chipPressed]}
+                      accessibilityRole="button"
+                      accessibilityLabel={`${name}, ${label} region`}
+                    >
+                      <Text
+                        style={[
+                          styles.chipName,
+                          { color: nameColors?.[name] ?? COLOR.textSecondary },
+                        ]}
+                      >
+                        {name}
+                      </Text>
+                      {nameSubtitles?.[name] !== undefined && (
+                        <Text style={styles.subtitle}>{nameSubtitles[name]}</Text>
+                      )}
+                    </Pressable>
+                  ))}
+                </View>
+              )}
+            </View>
+          ))}
+        </ScrollView>
+      )}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   root: {
+    flexShrink: 1,
     gap: SPACE.sm,
     paddingHorizontal: SPACE.lg,
     paddingBottom: SPACE.md,
   },
+  head: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: SPACE.sm,
+    minHeight: 32,
+  },
+  pressed: {
+    opacity: 0.6,
+  },
   heading: {
+    flex: 1,
     fontFamily: "OpenSans_600SemiBold",
     fontSize: 11,
     letterSpacing: 1,
     textTransform: "uppercase",
     color: COLOR.textMuted,
   },
+  count: {
+    fontFamily: "OpenSans_600SemiBold",
+    fontSize: 12,
+    color: COLOR.textFaint,
+    fontVariant: ["tabular-nums"],
+  },
   card: {
+    flexGrow: 0,
     borderRadius: RADIUS.md,
     borderWidth: 1,
     borderColor: COLOR.borderStrong,
     backgroundColor: COLOR.surface,
     overflow: "hidden",
   },
+  cardContent: {
+    flexGrow: 1,
+  },
   row: {
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-start",
     minHeight: 44,
-    paddingLeft: SPACE.md,
+    paddingVertical: SPACE.sm,
+    paddingHorizontal: SPACE.md,
+    gap: SPACE.sm,
   },
   rowDivided: {
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: COLOR.border,
   },
-  // Fixed, so the names of all three agencies line up into a column of their own.
+  // Fixed, and nudged down onto the first row of chips so the agencies line up into a column.
   rowLabel: {
-    width: 42,
+    width: 34,
+    paddingTop: 9,
     fontFamily: "OpenSans_700Bold",
     fontSize: 11,
     letterSpacing: 0.5,
     color: COLOR.textMuted,
   },
-  chipRow: {
-    flex: 1,
-  },
   chips: {
-    alignItems: "center",
+    flex: 1,
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: 6,
-    paddingRight: SPACE.md,
   },
   chip: {
     flexDirection: "row",
@@ -139,7 +208,7 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.pill,
     backgroundColor: COLOR.surfaceMuted,
   },
-  pressed: {
+  chipPressed: {
     backgroundColor: COLOR.surfaceSunken,
   },
   chipName: {
@@ -153,6 +222,7 @@ const styles = StyleSheet.create({
     fontVariant: ["tabular-nums"],
   },
   empty: {
+    paddingTop: 9,
     fontFamily: "OpenSans_400Regular",
     fontSize: 13,
     color: COLOR.textFaint,

@@ -1,44 +1,23 @@
-import RetiredFilterModal from "@/lib/components/name/modals/RetiredFilterModal";
-import RetiredNameDetailsModal from "@/lib/components/name/modals/RetiredNameDetailsModal";
+import NameFilterSheet from "@/lib/components/name/modals/NameFilterSheet";
 import RetiredNamesTable from "@/lib/components/name/tables/RetiredNamesTable";
-import NamesToolbar from "@/lib/components/name/widgets/NamesToolbar";
-import { defaultRetiredName } from "@/lib/constants";
-import type { RetiredFilterParams, RetiredName, SuggestionWithNameId } from "@/lib/types";
+import type { RetiredFilterParams, RetiredName } from "@/lib/types";
 import {
   applyRetiredFilters,
   clearRetiredFilter,
   retiredFilterChips,
 } from "@/lib/utils/name/filters";
+import { router } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
 import { StyleSheet, View } from "react-native";
 
 interface RetiredViewProps {
   retiredNames: RetiredName[];
-  suggestedNames: SuggestionWithNameId[];
   filters: RetiredFilterParams;
   onFiltersChange: (filters: RetiredFilterParams) => void;
 }
 
-const RetiredView = ({
-  retiredNames,
-  suggestedNames,
-  filters,
-  onFiltersChange,
-}: RetiredViewProps) => {
-  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
-  const [selectedRetiredName, setSelectedRetiredName] = useState<RetiredName>(defaultRetiredName);
-  const [isRetiredNameModalOpen, setIsRetiredNameModalOpen] = useState(false);
-
-  const suggestionsByNameId = useMemo(
-    () =>
-      suggestedNames.reduce<Record<number, SuggestionWithNameId[]>>((acc, suggestion) => {
-        (acc[suggestion.nameId] ??= []).push(suggestion);
-        return acc;
-      }, {}),
-    [suggestedNames],
-  );
-
-  const suggestions = suggestionsByNameId[selectedRetiredName.id] ?? [];
+const RetiredView = ({ retiredNames, filters, onFiltersChange }: RetiredViewProps) => {
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const countries = useMemo(
     () => [...new Set(retiredNames.map((n) => n.country))].sort(),
@@ -59,37 +38,27 @@ const RetiredView = ({
 
   return (
     <View style={styles.root}>
-      <NamesToolbar
-        chips={chips}
-        onOpenFilters={() => setIsFilterModalOpen(true)}
-        onRemoveChip={(key) => onFiltersChange(clearRetiredFilter(filters, key))}
-      />
-
       <RetiredNamesTable
         retiredNames={displayedNames}
-        onNamePress={(name) => {
-          setSelectedRetiredName(name);
-          setIsRetiredNameModalOpen(true);
+        onNamePress={(name) => router.push(`/info/${name.name.toLowerCase()}`)}
+        filter={{
+          chips,
+          onOpen: () => setIsFilterOpen(true),
+          onRemoveChip: (key) => onFiltersChange(clearRetiredFilter(filters, key)),
         }}
       />
 
-      <RetiredFilterModal
-        isOpen={isFilterModalOpen}
-        onClose={() => setIsFilterModalOpen(false)}
+      <NameFilterSheet<RetiredFilterParams>
+        scope="retired"
+        isOpen={isFilterOpen}
+        onClose={() => setIsFilterOpen(false)}
         onApply={(applied) => {
-          setIsFilterModalOpen(false);
+          setIsFilterOpen(false);
           onFiltersChange(applied);
         }}
         countries={countries}
         matchCount={countMatchingNames}
         initialFilters={filters}
-      />
-
-      <RetiredNameDetailsModal
-        isOpen={isRetiredNameModalOpen}
-        selectedName={selectedRetiredName}
-        suggestions={suggestions}
-        onClose={() => setIsRetiredNameModalOpen(false)}
       />
     </View>
   );

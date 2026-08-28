@@ -1,118 +1,52 @@
-import CountryFlag from "@/lib/components/common/CountryFlag";
-import DataList, { DataCard } from "@/lib/components/common/DataList";
 import ScreenScroll from "@/lib/components/common/ScreenScroll";
 import NamesGrid from "@/lib/components/dashboard/grids/NamesGrid";
 import StormsGrid from "@/lib/components/dashboard/grids/StormsGrid";
+import StormRowsList from "@/lib/components/dashboard/views/StormRowsList";
 import SpecialButtons from "@/lib/components/dashboard/widgets/SpecialButtons";
 import SpecialNamesList from "@/lib/components/dashboard/widgets/SpecialNamesList";
-import { TEXT_COLOR_WHITE_BACKGROUND } from "@/lib/constants";
 import type { DashboardParams, Storm } from "@/lib/types";
-import { getPositionTitle } from "@/lib/utils/position";
-import {
-  calculateAverage,
-  getGroupedStorms,
-  getIntensityFromNumber,
-} from "@/lib/utils/storm/aggregate";
-import type { SortField } from "@/lib/utils/table";
+import { router } from "expo-router";
 import { StyleSheet, View } from "react-native";
 
 interface StormsViewProps {
   params: DashboardParams;
   stormsData: Storm[];
-  averageValues: Record<number, number> | null;
-  onCellClick: (data: number | string, key: string) => void;
+  /** A cell opens the sheet rather than the position screen: the question is usually just which
+   *  storms were here, and the sheet answers it without loading a screen. */
+  onSelectPosition: (position: number) => void;
 }
 
-interface NameData {
-  name: string;
-  country: string;
-  position: number;
-  count: number;
-  avgIntensity: number;
-  year: number;
-}
+const openName = (name: string) => router.push(`/info/${encodeURIComponent(name)}`);
 
-const sortFields: SortField<NameData>[] = [
-  { key: "name", label: "Name", compare: (a, b) => a.name.localeCompare(b.name) },
-  {
-    key: "country",
-    label: "Contributed by",
-    compare: (a, b) => a.country.localeCompare(b.country),
-  },
-  { key: "position", label: "Position", compare: (a, b) => a.position - b.position },
-  { key: "count", label: "Storm count", compare: (a, b) => a.count - b.count },
-  { key: "year", label: "Last year", compare: (a, b) => a.year - b.year },
-];
+// The season a storm belongs to is the one thing every reader wants first, so the storm list opens
+// on the newest rather than on whatever the alphabet happens to put at the top.
+const NEWEST_FIRST = [{ key: "year", order: "descend" as const }];
 
-const StormsView = ({ params, stormsData, averageValues, onCellClick }: StormsViewProps) => {
-  const filter = params.filter || "position";
-
-  if (filter === "position") {
-    return (
-      <ScreenScroll>
-        <StormsGrid onCellClick={onCellClick} stormsData={stormsData} isClickable />
-        <SpecialButtons
-          onCellClick={onCellClick}
-          isAverageView={false}
-          averageValues={averageValues}
-        />
-      </ScreenScroll>
-    );
+/** Every storm in the table. Grouping shapes the grid; the list is the flat run of storms. */
+const StormsView = ({ params, stormsData, onSelectPosition }: StormsViewProps) => {
+  if (params.mode === "list") {
+    return <StormRowsList storms={stormsData} sortKey="all/storms" defaultSort={NEWEST_FIRST} />;
   }
 
-  // The names pager scrolls its own pages, so this branch must not use ScreenScroll.
-  if (params.mode === "table") {
+  if (params.filter === "name") {
+    // The names pager scrolls its own pages, so this branch must not use ScreenScroll.
     return (
       <View style={styles.stack}>
-        <NamesGrid stormsData={stormsData} onCellClick={onCellClick} />
-        <SpecialNamesList
-          stormsData={stormsData}
-          onNameClick={(name) => onCellClick(name, "name")}
-        />
+        <NamesGrid stormsData={stormsData} onCellClick={(name) => openName(String(name))} />
+        <SpecialNamesList stormsData={stormsData} onNameClick={openName} />
       </View>
     );
   }
 
-  const nameGroups = getGroupedStorms(stormsData, "name");
-  const nameData: NameData[] = Object.entries(nameGroups).map(([name, storms]) => ({
-    name,
-    country: storms[0].country,
-    position: storms[0].position,
-    count: storms.length,
-    avgIntensity: calculateAverage(storms),
-    year: storms[storms.length - 1].year,
-  }));
-
   return (
-    <DataList<NameData>
-      data={nameData}
-      keyExtractor={(row) => row.name}
-      sortFields={sortFields}
-      sortKey="all/name"
-      countLabel={(count) => `${count} name${count === 1 ? "" : "s"}`}
-      onRowPress={(row) => onCellClick(row.name, "name")}
-      renderCard={(row, index) => {
-        const color = TEXT_COLOR_WHITE_BACKGROUND[getIntensityFromNumber(row.avgIntensity)];
-        return (
-          <DataCard
-            ordinal={index + 1}
-            title={row.name}
-            titleColor={color}
-            accentColor={color}
-            fields={[
-              { label: "Storm count", value: String(row.count) },
-              { label: "Position", value: getPositionTitle(row.position) },
-              { label: "Last year", value: String(row.year) },
-              {
-                label: "Contributed by",
-                value: <CountryFlag country={row.country} size={16} showName />,
-              },
-            ]}
-            pressable
-          />
-        );
-      }}
-    />
+    <ScreenScroll>
+      <StormsGrid
+        onCellClick={(position) => onSelectPosition(Number(position))}
+        stormsData={stormsData}
+        isClickable
+      />
+      <SpecialButtons onPress={onSelectPosition} />
+    </ScreenScroll>
   );
 };
 

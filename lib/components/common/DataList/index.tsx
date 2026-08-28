@@ -1,9 +1,10 @@
 import IndexBar from "@/lib/components/common/DataList/IndexBar";
 import { useSortMemory } from "@/lib/components/common/DataList/sortMemory";
 import SortSheet from "@/lib/components/common/DataList/SortSheet";
-import EdgeFade from "@/lib/components/common/EdgeFade";
+import ListControls, { type ControlChip } from "@/lib/components/common/ListControls";
 import { useRefreshControl } from "@/lib/components/common/RefreshContext";
 import { COLOR, SPACE } from "@/lib/constants/theme";
+import type { IconName } from "@/lib/types";
 import {
   applySort,
   cycleCriterion,
@@ -12,10 +13,8 @@ import {
   type SortField,
   type SortKey,
 } from "@/lib/utils/table";
-import Ionicons from "@expo/vector-icons/Ionicons";
-import * as Haptics from "expo-haptics";
 import { useMemo, useRef, useState, type ReactNode } from "react";
-import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
+import { FlatList, Pressable, StyleSheet, View } from "react-native";
 
 interface DataListProps<T> {
   data: T[];
@@ -35,6 +34,16 @@ interface DataListProps<T> {
    * over rows that aren't grouped by their initial would point at the wrong place.
    */
   indexField?: { key: SortKey; letterOf: (row: T) => string };
+  /**
+   * Narrowing stays owned by the view above, but its controls belong in this bar: filter and sort
+   * are one question to the reader, so they share one row of buttons and one rail of chips.
+   */
+  filter?: {
+    chips: { key: string; label: string }[];
+    onOpen: () => void;
+    onRemoveChip: (key: string) => void;
+  };
+  options?: { label: string; icon: IconName; onPress: () => void };
 }
 
 const defaultCountLabel = (count: number) => `${count} result${count === 1 ? "" : "s"}`;
@@ -51,6 +60,8 @@ const DataList = <T,>({
   sortKey,
   defaultSort,
   indexField,
+  filter,
+  options,
 }: DataListProps<T>) => {
   const [criteria, setCriteria] = useSortMemory(sortKey, defaultSort);
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -81,6 +92,27 @@ const DataList = <T,>({
 
   const labelOf = (key: string) => sortFields.find((field) => field.key === key)?.label ?? key;
 
+  // Filter chips lead, sort chips follow: what is in the list, then how it is ordered.
+  const chips: ControlChip[] = [
+    ...(filter?.chips ?? []).map((chip) => ({
+      key: `filter:${chip.key}`,
+      label: chip.label,
+      icon: "close" as IconName,
+      accessibilityLabel: `${chip.label} filter. Tap to remove.`,
+      onPress: () => filter?.onRemoveChip(chip.key),
+    })),
+    ...active.map((criterion, index) => ({
+      key: `sort:${criterion.key}`,
+      label: labelOf(criterion.key),
+      icon: (criterion.order === "ascend" ? "arrow-up" : "arrow-down") as IconName,
+      rank: active.length > 1 ? index + 1 : undefined,
+      accessibilityLabel: `${labelOf(criterion.key)}, ${
+        criterion.order === "ascend" ? "ascending" : "descending"
+      }. Tap to change.`,
+      onPress: () => setCriteria(cycleCriterion(active, criterion.key)),
+    })),
+  ];
+
   const renderItem = ({ item, index }: { item: T; index: number }) => {
     const card = renderCard(item, index);
     if (!onRowPress) return <View style={styles.item}>{card}</View>;
@@ -97,61 +129,23 @@ const DataList = <T,>({
     );
   };
 
+  const hasControls = sortFields.length > 0 || filter !== undefined || options !== undefined;
+
   return (
     <View style={styles.root}>
-      {sortFields.length > 0 && (
+      {hasControls && (
         <View style={styles.toolbar}>
-          <View style={styles.toolbarRow}>
-            <Text style={styles.count}>{countLabel(sorted.length)}</Text>
-            <Pressable
-              onPress={() => setSheetOpen(true)}
-              style={({ pressed }) => [
-                styles.sortButton,
-                active.length > 0 && styles.sortButtonActive,
-                pressed && styles.pressed,
-              ]}
-              accessibilityRole="button"
-              accessibilityLabel={
-                active.length > 0 ? `Sort, ${active.length} applied` : "Sort this list"
-              }
-            >
-              <Ionicons
-                name="swap-vertical"
-                size={16}
-                color={active.length > 0 ? COLOR.textInverse : COLOR.textSecondary}
-              />
-              <Text style={[styles.sortLabel, active.length > 0 && styles.sortLabelActive]}>
-                Sort{active.length > 0 ? ` · ${active.length}` : ""}
-              </Text>
-            </Pressable>
-          </View>
-
-          {active.length > 0 && (
-            <EdgeFade contentContainerStyle={styles.chips}>
-              {active.map((criterion, index) => (
-                <Pressable
-                  key={criterion.key}
-                  onPress={() => {
-                    Haptics.selectionAsync();
-                    setCriteria(cycleCriterion(active, criterion.key));
-                  }}
-                  style={({ pressed }) => [styles.chip, pressed && styles.pressed]}
-                  accessibilityRole="button"
-                  accessibilityLabel={`${labelOf(criterion.key)}, ${
-                    criterion.order === "ascend" ? "ascending" : "descending"
-                  }. Tap to change.`}
-                >
-                  {active.length > 1 && <Text style={styles.chipRank}>{index + 1}</Text>}
-                  <Text style={styles.chipLabel}>{labelOf(criterion.key)}</Text>
-                  <Ionicons
-                    name={criterion.order === "ascend" ? "arrow-up" : "arrow-down"}
-                    size={13}
-                    color={COLOR.accent}
-                  />
-                </Pressable>
-              ))}
-            </EdgeFade>
-          )}
+          <ListControls
+            count={countLabel(sorted.length)}
+            options={options}
+            filter={filter ? { count: filter.chips.length, onPress: filter.onOpen } : undefined}
+            sort={
+              sortFields.length > 0
+                ? { count: active.length, onPress: () => setSheetOpen(true) }
+                : undefined
+            }
+            chips={chips}
+          />
         </View>
       )}
 
@@ -202,74 +196,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   toolbar: {
-    paddingHorizontal: 16,
-    paddingTop: 10,
-    paddingBottom: 8,
-    gap: 8,
     backgroundColor: COLOR.background,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: COLOR.border,
-  },
-  toolbarRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 12,
-  },
-  count: {
-    flex: 1,
-    fontFamily: "OpenSans_500Medium",
-    fontSize: 13,
-    color: COLOR.textMuted,
-  },
-  sortButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    height: 36,
-    paddingHorizontal: 14,
-    borderRadius: 18,
-    backgroundColor: COLOR.surface,
-    borderWidth: 1,
-    borderColor: COLOR.borderStrong,
-  },
-  sortButtonActive: {
-    backgroundColor: COLOR.accent,
-    borderColor: COLOR.accent,
-  },
-  sortLabel: {
-    fontFamily: "OpenSans_600SemiBold",
-    fontSize: 13,
-    color: COLOR.textSecondary,
-  },
-  sortLabelActive: {
-    color: COLOR.textInverse,
-  },
-  pressed: {
-    opacity: 0.7,
-  },
-  chips: {
-    gap: 8,
-    paddingRight: 16,
-  },
-  chip: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 5,
-    height: 28,
-    paddingHorizontal: 10,
-    borderRadius: 14,
-    backgroundColor: COLOR.accentSoft,
-  },
-  chipRank: {
-    fontFamily: "OpenSans_700Bold",
-    fontSize: 11,
-    color: COLOR.accent,
-  },
-  chipLabel: {
-    fontFamily: "OpenSans_600SemiBold",
-    fontSize: 12,
-    color: COLOR.accent,
   },
   body: {
     flex: 1,

@@ -1,53 +1,23 @@
 import FrownError from "@/lib/components/common/FrownError";
 import type { DetailTarget } from "@/lib/components/common/OpenDetailButton";
 import StaleBanner from "@/lib/components/common/StaleBanner";
-import DashboardLegend from "@/lib/components/dashboard/legends/DashboardLegend";
-import AverageModal, {
-  type AverageModalCriteria,
-} from "@/lib/components/dashboard/modals/AverageModal";
-import AvgDateModal from "@/lib/components/dashboard/modals/AvgDateModal";
-import DistanceModal from "@/lib/components/dashboard/modals/DistanceModal";
-import NameListModal from "@/lib/components/dashboard/modals/NameListModal";
-import StormDetailModal from "@/lib/components/dashboard/modals/StormDetailModal";
-import AverageView from "@/lib/components/dashboard/views/AverageView";
-import AvgDateView from "@/lib/components/dashboard/views/AvgDateView";
-import CalendarView from "@/lib/components/dashboard/views/CalendarView";
-import DistanceView from "@/lib/components/dashboard/views/DistanceView";
-import HighlightsView from "@/lib/components/dashboard/views/HighlightsView";
-import IntensityView from "@/lib/components/dashboard/views/IntensityView";
+import SwipePager from "@/lib/components/common/SwipePager";
+import IntensityBreakdown from "@/lib/components/dashboard/breakdowns/IntensityBreakdown";
+import RecurrenceBreakdown from "@/lib/components/dashboard/breakdowns/RecurrenceBreakdown";
+import SeasonDatesBreakdown from "@/lib/components/dashboard/breakdowns/SeasonDatesBreakdown";
+import StormListBreakdown from "@/lib/components/dashboard/breakdowns/StormListBreakdown";
+import GroupSheet, { type GroupStat } from "@/lib/components/dashboard/modals/GroupSheet";
+import RecordsView from "@/lib/components/dashboard/views/RecordsView";
+import StatsView from "@/lib/components/dashboard/views/StatsView";
 import StormsView from "@/lib/components/dashboard/views/StormsView";
 import DashboardControlBar from "@/lib/components/dashboard/widgets/DashboardControlBar";
-import { MONTH_NAMES } from "@/lib/constants";
-import { COLOR, SPACE } from "@/lib/constants/theme";
 import type { DashboardParams, Storm } from "@/lib/types";
-import { monthDayOf, todayISO } from "@/lib/utils/date";
 import { getPositionTitle } from "@/lib/utils/position";
-import {
-  calculateAverage,
-  calculateGapAverage,
-  getGroupedStorms,
-} from "@/lib/utils/storm/aggregate";
-import { getEffectiveMonth } from "@/lib/utils/storm/highlights";
+import { formatDayOfYear, formatDuration } from "@/lib/utils/storm/dates";
+import { VIEWS } from "@/lib/utils/storm/routing";
+import type { StatRow } from "@/lib/utils/storm/stats";
 import { useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
-
-interface SelectedData {
-  title?: string;
-  storms?: Storm[];
-  name?: string;
-  avgIntensity?: number;
-  average?: number;
-  criteria?: AverageModalCriteria;
-  /** Absent for groupings with no screen behind them, e.g. a year or a month. */
-  target?: DetailTarget;
-}
-
-// Only the two groupings the app has a detail route for; the rest end at the sheet by design.
-const targetFor = (data: number | string, key: string): DetailTarget | undefined => {
-  if (key === "position") return { kind: "position", position: Number(data) };
-  if (key === "name") return { kind: "name", name: String(data) };
-  return undefined;
-};
+import { StyleSheet, View } from "react-native";
 
 interface DashboardPageContentProps {
   stormsData: Storm[] | null;
@@ -57,228 +27,174 @@ interface DashboardPageContentProps {
   staleError?: boolean;
 }
 
+// A position cell asks "which storms, how strong"; a stats cell asks what its number is made of.
+type OpenGroup =
+  | { kind: "position"; position: number; storms: Storm[] }
+  | { kind: "stat"; row: StatRow; metric: string; groupBy: string };
+
+const POSITION_AGENCIES = new Set(["CPHC", "NHC", "IMD"]);
+
+const headingFor = (groupBy: string, title: string): string => {
+  switch (groupBy) {
+    case "position":
+      return POSITION_AGENCIES.has(title)
+        ? `Storms which are named by ${title}, by intensity:`
+        : `Storms in position ${title} by intensity:`;
+    case "country":
+      return `Storms whose names were contributed by ${title}, by intensity:`;
+    case "name":
+      return `Storms named ${title} by intensity:`;
+    default:
+      return `Storms in ${title} by intensity:`;
+  }
+};
+
+const emptyFor = (groupBy: string, title: string): string => {
+  switch (groupBy) {
+    case "position":
+      return POSITION_AGENCIES.has(title)
+        ? `No storms named by ${title}.`
+        : `No storms in position ${title}.`;
+    case "country":
+      return `No storms whose names were contributed by ${title}.`;
+    case "name":
+      return `No storms named ${title}.`;
+    default:
+      return `No storms in ${title}.`;
+  }
+};
+
+// Only these two groupings have a screen of their own; a year or a month ends at the sheet.
+const targetFor = (groupBy: string, row: StatRow): DetailTarget | undefined => {
+  if (groupBy === "position") return { kind: "position", position: Number(row.key) };
+  if (groupBy === "name") return { kind: "name", name: row.key };
+  return undefined;
+};
+
+const titleFor = (group: OpenGroup): string =>
+  group.kind === "position" ? getPositionTitle(group.position) : group.row.label;
+
+const targetOf = (group: OpenGroup): DetailTarget | undefined =>
+  group.kind === "position"
+    ? { kind: "position", position: group.position }
+    : targetFor(group.groupBy, group.row);
+
+const statsFor = (group: OpenGroup): GroupStat[] => {
+  if (group.kind === "position") {
+    const names = new Set(group.storms.map((storm) => storm.name));
+    return [
+      { label: "Storms", value: String(group.storms.length) },
+      { label: "Names", value: String(names.size), hint: "Names this position has carried" },
+    ];
+  }
+
+  const { row, metric } = group;
+  const count = { label: "Storms", value: String(row.count) };
+
+  if (metric === "recurrence") {
+    return [
+      {
+        label: "Avg. recurrence",
+        value: row.value < 0 ? "N/A" : `${row.display} years`,
+        hint: "Average number of years between reuses",
+      },
+      count,
+    ];
+  }
+
+  if (metric === "dates") {
+    return [
+      { label: "Avg. start", value: formatDayOfYear(row.startDoy ?? -1) },
+      { label: "Avg. end", value: formatDayOfYear(row.endDoy ?? -1) },
+      { label: "Avg. duration", value: formatDuration(row.duration ?? -1) },
+      count,
+    ];
+  }
+
+  return [{ label: "Average intensity", value: row.display, hint: "On a −2 to 5 scale" }, count];
+};
+
+const Breakdown = (group: OpenGroup) => {
+  if (group.kind === "position") return <StormListBreakdown storms={group.storms} />;
+
+  const { row, metric, groupBy } = group;
+  if (metric === "recurrence") return <RecurrenceBreakdown storms={row.storms} />;
+  if (metric === "dates") return <SeasonDatesBreakdown storms={row.storms} />;
+
+  return (
+    <IntensityBreakdown
+      storms={row.storms}
+      average={row.value}
+      heading={headingFor(groupBy, row.label)}
+      emptyText={emptyFor(groupBy, row.label)}
+    />
+  );
+};
+
 export default function DashboardPageContent({
   stormsData,
-  params: currentParams,
+  params,
   onParamsChange,
   onSelectView,
   staleError = false,
 }: DashboardPageContentProps) {
-  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
-  const [isAverageModalOpen, setIsAverageModalOpen] = useState(false);
-  const [isNameListModalOpen, setIsNameListModalOpen] = useState(false);
-  const [isDistanceModalOpen, setIsDistanceModalOpen] = useState(false);
-  const [isAvgDateModalOpen, setIsAvgDateModalOpen] = useState(false);
-  const [selectedData, setSelectedData] = useState<SelectedData | null>(null);
-  // Lives here rather than in CalendarView, which unmounts whenever another view tab is picked:
-  // the chosen date has to survive that the way the web build's query string did.
-  const [today] = useState(() => monthDayOf(todayISO()));
-  const [calendarDate, setCalendarDate] = useState(today);
+  const [openGroup, setOpenGroup] = useState<OpenGroup | null>(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
 
-  const { view, filter } = currentParams;
+  const { view, filter, mode } = params;
 
-  const averageValues =
-    view === "average" || view === "all"
-      ? Object.fromEntries(
-          Object.entries(getGroupedStorms(stormsData || [], "position")).map(
-            ([position, storms]) => [Number(position), calculateAverage(storms)],
-          ),
-        )
-      : null;
+  // The names grid is itself a horizontal pager, so a sideways drag there belongs to it.
+  const canSwipeViews = !(mode === "table" && filter === "name");
 
-  const handleCellClick = (data: number | string, key: string) => {
-    const storms = (stormsData || []).filter((s) => s[key as keyof Storm] === data);
-    const target = targetFor(data, key);
-
-    if (view === "all" && key === "name") {
-      const avgIntensity = calculateAverage(storms);
-      setSelectedData({ name: data as string, storms, avgIntensity, target });
-      setIsNameListModalOpen(true);
-      return;
-    }
-
-    if (view === "all" && key === "position") {
-      const title = key === "position" ? getPositionTitle(Number(data)) : String(data);
-      setSelectedData({ title, storms, target });
-      setIsDetailModalOpen(true);
-      return;
-    }
-
-    if (view === "average" && filter === "name") {
-      setSelectedData({
-        title: String(data),
-        average: calculateAverage(storms),
-        storms,
-        criteria: "name",
-        target,
-      });
-      setIsAverageModalOpen(true);
-      return;
-    }
-
-    if (view === "average" && filter === "month") {
-      const monthName = MONTH_NAMES[data as number];
-      const monthStorms = (stormsData || []).filter(
-        (s) => getEffectiveMonth(s) === (data as number),
-      );
-      setSelectedData({
-        title: monthName,
-        storms: monthStorms,
-        average: calculateAverage(monthStorms),
-        criteria: "month",
-      });
-      setIsAverageModalOpen(true);
-      return;
-    }
-
-    if (view === "recurrence") {
-      const title = key === "position" ? getPositionTitle(Number(data)) : String(data);
-      setSelectedData({ title, storms, average: calculateGapAverage(storms), target });
-      setIsDistanceModalOpen(true);
-      return;
-    }
-
-    if (view === "avgdate") {
-      const avgDateTitles: Record<string, string> = {
-        position: getPositionTitle(Number(data)),
-        year: `Year ${data}`,
-      };
-      setSelectedData({ title: avgDateTitles[key] ?? String(data), storms, target });
-      setIsAvgDateModalOpen(true);
-      return;
-    }
-
-    const titleMap: Record<string, string> = {
-      position: getPositionTitle(Number(data)),
-      country: data as string,
-      year: `Year ${data}`,
-    };
-
-    setSelectedData({
-      title: titleMap[key],
-      average: calculateAverage(storms),
-      storms,
-      criteria: key as AverageModalCriteria,
-      target,
-    });
-    setIsAverageModalOpen(true);
+  const stepView = (step: 1 | -1) => {
+    const index = VIEWS.indexOf(view as (typeof VIEWS)[number]);
+    onSelectView(VIEWS[(index + step + VIEWS.length) % VIEWS.length]);
   };
 
-  if (!stormsData) {
-    return <FrownError />;
-  }
+  const open = (group: OpenGroup) => {
+    setOpenGroup(group);
+    setSheetOpen(true);
+  };
+
+  const selectGroup = (row: StatRow) =>
+    open({ kind: "stat", row, metric: params.metric, groupBy: params.filter });
+
+  const selectPosition = (position: number) =>
+    open({
+      kind: "position",
+      position,
+      storms: (stormsData ?? []).filter((storm) => storm.position === position),
+    });
+
+  if (!stormsData) return <FrownError />;
 
   return (
     <View style={styles.root}>
-      <DashboardControlBar
-        params={currentParams}
-        onChange={onParamsChange}
-        onSelectView={onSelectView}
-      />
+      <DashboardControlBar params={params} onChange={onParamsChange} onSelectView={onSelectView} />
 
       {staleError && <StaleBanner />}
 
-      {(() => {
-        switch (view) {
-          case "all":
-            return (
-              <StormsView
-                params={currentParams}
-                stormsData={stormsData}
-                averageValues={averageValues}
-                onCellClick={handleCellClick}
-              />
-            );
-          case "highlights":
-            return <HighlightsView params={currentParams} stormsData={stormsData} />;
-          case "intensity":
-            return <IntensityView params={currentParams} stormsData={stormsData} />;
-          case "average":
-            return (
-              <AverageView
-                params={currentParams}
-                stormsData={stormsData}
-                averageValues={averageValues}
-                onCellClick={handleCellClick}
-              />
-            );
-          case "recurrence":
-            return (
-              <DistanceView
-                params={currentParams}
-                stormsData={stormsData}
-                onCellClick={handleCellClick}
-              />
-            );
-          case "avgdate":
-            return (
-              <AvgDateView
-                params={currentParams}
-                stormsData={stormsData}
-                onCellClick={handleCellClick}
-              />
-            );
-          case "calendar":
-            return (
-              <CalendarView
-                params={currentParams}
-                stormsData={stormsData}
-                monthDay={calendarDate}
-                today={today}
-                onMonthDayChange={setCalendarDate}
-              />
-            );
-          default:
-            return <Text style={styles.hint}>Select filters to view data</Text>;
-        }
-      })()}
+      <SwipePager enabled={canSwipeViews} onPrev={() => stepView(-1)} onNext={() => stepView(1)}>
+        {view === "records" ? (
+          <RecordsView params={params} stormsData={stormsData} />
+        ) : view === "stats" ? (
+          <StatsView params={params} stormsData={stormsData} onSelectGroup={selectGroup} />
+        ) : (
+          <StormsView params={params} stormsData={stormsData} onSelectPosition={selectPosition} />
+        )}
+      </SwipePager>
 
-      <StormDetailModal
-        isOpen={isDetailModalOpen}
-        onClose={() => setIsDetailModalOpen(false)}
-        title={selectedData?.title || ""}
-        storms={selectedData?.storms || []}
-        position={
-          selectedData?.target?.kind === "position" ? selectedData.target.position : undefined
-        }
-      />
-
-      <AverageModal
-        isOpen={isAverageModalOpen}
-        onClose={() => setIsAverageModalOpen(false)}
-        title={selectedData?.title || ""}
-        average={selectedData?.average || 0}
-        storms={selectedData?.storms || []}
-        criteria={selectedData?.criteria || "position"}
-        target={selectedData?.target}
-      />
-
-      <NameListModal
-        isOpen={isNameListModalOpen}
-        onClose={() => setIsNameListModalOpen(false)}
-        name={selectedData?.name || ""}
-        storms={selectedData?.storms || []}
-        avgIntensity={selectedData?.avgIntensity || 0}
-      />
-
-      <DistanceModal
-        isOpen={isDistanceModalOpen}
-        onClose={() => setIsDistanceModalOpen(false)}
-        title={selectedData?.title || ""}
-        storms={selectedData?.storms || []}
-        average={selectedData?.average ?? -1}
-        target={selectedData?.target}
-      />
-
-      <AvgDateModal
-        isOpen={isAvgDateModalOpen}
-        onClose={() => setIsAvgDateModalOpen(false)}
-        title={selectedData?.title || ""}
-        storms={selectedData?.storms || []}
-        target={selectedData?.target}
-      />
-
-      <DashboardLegend params={currentParams} />
+      {/* Kept mounted through the closing animation, so the breakdown does not blank mid-slide. */}
+      <GroupSheet
+        open={sheetOpen}
+        onClose={() => setSheetOpen(false)}
+        title={openGroup ? titleFor(openGroup) : ""}
+        accentColor={openGroup?.kind === "stat" ? openGroup.row.color : undefined}
+        stats={openGroup ? statsFor(openGroup) : []}
+        target={openGroup ? targetOf(openGroup) : undefined}
+      >
+        {openGroup && <Breakdown {...openGroup} />}
+      </GroupSheet>
     </View>
   );
 }
@@ -286,13 +202,5 @@ export default function DashboardPageContent({
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-  },
-  hint: {
-    fontFamily: "OpenSans_400Regular",
-    fontSize: 14,
-    color: COLOR.textMuted,
-    textAlign: "center",
-    paddingHorizontal: SPACE.xl,
-    paddingVertical: SPACE.xxl,
   },
 });

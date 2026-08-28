@@ -1,47 +1,35 @@
-import HistoryModal from "@/lib/components/name/modals/HistoryModal";
-import ListFilterModal from "@/lib/components/name/modals/ListFilterModal";
-import NameDetailsModal from "@/lib/components/name/modals/NameDetailsModal";
-import { LAYOUT_OPTIONS, type NamesLayout } from "@/lib/components/name/options";
-import FilteredNamesTable from "@/lib/components/name/tables/FilteredNamesTable";
+import ListControls from "@/lib/components/common/ListControls";
+import NameFilterSheet from "@/lib/components/name/modals/NameFilterSheet";
 import NameOptionsSheet from "@/lib/components/name/widgets/NameOptionsSheet";
-import NamesToolbar from "@/lib/components/name/widgets/NamesToolbar";
 import PositionNameGrid from "@/lib/components/name/widgets/PositionNameGrid";
-import { defaultTyphoonName } from "@/lib/constants";
-import type { FilterParams, StormHistoryEntry, TyphoonName } from "@/lib/types";
+import type { FilterParams, TyphoonName } from "@/lib/types";
 import { applyNameFilters, clearNameFilter, nameFilterChips } from "@/lib/utils/name/filters";
+import { getPositionSlug } from "@/lib/utils/position";
+import { router } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
 import { StyleSheet, View } from "react-native";
 
 interface NamesViewProps {
   allNames: TyphoonName[];
-  stormHistory: StormHistoryEntry[];
-  layout: NamesLayout;
-  showName: boolean;
   showHistory: boolean;
+  showName: boolean;
   filters: FilterParams;
-  onLayoutChange: (layout: NamesLayout) => void;
+  onShowHistoryChange: (showHistory: boolean) => void;
   onShowNameChange: (showName: boolean) => void;
   onFiltersChange: (filters: FilterParams) => void;
 }
 
 const NamesView = ({
   allNames,
-  stormHistory,
-  layout,
-  showName,
   showHistory,
+  showName,
   filters,
-  onLayoutChange,
+  onShowHistoryChange,
   onShowNameChange,
   onFiltersChange,
 }: NamesViewProps) => {
-  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
-  const [selectedName, setSelectedName] = useState<TyphoonName>(defaultTyphoonName);
-  const [isNameModalOpen, setIsNameModalOpen] = useState(false);
-  const [historyPosition, setHistoryPosition] = useState<number>(0);
-  const [historyPositionNames, setHistoryPositionNames] = useState<TyphoonName[]>([]);
-  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
 
   // A misspelling is a correction to a name, not a name the committee ever assigned, so it stays
   // out of the rotation.
@@ -50,20 +38,11 @@ const NamesView = ({
     [allNames],
   );
 
-  // Outside the history scope there is no status to choose: the point of "Current" is the rotation
-  // as it stands.
+  // Showing the current rotation means exactly that; history lifts the constraint rather than
+  // offering a status filter, so there is only one route to a retired name.
   const effectiveFilters = useMemo(
     () => (showHistory ? filters : { ...filters, status: "current" }),
     [filters, showHistory],
-  );
-
-  const stormsByPosition = useMemo(
-    () =>
-      stormHistory.reduce<Record<number, StormHistoryEntry[]>>((acc, storm) => {
-        (acc[storm.position] ??= []).push(storm);
-        return acc;
-      }, {}),
-    [stormHistory],
   );
 
   const countries = useMemo(
@@ -79,19 +58,15 @@ const NamesView = ({
     [rotationNames],
   );
 
-  const chips = useMemo(() => nameFilterChips(filters, showHistory), [filters, showHistory]);
+  const chips = useMemo(() => nameFilterChips(filters), [filters]);
 
   const filteredNames = useMemo(
     () => applyNameFilters(rotationNames, effectiveFilters),
     [rotationNames, effectiveFilters],
   );
 
-  // Reuse-count colouring is the full-overview visualization: it only says something while the
-  // grid still holds every name at a position.
-  const colorfulHistory = showHistory && chips.length === 0;
-
-  // Counted through the same effective status the view will render with, or the modal promises
-  // matches the list then drops.
+  // Counted through the same effective status the view will render with, or the sheet promises
+  // matches the grid then drops.
   const countMatchingNames = useCallback(
     (pending: FilterParams) =>
       applyNameFilters(rotationNames, showHistory ? pending : { ...pending, status: "current" })
@@ -99,89 +74,63 @@ const NamesView = ({
     [rotationNames, showHistory],
   );
 
-  const handleNamePress = (name: TyphoonName) => {
-    setSelectedName(name);
-    setIsNameModalOpen(true);
-  };
-
+  // A cell in the current rotation holds the one name on screen; in history it holds a slot's
+  // whole succession, which is what the position page is.
   const handleCellPress = (position: number, names: TyphoonName[]) => {
     if (showHistory) {
-      setHistoryPosition(position);
-      setHistoryPositionNames(names);
-      setIsHistoryModalOpen(true);
+      router.push(`/positions/${getPositionSlug(position)}`);
       return;
     }
-    if (names.length > 0) handleNamePress(names[0]);
+    if (names.length > 0) router.push(`/info/${names[0].name.toLowerCase()}`);
   };
-
-  const layoutOption = LAYOUT_OPTIONS.find((option) => option.value === layout);
-  const layoutLabel =
-    layout === "grid"
-      ? `${layoutOption?.label} · ${showName ? "Names" : "Categories"}`
-      : (layoutOption?.label ?? layout);
 
   return (
     <View style={styles.root}>
-      <NamesToolbar
+      <ListControls
         options={{
-          label: layoutLabel,
-          icon: layoutOption?.icon ?? "grid-outline",
+          label: `${showHistory ? "Every name ever" : "Current rotation"} · ${showName ? "Names" : "Categories"}`,
+          icon: showHistory ? "time-outline" : "flame-outline",
           onPress: () => setIsOptionsOpen(true),
         }}
-        chips={chips}
-        onOpenFilters={() => setIsFilterModalOpen(true)}
-        onRemoveChip={(key) => onFiltersChange(clearNameFilter(filters, key))}
+        filter={{ count: chips.length, onPress: () => setIsFilterOpen(true) }}
+        chips={chips.map((chip) => ({
+          key: chip.key,
+          label: chip.label,
+          icon: "close",
+          accessibilityLabel: `${chip.label} filter. Tap to remove.`,
+          onPress: () => onFiltersChange(clearNameFilter(filters, chip.key)),
+        }))}
       />
 
-      {layout === "grid" ? (
-        <PositionNameGrid
-          names={filteredNames}
-          showName={showName}
-          showHistory={showHistory}
-          colorfulHistory={colorfulHistory}
-          onCellPress={handleCellPress}
-        />
-      ) : (
-        <FilteredNamesTable filteredNames={filteredNames} onNamePress={handleNamePress} />
-      )}
+      <PositionNameGrid
+        names={filteredNames}
+        showName={showName}
+        showHistory={showHistory}
+        onCellPress={handleCellPress}
+      />
 
       <NameOptionsSheet
         open={isOptionsOpen}
         onClose={() => setIsOptionsOpen(false)}
-        layout={layout}
-        onLayoutChange={onLayoutChange}
+        showHistory={showHistory}
+        onShowHistoryChange={onShowHistoryChange}
         showName={showName}
         onShowNameChange={onShowNameChange}
       />
 
-      <ListFilterModal
-        isOpen={isFilterModalOpen}
-        onClose={() => setIsFilterModalOpen(false)}
+      <NameFilterSheet<FilterParams>
+        scope="names"
+        isOpen={isFilterOpen}
+        onClose={() => setIsFilterOpen(false)}
         onApply={(applied) => {
-          setIsFilterModalOpen(false);
+          setIsFilterOpen(false);
           onFiltersChange(applied);
         }}
         countries={countries}
         languages={languages}
         tags={tags}
-        showHistory={showHistory}
         matchCount={countMatchingNames}
-        initialFilters={effectiveFilters}
-      />
-
-      <NameDetailsModal
-        isOpen={isNameModalOpen}
-        name={selectedName}
-        hideReplacedBy
-        onClose={() => setIsNameModalOpen(false)}
-      />
-
-      <HistoryModal
-        isOpen={isHistoryModalOpen}
-        position={historyPosition}
-        positionNames={historyPositionNames}
-        storms={stormsByPosition[historyPosition] ?? []}
-        onClose={() => setIsHistoryModalOpen(false)}
+        initialFilters={filters}
       />
     </View>
   );

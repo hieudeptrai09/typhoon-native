@@ -20,11 +20,10 @@ export const TAG_ICONS: Record<string, IconName> = {
 interface TagIconProps {
   tag: string;
   size?: number;
-  colorOverride?: string;
 }
 
-export const TagIcon = ({ tag, size = 18, colorOverride }: TagIconProps) => {
+export const TagIcon = ({ tag, size = 18 }: TagIconProps) => {
   const icon = TAG_ICONS[tag];
   if (!icon) return null;
-  return <Ionicons name={icon} size={size} color={colorOverride || COLOR.textBody} />;
+  return <Ionicons name={icon} size={size} color={COLOR.textBody} />;
 };

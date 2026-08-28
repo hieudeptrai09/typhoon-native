@@ -1,26 +1,18 @@
 import StaleBanner from "@/lib/components/common/StaleBanner";
-import type { NamesLayout, NamesScope } from "@/lib/components/name/options";
+import type { NamesScope } from "@/lib/components/name/options";
 import NamesView from "@/lib/components/name/views/NamesView";
 import RetiredView from "@/lib/components/name/views/RetiredView";
 import NamesScopeTabs from "@/lib/components/name/widgets/NamesScopeTabs";
-import type {
-  FilterParams,
-  RetiredFilterParams,
-  RetiredName,
-  StormHistoryEntry,
-  SuggestionWithNameId,
-} from "@/lib/types";
+import type { FilterParams, RetiredFilterParams, RetiredName } from "@/lib/types";
 import { useMemo } from "react";
 import { StyleSheet, View } from "react-native";
 
 interface NamesPageContentProps {
   allNames: RetiredName[];
-  stormHistory: StormHistoryEntry[];
-  suggestedNames: SuggestionWithNameId[];
   scope: NamesScope;
   onScopeChange: (scope: NamesScope) => void;
-  layout: NamesLayout;
-  onLayoutChange: (layout: NamesLayout) => void;
+  showHistory: boolean;
+  onShowHistoryChange: (showHistory: boolean) => void;
   showName: boolean;
   onShowNameChange: (showName: boolean) => void;
   nameFilters: FilterParams;
@@ -32,12 +24,10 @@ interface NamesPageContentProps {
 
 const NamesPageContent = ({
   allNames,
-  stormHistory,
-  suggestedNames,
   scope,
   onScopeChange,
-  layout,
-  onLayoutChange,
+  showHistory,
+  onShowHistoryChange,
   showName,
   onShowNameChange,
   nameFilters,
@@ -57,19 +47,16 @@ const NamesPageContent = ({
       {scope === "retired" ? (
         <RetiredView
           retiredNames={retiredNames}
-          suggestedNames={suggestedNames}
           filters={retiredFilters}
           onFiltersChange={onRetiredFiltersChange}
         />
       ) : (
         <NamesView
           allNames={allNames}
-          stormHistory={stormHistory}
-          layout={layout}
+          showHistory={showHistory}
           showName={showName}
-          showHistory={scope === "history"}
           filters={nameFilters}
-          onLayoutChange={onLayoutChange}
+          onShowHistoryChange={onShowHistoryChange}
           onShowNameChange={onShowNameChange}
           onFiltersChange={onNameFiltersChange}
         />

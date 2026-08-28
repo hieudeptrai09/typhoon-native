@@ -7,7 +7,7 @@ import ScreenLoading from "@/lib/components/common/ScreenLoading";
 import SwipePager from "@/lib/components/common/SwipePager";
 import InfoPageContent from "@/lib/components/info/InfoPageContent";
 import DidYouMean from "@/lib/components/search/DidYouMean";
-import type { SearchDetail } from "@/lib/types";
+import type { SearchDetail, SuggestionWithNameId } from "@/lib/types";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo } from "react";
 import { StyleSheet, View } from "react-native";
@@ -23,6 +23,18 @@ export default function InfoScreen() {
 
   const similar = useApiQuery<string[]>(
     detail.isNotFound ? `/api/v1/similar-names?name=${query}` : null,
+  );
+
+  // Only a retired name has proposed replacements, so the reference list stays unfetched
+  // for every other name.
+  const nameData = detail.data?.name;
+  const suggestions = useApiQuery<SuggestionWithNameId[]>(
+    nameData?.isRetired ? "/api/v1/suggestions" : null,
+  );
+
+  const nameSuggestions = useMemo(
+    () => (suggestions.data ?? []).filter((suggestion) => suggestion.nameId === nameData?.id),
+    [suggestions.data, nameData?.id],
   );
 
   const allNames = useMemo(
@@ -89,7 +101,12 @@ export default function InfoScreen() {
           <FrownError onRetry={detail.refetch} />
         ) : (
           <RefreshProvider value={refreshValue}>
-            <InfoPageContent detail={detail.data} name={name} staleError={detail.isError} />
+            <InfoPageContent
+              detail={detail.data}
+              name={name}
+              suggestions={nameSuggestions}
+              staleError={detail.isError}
+            />
           </RefreshProvider>
         )}
       </SwipePager>

@@ -10,6 +10,11 @@ import type { SortCriterion, SortField } from "@/lib/utils/table";
 interface RetiredNamesTableProps {
   retiredNames: RetiredName[];
   onNamePress: (name: RetiredName) => void;
+  filter: {
+    chips: { key: string; label: string }[];
+    onOpen: () => void;
+    onRemoveChip: (key: string) => void;
+  };
 }
 
 const sortFields: SortField<RetiredName>[] = [
@@ -31,48 +36,45 @@ const indexField = {
   letterOf: (name: RetiredName) => name.name.charAt(0).toUpperCase(),
 };
 
-const RetiredNamesTable = ({ retiredNames, onNamePress }: RetiredNamesTableProps) => {
-  if (retiredNames.length === 0) return <EmptyResults />;
+const RetiredNamesTable = ({ retiredNames, onNamePress, filter }: RetiredNamesTableProps) => (
+  <DataList<RetiredName>
+    data={retiredNames}
+    keyExtractor={(name) => String(name.id)}
+    sortFields={sortFields}
+    sortKey="retiredNames"
+    defaultSort={BY_NAME}
+    indexField={indexField}
+    countLabel={(count) => `${count} name${count === 1 ? "" : "s"}`}
+    onRowPress={onNamePress}
+    filter={filter}
+    // Rendered inside the list rather than in place of it, so the filter that emptied it is
+    // still on screen to undo.
+    empty={<EmptyResults />}
+    renderCard={(name) => {
+      const color = getRetiredReasonColor(name.retirementReason);
+      const reason = name.retirementReason
+        ? RETIRED_REASON_LABEL[name.retirementReason]
+        : "Retired";
 
-  return (
-    <DataList<RetiredName>
-      data={retiredNames}
-      keyExtractor={(name) => String(name.id)}
-      sortFields={sortFields}
-      sortKey="retiredNames"
-      defaultSort={BY_NAME}
-      indexField={indexField}
-      countLabel={(count) => `${count} retired name${count === 1 ? "" : "s"}`}
-      onRowPress={onNamePress}
-      renderCard={(name, index) => {
-        const color = getRetiredReasonColor(name.retirementReason);
-        return (
-          <DataCard
-            ordinal={index + 1}
-            title={name.name}
-            titleColor={color}
-            accentColor={color}
-            fields={[
-              { label: "Last used", value: String(name.lastYear) },
-              {
-                label: "Contributed by",
-                value: <CountryFlag country={name.country} size={16} showName />,
-              },
-              { label: "Position", value: getPositionTitle(name.position) },
-              {
-                label: "Reason",
-                value: name.retirementReason
-                  ? RETIRED_REASON_LABEL[name.retirementReason]
-                  : "Retired",
-              },
-              { label: "Meaning", value: name.meaning || "—" },
-            ]}
-            pressable
-          />
-        );
-      }}
-    />
-  );
-};
+      return (
+        <DataCard
+          title={name.name}
+          titleColor={color}
+          subtitle={`${getPositionTitle(name.position)} · ${reason}`}
+          accentColor={color}
+          fields={[
+            { label: "Last used", value: String(name.lastYear) },
+            {
+              label: "Contributed by",
+              value: <CountryFlag country={name.country} size={16} showName />,
+            },
+            { label: "Meaning", value: name.meaning || "—" },
+          ]}
+          pressable
+        />
+      );
+    }}
+  />
+);
 
 export default RetiredNamesTable;
