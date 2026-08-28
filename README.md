@@ -1,50 +1,46 @@
-# Welcome to your Expo app 👋
+# typhoon-native
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Ứng dụng React Native (Expo SDK 54) tra cứu dữ liệu bão Tây Bắc Thái Bình Dương.
+Chỉ nhắm tới Android và iOS — không có giao diện web.
 
-## Get started
+## Cấu trúc
 
-1. Install dependencies
+| Thư mục               | Vai trò                                                                          |
+| --------------------- | -------------------------------------------------------------------------------- |
+| `app/(tabs)`, `app/*` | Màn hình, định tuyến bằng expo-router                                            |
+| `app/api/v1`          | API routes, chạy trên server chứ không nằm trong bundle của app                  |
+| `be/`                 | Truy vấn Supabase qua HTTP RPC, chỉ được import từ `+api.ts`                     |
+| `lib/`                | Component, hook, type, util dùng chung cho phía app                              |
+| `db/`                 | Schema và các hàm SQL (`db/functions.sql` là nguồn thật của các RPC trong `be/`) |
 
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## Chạy dev
 
 ```bash
-npm run reset-project
+npm install
+cp .env.example .env.local   # điền SUPABASE_URL và SUPABASE_PUBLISHABLE_KEY
+npm start
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Trong dev, Metro chính là server phục vụ `app/api/v1`, nên các màn hình gọi đường dẫn tương đối
+là chạy được ngay.
 
-## Learn more
+## Build và deploy
 
-To learn more about developing your project with Expo, look at the following resources:
+API routes phải được deploy trước, vì bản build không có dev server:
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+```bash
+npm run deploy:preview   # export web (chỉ để lấy server bundle) rồi đẩy lên EAS Hosting
+npm run build:preview    # APK, đọc EXPO_PUBLIC_API_ORIGIN từ eas.json
+```
 
-## Join the community
+`web.output: "server"` trong `app.json` và hai package `react-dom` / `react-native-web` chỉ tồn tại
+để `expo export --platform web` dựng được server bundle cho API routes — app không render trên web.
 
-Join our community of developers creating universal apps.
+## Lệnh khác
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+```bash
+npm test         # jest (chỉ test cho lib/utils)
+npm run lint
+npm run format
+npm run facts    # sinh dữ liệu fun fact, kết nối Postgres trực tiếp qua be/direct.ts
+```

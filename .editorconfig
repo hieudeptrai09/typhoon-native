@@ -1,10 +1,18 @@
 root = true
 
-[src/**/*.{js,ts,jsx,tsx}]
+[*]
+charset = utf-8
+end_of_line = lf
 indent_style = space
 indent_size = 2
 tab_width = 2
 max_line_length = 100
-charset = utf-8
 trim_trailing_whitespace = true
 insert_final_newline = true
+
+[*.{md,mdx}]
+max_line_length = off
+trim_trailing_whitespace = false
+
+[*.sql]
+max_line_length = off

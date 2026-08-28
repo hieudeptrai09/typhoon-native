@@ -6,8 +6,8 @@ export interface DateParts {
   day: number;
 }
 
-// Storm dates travel as "YYYY-MM-DD" strings (never Date objects) so they can't shift a day when serialized or rendered in another timezone.
-
+// Storm dates travel as "YYYY-MM-DD" strings, never Date objects, so they can't shift a day when
+// serialized or rendered in another timezone.
 export const parseStormDate = (date: string): DateParts => {
   const [year, month, day] = date.split("-").map(Number);
   return { year, month, day };
@@ -22,7 +22,6 @@ export const parseDateParts = (date?: string): DateParts | null => {
 
 const DAYS_IN_MONTH_MAX = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 
-// Today as a "YYYY-MM-DD" string, matching how storm dates travel.
 export const todayISO = (): string => {
   const now = new Date(Date.now());
   const pad = (n: number) => String(n).padStart(2, "0");
@@ -44,13 +43,13 @@ export const parseMonthDay = (
   return { month, day };
 };
 
-// "26 August" — spelled out, since a year-less "26/8" reads as an incomplete date.
+// "26 August"
 export const formatMonthDay = (monthDay: string): string => {
   const parts = parseMonthDay(monthDay);
   return parts ? `${parts.day} ${MONTH_NAMES[parts.month]}` : monthDay;
 };
 
-// "31 August 2024" — the long form prose uses, where a "31/8/2024" would read as a code.
+// "31 August 2024"
 export const formatLongDate = (date: string): string => {
   const { year, month, day } = parseStormDate(date);
   return MONTH_NAMES[month] ? `${day} ${MONTH_NAMES[month]} ${year}` : date;
@@ -73,7 +72,7 @@ export const formatOrdinalDate = (monthDay: string, year: number): string => {
   return `${MONTH_NAMES[parts.month]} ${day}${ordinalSuffix(day)}, ${year}`;
 };
 
-// Steps one day through the 366-day calendar, wrapping 31/12 round to 1/1.
+// Steps through the 366-day calendar, so 29/2 stays reachable whatever the year.
 export const shiftMonthDay = (monthDay: string, delta: 1 | -1): string => {
   const parts = parseMonthDay(monthDay);
   if (!parts) return monthDay;

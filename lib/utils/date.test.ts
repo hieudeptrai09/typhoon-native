@@ -86,7 +86,7 @@ describe("month-day dates", () => {
     expect(monthDayOf("2024-08-31")).toBe("08-31");
   });
 
-  it("range-checks a value that came in off a query string", () => {
+  it("range-checks a value that came in off stored state", () => {
     expect(parseMonthDay("08-26")).toEqual({ month: 8, day: 26 });
     expect(parseMonthDay(null)).toBeNull();
     expect(parseMonthDay("8-26")).toBeNull(); // unpadded
