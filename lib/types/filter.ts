@@ -17,7 +17,7 @@ export interface RetiredFilterParams {
 
 export interface DashboardParams {
   view: string;
-  /** Which statistic the stats view computes; empty on the views that compute none. */
+  // Empty on the views that compute no statistic.
   metric: string;
   filter: string;
   mode: string;

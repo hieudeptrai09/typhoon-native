@@ -17,7 +17,6 @@ export const RefreshProvider = ({
   children: ReactNode;
 }) => <RefreshContext.Provider value={value}>{children}</RefreshContext.Provider>;
 
-/** Ready-made control for a FlatList/ScrollView, or undefined outside a provider. */
 export const useRefreshControl = () => {
   const value = useContext(RefreshContext);
   if (!value) return undefined;

@@ -20,7 +20,6 @@ interface ImageWithLoaderProps {
   source?: string | null;
   label: string;
   contentFit?: ImageContentFit;
-  /** Applied to the wrapper, which the image fills — give it the size or let a parent size it. */
   style?: StyleProp<ViewStyle>;
   spinnerSize?: "small" | "medium" | "large";
   showErrorLabel?: boolean;
@@ -41,7 +40,6 @@ const ImageWithLoader = ({
   const [open, setOpen] = useState(false);
   const insets = useSafeAreaInsets();
 
-  // Nothing to enlarge, so the placeholder stays inert rather than opening an empty viewer.
   if (!source || hasError) {
     return (
       <View

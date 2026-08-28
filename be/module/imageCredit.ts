@@ -7,11 +7,10 @@ export interface ImageCreditRow {
   imageSourceUrl: string | null;
 }
 
-// Public-domain works need no attribution, so their credit line stays hidden.
+// Public-domain works need no attribution.
 const isPublicDomain = (license: string | null): boolean =>
   !!license && /public domain|\bpdm\b|\bcc0\b/i.test(license);
 
-// Rows with no author have nothing to attribute, so the credit line stays hidden.
 export const toImageCredit = (row: ImageCreditRow): ImageCredit | undefined =>
   row.imageAuthor && !isPublicDomain(row.imageLicense)
     ? {

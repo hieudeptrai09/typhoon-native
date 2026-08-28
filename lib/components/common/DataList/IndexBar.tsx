@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import { StyleSheet, Text, View, type GestureResponderEvent } from "react-native";
 
 interface IndexBarProps {
-  /** In the order the list is currently in, so the bar always reads top-to-bottom like the list. */
+  // Must arrive in the order the list is currently in.
   letters: string[];
   onSelect: (letter: string) => void;
 }

@@ -29,7 +29,6 @@ interface NameFilterSheetProps<T extends NameFilters> extends BaseModalProps {
   scope: NamesScope;
   initialFilters: T;
   countries: string[];
-  /** Names scope only; the retired list offers year and reason in their place. */
   languages?: string[];
   tags?: string[];
   matchCount: (filters: T) => number;

@@ -1,7 +1,7 @@
 import { INTENSITY_RANK } from "@/lib/constants";
 import type { IntensityType, Storm } from "@/lib/types";
 
-// The inverse of INTENSITY_RANK: turns an averaged rank back into the intensity it represents.
+// The inverse of INTENSITY_RANK.
 export const getIntensityFromNumber = (avgNumber: number): IntensityType => {
   const rounded = Math.round(avgNumber);
   if (rounded >= 5) return "5";
@@ -30,8 +30,8 @@ export const calculateAverage = (storms: Storm[]): number => {
   return sum / storms.length;
 };
 
-// Average number of years between consecutive appearances; -1 when a single storm
-// leaves no gap to measure, which 0 can't stand in for (a real same-year gap).
+// -1 when a single storm leaves no gap to measure, which 0 can't stand in for: that is a real
+// same-year gap.
 export const calculateGapAverage = (storms: Storm[]): number => {
   const years = storms.map((s) => s.year).sort((a, b) => a - b);
   if (years.length <= 1) return -1;

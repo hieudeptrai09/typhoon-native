@@ -8,7 +8,6 @@ interface StormListBreakdownProps {
   storms: Storm[];
 }
 
-/** Which storms were here and how strong they got — the whole question a grid cell raises. */
 const StormListBreakdown = ({ storms }: StormListBreakdownProps) => {
   const byName = storms.reduce<Record<string, Storm[]>>((acc, storm) => {
     (acc[storm.name] ??= []).push(storm);

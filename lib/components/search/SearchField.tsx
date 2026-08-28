@@ -49,8 +49,7 @@ const SearchField = ({
         autoCapitalize="none"
         autoCorrect={false}
         returnKeyType="search"
-        // Results are already on screen by the time this key is reachable, so submitting means
-        // "get the keyboard out of the way".
+        // Results are already on screen, so submitting only means "dismiss the keyboard".
         onSubmitEditing={() => input.current?.blur()}
         accessibilityLabel="Search typhoon names"
       />

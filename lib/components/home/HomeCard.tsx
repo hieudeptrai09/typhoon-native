@@ -12,7 +12,7 @@ interface HomeCardProps {
   isLoading?: boolean;
   isError?: boolean;
   onRetry?: () => void;
-  /** Skeleton bars drawn while loading, so the card keeps its height across the fetch. */
+  // Skeleton bars drawn while loading, so the card keeps its height across the fetch.
   skeletonLines?: number;
   children: ReactNode;
 }

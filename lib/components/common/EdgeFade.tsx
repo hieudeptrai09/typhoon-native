@@ -12,13 +12,13 @@ import {
 
 interface EdgeFadeProps {
   children: ReactNode;
-  /** On the wrapper, which is what the parent lays out — not on the scroller inside it. */
+  // On the wrapper, not on the scroller inside it.
   style?: StyleProp<ViewStyle>;
   contentContainerStyle?: StyleProp<ViewStyle>;
   accessibilityLabel?: string;
   accessibilityRole?: "tablist";
   scrollRef?: RefObject<ScrollView | null>;
-  /** Must match what the row sits on, or the fade reads as a grey smudge. */
+  // Must match what the row sits on, or the fade reads as a grey smudge.
   backgroundColor?: string;
 }
 

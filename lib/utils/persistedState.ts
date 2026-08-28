@@ -1,11 +1,8 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-/**
- * State that survives a cold start. The first render always uses `initial`: reading storage is
- * async, so a screen that waited for it would flash a spinner on every launch. `ready` says
- * whether the stored value has landed, for callers that must not write before it does.
- */
+// The first render always uses `initial` — reading storage is async. The returned `ready` flag
+// says whether the stored value has landed, for callers that must not write before it does.
 export const usePersistedState = <T>(key: string, initial: T): [T, (value: T) => void, boolean] => {
   const [value, setValue] = useState<T>(initial);
   const [ready, setReady] = useState(false);

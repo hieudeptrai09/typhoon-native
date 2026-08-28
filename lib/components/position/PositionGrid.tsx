@@ -10,7 +10,7 @@ import { LayoutChangeEvent, Pressable, StyleSheet, Text, View } from "react-nati
 export interface GridCell {
   color: string;
   clickable: boolean;
-  /** Up to ~3 characters drawn inside the cell; omit when the value needs the readout. */
+  // Up to ~3 characters: the cell is too small for more.
   label?: string;
   labelColor?: string;
 }
@@ -32,10 +32,7 @@ interface CellButtonProps {
   onSelect: (position: number) => void;
 }
 
-/**
- * Split out and memoised: 140 of these re-render on every selection change otherwise, and the
- * selection is the one thing the user changes constantly.
- */
+// Split out and memoised: 140 of these re-render on every selection change otherwise.
 const CellButton = memo(({ position, cell, size, isSelected, onSelect }: CellButtonProps) => (
   <Pressable
     onPress={() => onSelect(position)}
@@ -64,11 +61,8 @@ const CellButton = memo(({ position, cell, size, isSelected, onSelect }: CellBut
 ));
 CellButton.displayName = "CellButton";
 
-/**
- * A cell is ~22dp wide, well under a comfortable tap target, so a single tap only *selects*: it
- * costs nothing to correct. Opening is the full-width button in the readout, or a second tap on
- * the cell already selected.
- */
+// A cell is ~22dp wide, well under a comfortable tap target, so a single tap only selects.
+// Opening is the full-width button in the readout, or a second tap on the selected cell.
 const PositionGrid = ({ renderCell, renderReadout, onPositionPress }: PositionGridProps) => {
   const [plotWidth, setPlotWidth] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);

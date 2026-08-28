@@ -23,10 +23,6 @@ interface MonthDayPickerProps {
   onChange: (monthDay: string) => void;
 }
 
-/**
- * A day of the year with no year attached: only the month and day are read back off the picked
- * date, and the seasons behind it decide which years actually had that day.
- */
 const MonthDayPicker = ({ open, onClose, value, onChange }: MonthDayPickerProps) => {
   // iOS never reports a dismissal, so every event there is a pick.
   const handleChange = (event: DateTimePickerEvent, date?: Date) => {
@@ -39,8 +35,7 @@ const MonthDayPicker = ({ open, onClose, value, onChange }: MonthDayPickerProps)
       value={toDate(value)}
       mode="date"
       display={Platform.OS === "ios" ? "inline" : "calendar"}
-      // Pins the picker inside the reference year, so the year in its header is inert rather
-      // than a way to wander off into a season the date has nothing to do with.
+      // Pins the picker inside the reference year, so its header year is inert.
       minimumDate={FIRST_DAY}
       maximumDate={LAST_DAY}
       onChange={handleChange}

@@ -10,7 +10,6 @@ export interface SpecialValue {
 
 interface SpecialButtonsProps {
   onPress: (position: number) => void;
-  /** Metric readout per agency position, so the grid's colour scale reaches these too. */
   values?: Record<number, SpecialValue>;
 }
 

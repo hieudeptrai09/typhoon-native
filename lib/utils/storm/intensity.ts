@@ -24,7 +24,7 @@ export const getIntensitySlug = (intensity: IntensityType): string => INTENSITY_
 export const intensityFromSlug = (slug: string): IntensityType | null =>
   SLUG_INTENSITIES[slug] ?? null;
 
-// Weakest first, the same order the intensity legend lists the scale in.
+// Weakest first.
 export const INTENSITIES_BY_STRENGTH: IntensityType[] = (
   Object.keys(INTENSITY_SLUGS) as IntensityType[]
 ).sort((a, b) => SORTING_RANK[a] - SORTING_RANK[b]);

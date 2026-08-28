@@ -8,9 +8,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 export interface ControlChip {
   key: string;
   label: string;
-  /** Trailing glyph: a dismiss cross for a filter, a direction arrow for a sort. */
   icon: IconName;
-  /** Shown only where several chips compete, e.g. the priority of a sort criterion. */
   rank?: number;
   accessibilityLabel: string;
   onPress: () => void;
@@ -22,7 +20,7 @@ interface ControlButton {
 }
 
 interface ListControlsProps {
-  /** Leading slot. The options pill wins it when both are given. */
+  // The options pill wins this slot when both are given.
   count?: string;
   options?: { label: string; icon: IconName; onPress: () => void };
   filter?: ControlButton;

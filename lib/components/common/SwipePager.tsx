@@ -19,7 +19,7 @@ interface SwipePagerProps {
 const DISTANCE_RATIO = 0.22;
 const VELOCITY = 550;
 const PEEK = 64;
-/** Both screen edges belong to the OS back gesture; starting a page swipe there loses every time. */
+// Both screen edges belong to the OS back gesture; a page swipe started there loses every time.
 const EDGE_GUARD = 28;
 
 const SwipePager = ({ onPrev, onNext, enabled = true, children }: SwipePagerProps) => {

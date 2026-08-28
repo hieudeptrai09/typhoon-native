@@ -4,9 +4,9 @@ function damerauLevenshtein(a: string, b: string): number {
   if (al === 0) return bl;
   if (bl === 0) return al;
 
-  const prevPrev = new Array<number>(bl + 1).fill(0); // row i-2 (for transpositions)
-  const prev = new Array<number>(bl + 1); // row i-1
-  const curr = new Array<number>(bl + 1); // row i
+  const prevPrev = new Array<number>(bl + 1).fill(0);
+  const prev = new Array<number>(bl + 1);
+  const curr = new Array<number>(bl + 1);
 
   for (let j = 0; j <= bl; j++) prev[j] = j;
 
@@ -14,12 +14,7 @@ function damerauLevenshtein(a: string, b: string): number {
     curr[0] = i;
     for (let j = 1; j <= bl; j++) {
       const cost = a[i - 1] === b[j - 1] ? 0 : 1;
-      let val = Math.min(
-        prev[j] + 1, // deletion
-        curr[j - 1] + 1, // insertion
-        prev[j - 1] + cost, // substitution
-      );
-      // adjacent transposition
+      let val = Math.min(prev[j] + 1, curr[j - 1] + 1, prev[j - 1] + cost);
       if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) {
         val = Math.min(val, prevPrev[j - 2] + 1);
       }
@@ -34,7 +29,6 @@ function damerauLevenshtein(a: string, b: string): number {
   return prev[bl];
 }
 
-/** Similarity in [0, 1]: 1 = identical, 0 = completely different. */
 function similarity(a: string, b: string): number {
   if (a === b) return 1;
   const maxLen = Math.max(a.length, b.length);

@@ -5,11 +5,8 @@ const decompose = (value: string): string =>
 
 const COMBINING_MARKS = /[̀-ͯ]/g;
 
-/**
- * Folds case, accents and the hyphens in compound names, so "Sơn-Tinh" and "son tinh" reach the
- * same key. Every substitution is one character for one character: callers index the *original*
- * name with offsets found in the folded one.
- */
+// Every substitution is one character for one character: callers index the *original* name with
+// offsets found in the folded one.
 export function foldName(value: string): string {
   return decompose(value.toLowerCase())
     .replace(COMBINING_MARKS, "")
@@ -19,7 +16,7 @@ export function foldName(value: string): string {
 
 const WORD_BREAK = /\s/;
 
-/** Lower sorts first: exact name, then the start of the name, a word, and anything else. */
+// Lower sorts first.
 function tierOf(name: string, query: string, at: number): number {
   if (name === query) return 0;
   if (at === 0) return 1;
@@ -28,8 +25,8 @@ function tierOf(name: string, query: string, at: number): number {
 
 export interface Ranked<T> {
   item: T;
-  /** Where the query matched in the original name. Highlighting reads it rather than re-searching:
-   *  folding can shift what `indexOf` would find on the unfolded string. */
+  // Offset in the *original* name: folding can shift what `indexOf` would find on the unfolded
+  // string, so highlighting reads this rather than re-searching.
   at: number;
 }
 

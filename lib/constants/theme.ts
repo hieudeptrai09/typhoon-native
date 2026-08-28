@@ -21,7 +21,7 @@ export const COLOR = {
 
   border: "#e2e8f0",
   borderStrong: "#cbd5e1",
-  /** Foreground of anything switched off. Same value as borderStrong, different intent. */
+  // Same value as borderStrong, different intent.
   disabled: "#cbd5e1",
 
   accent: "#0369a1",
@@ -36,11 +36,10 @@ export const COLOR = {
   warningSoft: "#fef3c7",
 
   overlay: "rgba(15, 23, 42, 0.5)",
-  /** Translucent, so blocks on the tinted home hero don't read as pasted-on white cards. */
   onHero: "rgba(255, 255, 255, 0.7)",
 } as const;
 
-/** Screen gutters are `lg`; anything tappable clears `HIT_SIZE`. */
+// Screen gutters are `lg`; anything tappable clears `HIT_SIZE`.
 export const SPACE = {
   xs: 4,
   sm: 8,

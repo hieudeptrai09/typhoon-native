@@ -12,9 +12,8 @@ export interface SortField<T> {
   compare: (a: T, b: T) => number;
 }
 
-// The sort sheet manipulates criteria directly, so one tap walks a field through
-// ascend → descend → off. Flipping direction keeps the field's rank so tuning one
-// criterion never reshuffles the rest of a multi-criteria sort.
+// Flipping direction keeps the field's rank, so tuning one criterion never reshuffles the rest
+// of a multi-criteria sort.
 export const cycleCriterion = (current: SortCriterion[], key: SortKey): SortCriterion[] => {
   const existing = current.find((criterion) => criterion.key === key);
   if (!existing) return [...current, { key, order: "ascend" }];

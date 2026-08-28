@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 const KEY = "search:recent-names";
 const LIMIT = 8;
 
-// Matching happens as you type, so there is no submit to record — the tap that opens a result is
+// Matching happens as you type, so there is no submit to record: the tap that opens a result is
 // the only moment a query is known to have meant something.
 export function useRecentNames() {
   const [names, setNames] = useState<string[]>([]);

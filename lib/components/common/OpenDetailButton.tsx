@@ -8,7 +8,7 @@ export type DetailTarget = { kind: "name"; name: string } | { kind: "position"; 
 
 interface OpenDetailButtonProps {
   target: DetailTarget;
-  /** Dismissed first, so the back gesture returns to the dashboard rather than to a stale sheet. */
+  // Dismissed before navigating, so the back gesture does not return to a stale sheet.
   onClose: () => void;
 }
 

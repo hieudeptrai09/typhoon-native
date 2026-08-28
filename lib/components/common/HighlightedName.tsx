@@ -3,8 +3,8 @@ import { StyleSheet, Text, type StyleProp, type TextStyle } from "react-native";
 
 interface HighlightedNameProps {
   name: string;
-  /** Offset of the match, from the matcher that ranked this row. Passed in rather than found here:
-   *  accent folding means a plain `indexOf` on the raw name can miss what actually matched. */
+  // Passed in rather than found here: accent folding means a plain `indexOf` on the raw name can
+  // miss what actually matched.
   at: number;
   length: number;
   style?: StyleProp<TextStyle>;

@@ -11,18 +11,14 @@ import { StyleSheet, View } from "react-native";
 interface StormsViewProps {
   params: DashboardParams;
   stormsData: Storm[];
-  /** A cell opens the sheet rather than the position screen: the question is usually just which
-   *  storms were here, and the sheet answers it without loading a screen. */
   onSelectPosition: (position: number) => void;
 }
 
 const openName = (name: string) => router.push(`/info/${encodeURIComponent(name)}`);
 
-// The season a storm belongs to is the one thing every reader wants first, so the storm list opens
-// on the newest rather than on whatever the alphabet happens to put at the top.
+// The storm list opens on the newest season rather than on whatever the alphabet puts at the top.
 const NEWEST_FIRST = [{ key: "year", order: "descend" as const }];
 
-/** Every storm in the table. Grouping shapes the grid; the list is the flat run of storms. */
 const StormsView = ({ params, stormsData, onSelectPosition }: StormsViewProps) => {
   if (params.mode === "list") {
     return <StormRowsList storms={stormsData} sortKey="all/storms" defaultSort={NEWEST_FIRST} />;

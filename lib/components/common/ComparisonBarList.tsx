@@ -13,7 +13,7 @@ export interface ComparisonBarRow {
   labelColor?: string;
   color: string;
   count: number;
-  /** Portion of the bar drawn solid; the rest stays as a tint. Defaults to the whole bar. */
+  // Portion drawn solid; the rest stays a tint. Defaults to the whole bar.
   filled?: number;
   valueLabel?: string;
   details: ReactNode;
@@ -25,7 +25,6 @@ interface ComparisonBarListProps {
   rows: ComparisonBarRow[];
 }
 
-/** Groups whose bars compare their sizes against the largest group, each opening onto its members. */
 const ComparisonBarList = ({ heading, emptyText, rows }: ComparisonBarListProps) => {
   const [expanded, setExpanded] = useState<string | null>(null);
   const maxCount = rows.reduce((max, row) => Math.max(max, row.count), 0);
@@ -71,8 +70,6 @@ const ComparisonBarList = ({ heading, emptyText, rows }: ComparisonBarListProps)
                   </Text>
 
                   <View style={styles.groupStats}>
-                    {/* The track carries the full count; the fill inside it carries `filled`, so a
-                        part-way group reads as one bar rather than two. */}
                     <View style={[styles.track, { width, backgroundColor: `${row.color}40` }]}>
                       <View
                         style={[

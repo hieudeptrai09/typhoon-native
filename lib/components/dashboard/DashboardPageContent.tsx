@@ -27,7 +27,6 @@ interface DashboardPageContentProps {
   staleError?: boolean;
 }
 
-// A position cell asks "which storms, how strong"; a stats cell asks what its number is made of.
 type OpenGroup =
   | { kind: "position"; position: number; storms: Storm[] }
   | { kind: "stat"; row: StatRow; metric: string; groupBy: string };

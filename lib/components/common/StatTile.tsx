@@ -4,7 +4,7 @@ import { StyleSheet, Text, View } from "react-native";
 
 interface StatTileProps {
   label: string;
-  /** Never drawn: there is no hover on touch, so it only reaches screen readers. */
+  // Never drawn — there is no hover on touch, so it only reaches screen readers.
   hint?: string;
   children: ReactNode;
 }

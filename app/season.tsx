@@ -14,11 +14,7 @@ import { Stack } from "expo-router";
 import { useMemo, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
-/**
- * How the running season compares with every season before it, measured at today. The date is
- * fixed to today on purpose: "am I ahead of a normal year" is a question about now, and the
- * calendar tab already owns picking an arbitrary day.
- */
+// The date is fixed to today on purpose; the calendar tab already owns picking an arbitrary day.
 export default function SeasonScreen() {
   const [monthDay] = useState(() => monthDayOf(todayISO()));
   const [openSeason, setOpenSeason] = useState<SeasonToDateRow | null>(null);

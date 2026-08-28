@@ -9,7 +9,7 @@ const MONTH_OFFSET = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334];
 const DAYS_IN_YEAR = 365;
 
 const toDayOfYear = (month: number, date: number): number => {
-  const clampedDate = Math.min(date, DAYS_IN_MONTH[month - 1]); // 29/2 → 28/2
+  const clampedDate = Math.min(date, DAYS_IN_MONTH[month - 1]);
   return MONTH_OFFSET[month - 1] + clampedDate;
 };
 
@@ -72,11 +72,11 @@ export const formatDayOfYear = (doy: number): string => {
   return `${date}/${month}`;
 };
 
-// Calendar month (1–12) an averaged day-of-year falls in; -1 for an empty group.
+// -1 for an empty group.
 export const getDoyMonth = (doy: number): number => (doy < 0 ? -1 : fromDayOfYear(doy).month);
 
-// Average storm duration in whole days. An active storm counts its days so far,
-// measured to today, on the same basis as its stand-in end date.
+// An active storm counts its days so far, measured to today, on the same basis as its
+// stand-in end date.
 export const calculateAvgDuration = (storms: Storm[]): number => {
   const durations = storms
     .map((s) => daysBetween(s.dateStart, s.dateEnd ?? todayISO()))

@@ -17,7 +17,7 @@ import {
 } from "@/lib/utils/storm/dates";
 import { getEffectiveMonth } from "@/lib/utils/storm/highlights";
 
-/** The naming list only starts here; earlier seasons are a few storms apiece. */
+// The naming list only starts here; earlier seasons are a few storms apiece.
 export const YEAR_CUTOFF = 2000;
 
 export interface StatRow {
@@ -25,11 +25,11 @@ export interface StatRow {
   label: string;
   count: number;
   storms: Storm[];
-  /** Primary number the rows sort and colour by; -1 wherever the metric is not measurable. */
+  // Sorted and coloured by; -1 wherever the metric is not measurable.
   value: number;
   display: string;
   color: string;
-  /** Only the dates metric fills these — a start alone cannot describe a season. */
+  // Only the dates metric fills these.
   startDoy?: number;
   endDoy?: number;
   duration?: number;
@@ -37,10 +37,6 @@ export interface StatRow {
   country?: string;
 }
 
-/**
- * One grouping for every metric, so an avg-intensity-by-year list and a season-dates-by-year list
- * can never disagree about which years exist.
- */
 export const groupStorms = (storms: Storm[], groupBy: string): Record<string, Storm[]> => {
   if (groupBy === "month") {
     const grouped: Record<string, Storm[]> = {};
@@ -107,6 +103,5 @@ export const buildStatRows = (storms: Storm[], metric: string, groupBy: string):
   return rows;
 };
 
-/** Grid and name-pager tints, keyed the same way the list cards are. */
 export const statColorsByKey = (rows: StatRow[]): Record<string, string> =>
   Object.fromEntries(rows.map((row) => [row.key, row.color]));

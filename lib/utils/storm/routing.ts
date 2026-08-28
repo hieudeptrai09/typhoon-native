@@ -24,8 +24,7 @@ const DEFAULT_FILTER: Record<string, string> = {
   stats: "position",
 };
 
-// The heatmap and the names pager are both laid out on the naming table, so only those two
-// groupings have a grid to draw into. Country, year and month have nowhere to go but a list.
+// Only these two are laid out on the naming table; the rest have nowhere to go but a list.
 const GRIDDABLE_GROUPS = new Set(["position", "name"]);
 
 export const isKnownView = (view: string): boolean => VIEW_FILTERS[view] !== undefined;
@@ -36,15 +35,13 @@ export const filtersForView = (view: string, metric: string): string[] =>
 export const hasGrid = (view: string, filter: string): boolean =>
   view !== "stats" || GRIDDABLE_GROUPS.has(filter);
 
-// The storms list is a flat run of storms, which is what "by name" already means. Grouping by
-// position has nothing to list that the grid does not say better, so the pairing does not exist.
+// The storms list is a flat run of storms, which is what "by name" already means; grouping by
+// position has nothing to list that the grid does not say better.
 export const hasList = (view: string, filter: string): boolean =>
   view !== "all" || filter === "name";
 
-/**
- * Why an option is offered but cannot be picked. Returning the reason rather than hiding the
- * option is the point: a control that silently changes shape between views reads as a bug.
- */
+// Blocked options stay offered with a reason rather than being hidden: a control that silently
+// changes shape between views reads as a bug.
 export const groupBlockedReason = (
   view: string,
   metric: string,
@@ -63,7 +60,6 @@ export const layoutBlockedReason = (view: string, filter: string, mode: string):
   return available ? null : "Not available for this grouping";
 };
 
-/** The one place params are made legal, so no caller has to know which pairings exist. */
 export const normalizeParams = ({
   view,
   metric,

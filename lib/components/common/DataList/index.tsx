@@ -19,25 +19,19 @@ import { FlatList, Pressable, StyleSheet, View } from "react-native";
 interface DataListProps<T> {
   data: T[];
   keyExtractor: (row: T, index: number) => string;
-  /** `index` is the post-sort rank, so a card's ordinal matches what is on screen. */
+  // `index` is the post-sort rank, not the position in `data`.
   renderCard: (row: T, index: number) => ReactNode;
   sortFields?: SortField<T>[];
   onRowPress?: (row: T) => void;
   countLabel?: (count: number) => string;
   empty?: ReactNode;
   header?: ReactNode;
-  /** Names this list's sort so it survives the view being switched away and back. */
+  // Names this list's sort so it survives the view being switched away and back.
   sortKey?: string;
   defaultSort?: SortCriterion[];
-  /**
-   * Turns on the alphabet rail, but only while the list is actually ordered by `key` — an index
-   * over rows that aren't grouped by their initial would point at the wrong place.
-   */
+  // Only valid while the list is actually ordered by `key`: an index over rows that aren't
+  // grouped by their initial would point at the wrong place.
   indexField?: { key: SortKey; letterOf: (row: T) => string };
-  /**
-   * Narrowing stays owned by the view above, but its controls belong in this bar: filter and sort
-   * are one question to the reader, so they share one row of buttons and one rail of chips.
-   */
   filter?: {
     chips: { key: string; label: string }[];
     onOpen: () => void;
@@ -92,7 +86,6 @@ const DataList = <T,>({
 
   const labelOf = (key: string) => sortFields.find((field) => field.key === key)?.label ?? key;
 
-  // Filter chips lead, sort chips follow: what is in the list, then how it is ordered.
   const chips: ControlChip[] = [
     ...(filter?.chips ?? []).map((chip) => ({
       key: `filter:${chip.key}`,
@@ -208,7 +201,7 @@ const styles = StyleSheet.create({
     paddingBottom: SPACE.xxl,
     gap: 10,
   },
-  /** Clears the alphabet rail so a card's right edge never runs under it. */
+  // Clears the alphabet rail so a card's right edge never runs under it.
   contentIndexed: {
     paddingRight: SPACE.lg + 20,
   },

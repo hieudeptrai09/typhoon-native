@@ -9,7 +9,6 @@ export const eventYearOf = (storm: Storm, monthDay: string): number => {
 export const getStormStarts = (storms: Storm[], monthDay: string): Storm[] =>
   storms.filter((storm) => monthDayOf(storm.dateStart) === monthDay);
 
-// An ongoing storm has no end date to match, so it can never appear here.
 export const getStormEnds = (storms: Storm[], monthDay: string): Storm[] =>
   storms.filter((storm) => storm.dateEnd !== undefined && monthDayOf(storm.dateEnd) === monthDay);
 
@@ -55,8 +54,8 @@ export const groupBySeason = (storms: Storm[]): SeasonGroup[] => {
 };
 
 export interface DayOfStorm {
-  day: number; // which day of the storm the chosen date is, counting the first day as 1
-  total: number | null; // null while the storm is still ongoing and has no last day yet
+  day: number; // counting the first day of the storm as 1
+  total: number | null; // null while the storm is still ongoing
 }
 
 export const getDayOfStorm = (storm: Storm, monthDay: string): DayOfStorm => ({
@@ -74,7 +73,7 @@ export const seasonMonthOf = (storm: Storm): number => {
 
 export interface SeasonMonth {
   month: number;
-  storms: Storm[]; // every storm of that month, in the order they formed
+  storms: Storm[]; // in the order they formed
   toDate: number; // how many of them had started by the chosen date
 }
 

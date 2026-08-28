@@ -11,10 +11,10 @@ export interface Storm {
   isStrongest?: boolean;
   isFirst?: boolean;
   isLast?: boolean;
-  dateStart: string; // "YYYY-MM-DD"; always set — a storm can't exist without a start
+  dateStart: string; // "YYYY-MM-DD"
   dateEnd?: string; // "YYYY-MM-DD"; missing while a storm is ongoing
   jtwcDesignation?: string;
-  jmaNumber?: string; // "YYnn", the JMA international number; absent for storms JMA never numbered
+  jmaNumber?: string; // "YYnn", the JMA international number
 }
 
 export interface StormHistoryEntry {
@@ -29,19 +29,14 @@ export interface StormHighlight {
   name: string;
   position: number;
   status: StormHighlightStatus;
-  /**
-   * Set only when `status` is "active" — an upcoming name has no storm behind it yet. Also absent
-   * if the deployed get_storm_highlight predates these fields, so the card must degrade without
-   * them rather than assume they arrived.
-   */
+  // Also absent if the deployed get_storm_highlight predates these fields, so the card must
+  // degrade without them rather than assume they arrived.
   intensity?: IntensityType;
   dateStart?: string;
 }
 
-/**
- * Mirrors be/api/getOnThisDay.ts. Redeclared here rather than imported so a screen bundle never
- * reaches into @/be — same reasoning as the envelope in lib/api/client.ts.
- */
+// Mirrors be/api/getOnThisDay.ts. Redeclared rather than imported so a screen bundle never
+// reaches into @/be — same reasoning as the envelope in lib/api/client.ts.
 export interface OnThisDayStorm {
   name: string;
   intensity: IntensityType;
@@ -52,7 +47,7 @@ export interface OnThisDayStorm {
   reason: "started" | "ended" | "both";
 }
 
-/** Mirrors be/api/getActiveOnThisDay.ts. `dateEnd` is null while the storm is still ongoing. */
+// Mirrors be/api/getActiveOnThisDay.ts. `dateEnd` is null while the storm is still ongoing.
 export interface ActiveOnThisDayStorm {
   name: string;
   intensity: IntensityType;

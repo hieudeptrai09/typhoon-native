@@ -9,7 +9,7 @@ import { StyleSheet, Text } from "react-native";
 
 interface CalendarSeasonListProps {
   seasons: SeasonGroup[];
-  /** Distinguishes the three season lists so a sort on one does not carry into the next. */
+  // Distinguishes the three season lists so a sort on one does not carry into the next.
   filter: string;
   emptyDescription: string;
   onSeasonPress: (season: SeasonGroup) => void;

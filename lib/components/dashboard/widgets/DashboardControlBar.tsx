@@ -136,8 +136,6 @@ const DashboardControlBar = ({ params, onChange, onSelectView }: DashboardContro
         })}
       </View>
 
-      {/* Every axis the view is currently set to, in one line: what the sheet holds is never
-          a state the user has to open the sheet to find out. */}
       <EdgeFade style={styles.rail} contentContainerStyle={styles.railContent}>
         {chipOptions.map((option) => (
           <AxisChip key={option.value} option={option} onPress={openSheet} />

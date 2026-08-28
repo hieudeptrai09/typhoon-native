@@ -58,7 +58,6 @@ const toRow = (storm: Storm): StormRow => {
   };
 };
 
-// The badge alone is a code. Spelling the scale out here is what lets the screen carry no legend.
 const IntensityCell = ({ intensity }: { intensity: IntensityType }) => (
   <View style={styles.intensity}>
     <IntensityBadge intensity={intensity} size={26} />
@@ -71,7 +70,6 @@ const NAME_INDEX = { key: "name", letterOf: (row: StormRow) => row.name[0]?.toUp
 interface StormRowsListProps {
   storms: Storm[];
   sortKey: string;
-  /** Off where every row shares one intensity — the badge would repeat what the view already states. */
   showIntensity?: boolean;
   defaultSort?: SortCriterion[];
 }

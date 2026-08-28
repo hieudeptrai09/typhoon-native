@@ -16,7 +16,6 @@ export interface NameDetailsContentProps {
   name: TyphoonName | RetiredName | null;
   hideReplacedBy?: boolean;
   correctSpelling?: string;
-  /** Set where the surrounding page already carries a status badge, so it isn't shown twice. */
   hideStatus?: boolean;
 }
 

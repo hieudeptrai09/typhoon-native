@@ -16,17 +16,12 @@ interface GroupSheetProps {
   onClose: () => void;
   title: string;
   accentColor?: string;
-  /** Headline numbers for the group, in the same slot whatever the metric is. */
   stats: GroupStat[];
-  /** Only position and name groups have a screen of their own; year/month/country do not. */
+  // Only position and name groups have a screen of their own; year/month/country do not.
   target?: DetailTarget;
   children: ReactNode;
 }
 
-/**
- * The one sheet every dashboard group opens into. Header, stat tiles and footer stay put across
- * metrics so only the breakdown below them has to be read anew.
- */
 const GroupSheet = ({
   open,
   onClose,

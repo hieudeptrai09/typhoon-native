@@ -7,12 +7,9 @@ interface ApiEnvelope<T> {
   data: T;
 }
 
-/**
- * Expo's fetch polyfill resolves a relative path against the dev server in development and against
- * the expo-router `origin` in a release build. A release build without that origin fails every
- * request with an opaque URL error, which reads as "the server is down" — so name the real cause,
- * once, at startup. See app.config.ts for where the value comes from.
- */
+// Expo's fetch polyfill resolves a relative path against the dev server in development and against
+// the expo-router `origin` in a release build. Without that origin every request fails with an
+// opaque URL error that reads as "the server is down", so name the real cause once at startup.
 const originError = ((): string | null => {
   if (__DEV__) return null;
 
@@ -46,11 +43,8 @@ const idle = {
   isRefetching: false,
 } as const;
 
-/**
- * A null `path` means "nothing to ask for yet": the screen is still validating its params, or the
- * query only applies to a view the user hasn't opened. `path` stays relative so the same call
- * works against the dev server and the deployed one.
- */
+// A null `path` means "nothing to ask for yet". `path` stays relative so the same call works
+// against the dev server and the deployed one.
 export function useApiQuery<T>(path: string | null): QueryState<T> {
   const [nonce, setNonce] = useState(0);
   const [state, setState] = useState<Omit<QueryState<T>, "refetch">>(idle);
@@ -75,8 +69,7 @@ export function useApiQuery<T>(path: string | null): QueryState<T> {
     lastPath.current = path;
 
     setState((current) => {
-      // Only a refresh over something already on screen is quiet. Retrying from an error page has
-      // nothing to keep, so it is a fresh load and says so.
+      // Retrying from an error page has nothing to keep, so it is a fresh load, not a quiet refresh.
       const refreshing = samePath && current.data !== null;
       return {
         data: refreshing ? current.data : null,
@@ -106,8 +99,7 @@ export function useApiQuery<T>(path: string | null): QueryState<T> {
       })
       .catch(() => {
         if (controller.signal.aborted) return;
-        // A failed refresh keeps what it was refreshing: replacing a working screen with a full
-        // error page punishes the pull gesture. Callers holding data decide how to say so quietly.
+        // A failed refresh keeps what it was refreshing; callers holding data decide how to say so.
         setState((current) => ({
           data: current.data,
           isError: true,

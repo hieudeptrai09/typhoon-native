@@ -26,8 +26,8 @@ const PositionNameGrid = ({ names, showName, showHistory, onCellPress }: Positio
     [names],
   );
 
-  // Deliberately not pressable on its own. The row underneath is the target: two nested targets a
-  // few pixels apart, opening different sheets with nothing to tell them apart, is a coin toss.
+  // Deliberately not pressable: the row underneath is the target, and two nested targets a few
+  // pixels apart would be a coin toss.
   const renderName = (name: TyphoonName) => (
     <View key={name.id} style={styles.name}>
       {showName ? (
@@ -41,8 +41,7 @@ const PositionNameGrid = ({ names, showName, showHistory, onCellPress }: Positio
     </View>
   );
 
-  // Otherwise a filter that matches nothing leaves fourteen pages of dashes to swipe through
-  // before it becomes clear there was nothing to find.
+  // Otherwise a filter that matches nothing leaves fourteen pages of dashes to swipe through.
   if (names.length === 0) return <EmptyResults />;
 
   return (

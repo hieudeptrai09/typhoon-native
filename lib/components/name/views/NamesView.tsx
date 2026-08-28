@@ -38,8 +38,6 @@ const NamesView = ({
     [allNames],
   );
 
-  // Showing the current rotation means exactly that; history lifts the constraint rather than
-  // offering a status filter, so there is only one route to a retired name.
   const effectiveFilters = useMemo(
     () => (showHistory ? filters : { ...filters, status: "current" }),
     [filters, showHistory],
@@ -74,8 +72,6 @@ const NamesView = ({
     [rotationNames, showHistory],
   );
 
-  // A cell in the current rotation holds the one name on screen; in history it holds a slot's
-  // whole succession, which is what the position page is.
   const handleCellPress = (position: number, names: TyphoonName[]) => {
     if (showHistory) {
       router.push(`/positions/${getPositionSlug(position)}`);

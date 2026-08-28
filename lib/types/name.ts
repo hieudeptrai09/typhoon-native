@@ -1,6 +1,6 @@
 import type { ImageCredit } from "@/lib/types/media";
 
-// Why a name left rotation. Set only when isRetired is true; the DB enforces that pairing.
+// Set only when isRetired is true; the DB enforces that pairing.
 export type RetirementReason = "destructive" | "language" | "misspell" | "special";
 
 export interface TyphoonName {

@@ -64,8 +64,7 @@ function NameTimelineItem({ name, storms }: { name: TyphoonName | RetiredName; s
     era = `${firstYear} – present`;
   }
 
-  // The whole row navigates, rather than the name being a text-sized link inside it: at 17px a
-  // word is a ~24pt target, well under what a thumb can hit.
+  // The whole row navigates rather than the name inside it: at 17px a word is a ~24pt target.
   return (
     <Pressable
       onPress={() => router.push(`/info/${name.name.toLowerCase()}`)}

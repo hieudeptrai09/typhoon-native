@@ -113,7 +113,6 @@ const fieldsOf = (row: StatRow, metric: string, groupBy: string): DataField[] =>
   return fields;
 };
 
-/** One statistic, worked out per group — the metric only changes what the number means. */
 const StatsView = ({ params, stormsData, onSelectGroup }: StatsViewProps) => {
   const { metric, filter, mode } = params;
 

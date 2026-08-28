@@ -10,7 +10,6 @@ import { StyleSheet, Text, View } from "react-native";
 
 export type CalendarSeasonKind = "started" | "ended" | "active";
 
-// The title names the date, so the sentences below never repeat it.
 const THIS_DAY = "this day";
 
 const summaryOf = (kind: CalendarSeasonKind, count: number): string => {
@@ -43,8 +42,6 @@ const Lasted = ({ storm }: { storm: Storm }) => {
   );
 };
 
-// One sentence per storm, in the order a reader would ask for it: which storm, what it did on the
-// chosen date, then the rest of its life. Reads as prose rather than as a record.
 const Sentence = ({
   storm,
   kind,
@@ -111,7 +108,6 @@ const StormParagraph = ({
 }) => (
   <View style={styles.paragraph}>
     <Text style={styles.prose}>
-      {/* The JTWC designation rides with the name, the way every other storm list writes it. */}
       <Text style={[styles.stormName, { color: TEXT_COLOR_WHITE_BACKGROUND[storm.intensity] }]}>
         {storm.name}
         {storm.jtwcDesignation ? ` (${storm.jtwcDesignation})` : ""}
@@ -139,7 +135,7 @@ const CalendarSeasonModal = ({
   const count = season?.storms.length ?? 0;
 
   // Not the season year: a storm carried over the new year meets this day in the calendar year
-  // either side of its season, and the title names a real date rather than a season.
+  // either side of its season.
   const eventYear = season?.storms[0] ? eventYearOf(season.storms[0], monthDay) : season?.year;
 
   return (
@@ -198,7 +194,6 @@ const styles = StyleSheet.create({
   stormName: {
     fontFamily: "OpenSans_700Bold",
   },
-  // The values a reader is here for are bold; the words joining them are not.
   fact: {
     fontFamily: "OpenSans_600SemiBold",
     color: COLOR.textSecondary,

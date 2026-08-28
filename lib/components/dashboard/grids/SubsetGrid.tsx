@@ -5,14 +5,12 @@ import { useCallback, useMemo } from "react";
 
 interface SubsetGridProps {
   stormsData: Storm[];
-  /** The storms the current record slice picked out; every other position stays empty. */
   storms: Storm[];
   color: string;
-  /** True where one position can hold several of the picked storms, e.g. a whole category. */
+  // True where one position can hold several of the picked storms, e.g. a whole category.
   mergeYears?: boolean;
 }
 
-// A name reused across seasons gets one line with its years listed, rather than one line each.
 const mergedNames = (storms: Storm[]): string[] => {
   const years = new Map<string, number[]>();
   storms.forEach((storm) => {

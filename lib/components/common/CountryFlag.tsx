@@ -24,8 +24,6 @@ export const COUNTRY_NAMES = Object.keys(COUNTRY_CODES);
 
 const REGIONAL_INDICATOR_A = 0x1f1e6;
 
-// Regional indicator pairs render as a flag on both platforms; no SVG dependency
-// and no 14 bundled images.
 const toFlagEmoji = (code: string): string =>
   code
     .split("")

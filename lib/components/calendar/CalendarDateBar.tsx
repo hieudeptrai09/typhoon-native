@@ -10,7 +10,6 @@ interface CalendarDateBarProps {
   monthDay: string; // "MM-DD"
   today: string; // "MM-DD"
   onChange: (monthDay: string) => void;
-  /** One line under the picker saying what the chosen date turned up. */
   summary: string;
 }
 
@@ -112,7 +111,6 @@ const styles = StyleSheet.create({
     borderColor: COLOR.borderStrong,
     backgroundColor: COLOR.surface,
   },
-  // Takes the row's slack so the date, not the buttons around it, is what the eye lands on.
   date: {
     flex: 1,
     flexDirection: "row",

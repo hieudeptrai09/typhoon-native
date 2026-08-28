@@ -22,11 +22,7 @@ interface SpecialNamesListProps {
   nameSubtitles?: Record<string, ReactNode>;
 }
 
-/**
- * CPHC, NHC and IMD name storms outside the naming table, so they have no cell on the grid. Folded
- * away by default: the grid above is the screen, and collapsing this is what lets the names below
- * wrap onto as many lines as they need instead of hiding in a sideways scroller.
- */
+// CPHC, NHC and IMD name storms outside the naming table, so they have no cell on the grid.
 const SpecialNamesList = ({
   stormsData,
   onNameClick,
@@ -80,8 +76,8 @@ const SpecialNamesList = ({
         />
       </Pressable>
 
-      {/* Capped and scrolled internally: the grid above it is the screen, and a region with many
-          names would otherwise push the whole stack past the bottom with no way to reach it. */}
+      {/* Capped and scrolled internally: many names would otherwise push the whole stack past
+          the bottom of the screen. */}
       {expanded && (
         <ScrollView
           style={[styles.card, { maxHeight: height * 0.32 }]}

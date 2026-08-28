@@ -52,14 +52,10 @@ export const AVG_DATE_MONTH_COLOR: Record<number, string> = {
 
 export const AVG_DATE_FALLBACK_COLOR = "#374151";
 
-// A season ahead of the average pace runs warm, one behind it runs cool. Neither is good nor bad,
-// so this deliberately avoids the green/red of a status colour.
 export const SEASON_PACE_AHEAD_COLOR = "#c2410c";
 export const SEASON_PACE_BEHIND_COLOR = "#1d4ed8";
 export const SEASON_PACE_EVEN_COLOR = "#475569";
 
-// The grid only ever separates the busiest positions from the ones a storm behind them: with 140
-// positions all holding four or five storms, a longer ramp would leave most of itself undrawn.
 // Index 0 is the count below the busiest; index 1 is the busiest.
 export const STORM_COUNT_COLORS = ["#3b82f6", "#1d4ed8"];
 

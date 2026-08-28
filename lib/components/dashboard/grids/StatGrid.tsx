@@ -29,12 +29,9 @@ const readoutLines = (row: StatRow, metric: string): string[] => {
   return [`Avg ${row.display} — ${INTENSITY_LABEL[getIntensityFromNumber(row.value)]}`];
 };
 
-/**
- * What the cell says out loud, so the colour never has to be looked up. Two characters at most:
- * the cell is about 24dp wide, and a month abbreviation or a decimal shrinks to unreadable there.
- * Recurrence reads against six years, which is roughly how long the 140-position list takes to
- * come round; the readout under the grid still gives the figure itself.
- */
+// Two characters at most: the cell is about 24dp wide, and a month abbreviation or a decimal
+// shrinks to unreadable there. Recurrence reads against six years, roughly how long the
+// 140-position list takes to come round.
 const cellLabel = (row: StatRow, metric: string): string | undefined => {
   if (metric === "recurrence") {
     if (row.value < 0) return undefined;
@@ -45,7 +42,6 @@ const cellLabel = (row: StatRow, metric: string): string | undefined => {
   return getIntensityFromNumber(row.value);
 };
 
-/** One grid for all three metrics: only the cell colour and the readout wording differ. */
 const StatGrid = ({ stormsData, rows, metric, onCellClick }: StatGridProps) => {
   const byPosition = useMemo(() => {
     const map = new Map<number, StatRow>();
@@ -64,12 +60,10 @@ const StatGrid = ({ stormsData, rows, metric, onCellClick }: StatGridProps) => {
   const renderCell = useCallback(
     (position: number) => {
       const row = byPosition.get(position);
-      // A position with no storms has no group to open, so it never offers the readout's button.
       if (!row) return { color: GRID_EMPTY_CELL_COLOR, clickable: false };
 
-      // The intensity metric borrows the badge palette so a cell reads as the same colour as the
-      // IntensityBadge beside the same storm elsewhere; the other two are already dark enough to
-      // carry white text.
+      // The intensity metric borrows the badge palette so a cell matches the IntensityBadge beside
+      // the same storm elsewhere; the other two are already dark enough to carry white text.
       const intensity = metric === "intensity" ? getIntensityFromNumber(row.value) : null;
       return {
         color: intensity ? BACKGROUND_BADGE[intensity] : row.color,

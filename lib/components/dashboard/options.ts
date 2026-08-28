@@ -92,7 +92,6 @@ const RECORD_OPTIONS: SegmentOption[] = [
     value: getIntensitySlug(intensity),
     label: INTENSITY_LABEL[intensity],
     shortLabel: INTENSITY_SHORT_LABEL[intensity],
-    // Nine icons would be noise; the badge colour is what the grid and the legend key on anyway.
     swatch: BACKGROUND_BADGE[intensity],
   })),
 ];

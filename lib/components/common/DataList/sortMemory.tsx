@@ -11,11 +11,9 @@ export const SortMemoryProvider = ({ children }: { children: ReactNode }) => {
   return <SortMemoryContext.Provider value={store}>{children}</SortMemoryContext.Provider>;
 };
 
-/**
- * Remembered criteria when the list names a `key` inside a provider, plain local state otherwise.
- * Only the one mounted list owning a key ever writes it, so a re-render tick is enough to publish
- * the change.
- */
+// Remembered criteria when the list names a `key` inside a provider, plain local state otherwise.
+// Only the one mounted list owning a key ever writes it, so a re-render tick is enough to publish
+// the change.
 export const useSortMemory = (
   key?: string,
   initial: SortCriterion[] = [],

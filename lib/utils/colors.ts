@@ -26,12 +26,8 @@ export const getDistanceColor = (years: number): string => {
   return DISTANCE_LONG_COLOR;
 };
 
-/**
- * The scale rides the top of the data: the busiest positions take the darker colour, the ones a
- * storm behind take the lighter, and everything further down shares the lighter one. So a table
- * that climbs from five storms to six hands both colours down a count rather than restaging
- * itself, and the two shades keep meaning "busiest" and "one below".
- */
+// The scale rides the top of the data: the busiest count takes the darker colour, one below it
+// the lighter, and everything further down shares the lighter one.
 const countStop = (count: number, maxCount: number): number => {
   const shift = Math.max(0, maxCount - STORM_COUNT_COLORS.length);
   return Math.min(STORM_COUNT_COLORS.length - 1, Math.max(0, count - 1 - shift));

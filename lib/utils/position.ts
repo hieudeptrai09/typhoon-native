@@ -29,7 +29,6 @@ export const isExternalPosition = (position?: number): boolean =>
 export const isKnownPosition = (position: number | null): position is number =>
   position !== null && Number.isInteger(position) && position >= 1 && position <= TOTAL_POSITIONS;
 
-/** Next/previous in the paging order, wrapping at both ends. */
 export const stepPosition = (position: number, step: 1 | -1): number =>
   ((position - 1 + step + TOTAL_POSITIONS) % TOTAL_POSITIONS) + 1;
 

@@ -14,7 +14,6 @@ export interface OptionAxis {
 interface ViewOptionsSheetProps {
   open: boolean;
   onClose: () => void;
-  /** Names the view the axes below belong to; the tab strip only shows its label. */
   subtitle: string;
   axes: OptionAxis[];
 }

@@ -9,7 +9,6 @@ const zoomEarthUrl = (name: string, year: number): string =>
 
 interface ZoomEarthLinkProps {
   storm: Storm;
-  /** "row" fills the width of a card footer; "inline" sits beside other text. */
   variant?: "inline" | "row";
 }
 

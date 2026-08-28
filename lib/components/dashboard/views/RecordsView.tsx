@@ -12,11 +12,6 @@ interface RecordsViewProps {
   stormsData: Storm[];
 }
 
-/**
- * One slice of the record book at a time. Whether the slice is "the strongest storm of each
- * position" or "every storm that peaked at category 5", the question and the answer are the same
- * shape, so they share a view.
- */
 const RecordsView = ({ params, stormsData }: RecordsViewProps) => {
   const intensity = intensityFromSlug(params.filter);
 

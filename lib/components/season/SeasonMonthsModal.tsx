@@ -79,7 +79,6 @@ const SeasonMonthsModal = ({ isOpen, onClose, row, monthDay }: SeasonMonthsModal
         </View>
       </View>
 
-      {/* The bar splits at the chosen date, so a month straddling it reads at a glance. */}
       <ComparisonBarList
         heading="Storms by month, solid up to this day:"
         emptyText="This season produced no storms."
