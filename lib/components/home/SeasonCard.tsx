@@ -62,16 +62,26 @@ const SeasonCard = ({ query }: SeasonCardProps) => {
     const year = parseStormDate(today).year;
     const rows = getSeasonToDate(data, monthDay);
 
-    // The running season is excluded from the average it is being judged against, or it drags its
-    // own benchmark toward itself.
-    const past = rows.filter((row) => !isSeasonOngoing(row.year));
-    if (past.length === 0) return null;
+    if (rows.length === 0) return null;
 
+    // The running season counts toward the average: it has genuinely reached this day, so its
+    // toDate is a finished observation. Its `total` is not, which is why averageTotal still drops it.
     const toDate = rows.find((row) => row.year === year)?.toDate ?? 0;
-    const average = averageToDate(past);
-    const busiest = past.reduce((best, row) => (row.toDate > best.toDate ? row : best));
+    const average = averageToDate(rows);
 
-    return { year, monthDay, toDate, average, delta: toDate - average, busiest };
+    // The record, though, is the mark to beat, so it comes from completed seasons only.
+    const past = rows.filter((row) => !isSeasonOngoing(row.year));
+    const record = past.length
+      ? past.reduce((best, row) => (row.toDate > best.toDate ? row : best))
+      : null;
+
+    const footnote = record
+      ? toDate > record.toDate
+        ? `${year} has passed ${record.year}'s ${record.toDate}, the busiest by this day since ${NAMING_LIST_FIRST_YEAR}.`
+        : `Busiest by this day since ${NAMING_LIST_FIRST_YEAR}: ${record.year} with ${record.toDate}`
+      : null;
+
+    return { year, monthDay, toDate, average, delta: toDate - average, footnote };
   }, [data]);
 
   if (!isLoading && !isError && season === null) return null;
@@ -85,7 +95,7 @@ const SeasonCard = ({ query }: SeasonCardProps) => {
   return (
     <HomeCard
       icon="stats-chart-outline"
-      title="Season"
+      title="Season pace"
       action={season ? <Text style={styles.year}>{season.year}</Text> : undefined}
       isLoading={isLoading}
       isError={isError}
@@ -131,13 +141,10 @@ const SeasonCard = ({ query }: SeasonCardProps) => {
             />
           </View>
 
-          <Text style={styles.footnote}>
-            Busiest by this day since {NAMING_LIST_FIRST_YEAR}: {season.busiest.year} with{" "}
-            {season.busiest.toDate}
-          </Text>
+          {season.footnote ? <Text style={styles.footnote}>{season.footnote}</Text> : null}
 
           <Pressable
-            onPress={() => router.push("/season")}
+            onPress={() => router.push({ pathname: "/calendar", params: { scope: "todate" } })}
             style={({ pressed }) => [styles.more, pressed && styles.pressed]}
             accessibilityRole="button"
             accessibilityLabel="Compare every season by this day"

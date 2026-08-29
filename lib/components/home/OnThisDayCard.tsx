@@ -1,21 +1,34 @@
 import type { QueryState } from "@/lib/api/client";
-import DefModal from "@/lib/components/common/DefModal";
+import type { CalendarScope } from "@/lib/components/calendar/CalendarScopeTabs";
 import HomeCard from "@/lib/components/home/HomeCard";
 import { INTENSITY_LABEL, TEXT_COLOR_WHITE_BACKGROUND } from "@/lib/constants";
 import { COLOR, RADIUS, SPACE } from "@/lib/constants/theme";
-import type { ActiveOnThisDayStorm, IconName, IntensityType, OnThisDayStorm } from "@/lib/types";
-import { formatMonthDay, toMonthDay } from "@/lib/utils/date";
+import type { IconName, Storm } from "@/lib/types";
+import { formatMonthDay, monthDayOf, todayISO } from "@/lib/utils/date";
 import { isExternalPosition } from "@/lib/utils/position";
+import {
+  eventYearOf,
+  getActiveStorms,
+  getDayOfStorm,
+  getStormEnds,
+  getStormStarts,
+} from "@/lib/utils/storm/calendar";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 const PREVIEW_YEARS = 3;
-const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
-type Reason = OnThisDayStorm["reason"];
-type Filter = "all" | "formed" | "ended" | "active";
+type Reason = "started" | "ended" | "both" | null;
+type Filter = "started" | "ended" | "ongoing";
+
+const SCOPE_FOR: Record<Filter, CalendarScope> = {
+  started: "started",
+  ended: "ended",
+  ongoing: "active",
+};
 
 interface Marker {
   icon: IconName;
@@ -23,13 +36,13 @@ interface Marker {
   label: string;
 }
 
-const ACTIVE_MARKER: Marker = {
+const ONGOING_MARKER: Marker = {
   icon: "ellipse",
   color: COLOR.accentBorder,
   label: "was already under way",
 };
 
-const getMarker = (reason: Reason, position: number): Marker => {
+const getMarker = (reason: Exclude<Reason, null>, position: number): Marker => {
   if (isExternalPosition(position)) {
     if (reason === "both") {
       return {
@@ -55,64 +68,32 @@ const getMarker = (reason: Reason, position: number): Marker => {
     : { icon: "stop", color: COLOR.danger, label: "dissipated" };
 };
 
-const getEventYear = (storm: OnThisDayStorm) => {
-  const date = storm.reason === "ended" ? storm.dateEnd : storm.dateStart;
-  return date ? Number(date.slice(0, 4)) : storm.year;
-};
-
-// Local-midnight Date from "YYYY-MM-DD", so day math matches the user's clock.
-const parseLocalDate = (date: string): Date => {
-  const [year, month, day] = date.split("-").map(Number);
-  return new Date(year, month - 1, day);
-};
-
-const getDayProgress = (storm: { dateStart: string; dateEnd: string | null }) => {
-  const startDate = parseLocalDate(storm.dateStart);
-  const today = new Date();
-
-  // An ongoing storm has no end date: count real days since it formed.
-  if (!storm.dateEnd) {
-    const day = Math.round((today.getTime() - startDate.getTime()) / MS_PER_DAY) + 1;
-    return { day, total: null };
-  }
-
-  const endDate = parseLocalDate(storm.dateEnd);
-  const todayMonth = today.getMonth() + 1;
-  const anniversaryYear =
-    todayMonth >= startDate.getMonth() + 1 ? startDate.getFullYear() : endDate.getFullYear();
-  const anniversaryDate = new Date(anniversaryYear, todayMonth - 1, today.getDate());
-
-  return {
-    day: Math.round((anniversaryDate.getTime() - startDate.getTime()) / MS_PER_DAY) + 1,
-    total: Math.round((endDate.getTime() - startDate.getTime()) / MS_PER_DAY) + 1,
-  };
-};
-
 interface DayEntry {
   key: string;
   name: string;
-  intensity: IntensityType;
+  intensity: Storm["intensity"];
   position: number;
+  // The calendar year this date fell in — not the season year, for a storm that crossed New Year.
   year: number;
-  formed: boolean;
+  started: boolean;
   ended: boolean;
-  active: boolean;
-  reason: Reason | null;
+  ongoing: boolean;
+  reason: Reason;
   progress: { day: number; total: number | null };
 }
 
+const keyOf = (storm: Storm) => `${storm.name}-${storm.year}`;
+
 const matchesFilter = (entry: DayEntry, filter: Filter): boolean => {
-  if (filter === "formed") return entry.formed;
   if (filter === "ended") return entry.ended;
-  if (filter === "active") return entry.active;
-  return true;
+  if (filter === "ongoing") return entry.ongoing;
+  return entry.started;
 };
 
 const EMPTY_TEXT: Record<Filter, string> = {
-  all: "No storm has ever touched this date.",
-  formed: "No storm has formed on this date.",
+  started: "No storm has formed on this date.",
   ended: "No storm has dissipated on this date.",
-  active: "No storm was under way on this date.",
+  ongoing: "No storm was under way on this date.",
 };
 
 const CountTile = ({
@@ -127,16 +108,19 @@ const CountTile = ({
   onPress: () => void;
 }) => (
   <Pressable
-    onPress={onPress}
+    onPress={() => {
+      if (isSelected) return;
+      Haptics.selectionAsync();
+      onPress();
+    }}
     style={({ pressed }) => [
       styles.tile,
       isSelected && styles.tileSelected,
-      pressed && styles.pressed,
+      pressed && !isSelected && styles.pressed,
     ]}
-    accessibilityRole="button"
+    accessibilityRole="tab"
     accessibilityState={{ selected: isSelected }}
     accessibilityLabel={`${count} ${label.toLowerCase()}`}
-    accessibilityHint={isSelected ? "Show every storm again" : `Show only these`}
   >
     <Text style={[styles.tileLabel, isSelected && styles.tileTextSelected]}>{label}</Text>
     <Text style={[styles.tileCount, isSelected && styles.tileTextSelected]}>{count}</Text>
@@ -144,7 +128,7 @@ const CountTile = ({
 );
 
 const StormChip = ({ entry, onPress }: { entry: DayEntry; onPress: () => void }) => {
-  const marker = entry.reason ? getMarker(entry.reason, entry.position) : ACTIVE_MARKER;
+  const marker = entry.reason ? getMarker(entry.reason, entry.position) : ONGOING_MARKER;
   const { day, total } = entry.progress;
   const trailing = `${day}${total === null ? "" : `/${total}`}`;
   const spoken = `${marker.label}, day ${day}${total === null ? "" : ` of ${total}`}`;
@@ -183,79 +167,67 @@ const YearRow = ({ group, onOpen }: { group: YearGroup; onOpen: (name: string) =
 );
 
 interface OnThisDayCardProps {
-  events: QueryState<OnThisDayStorm[]>;
-  active: QueryState<ActiveOnThisDayStorm[]>;
+  query: QueryState<Storm[]>;
 }
 
-const OnThisDayCard = ({ events, active }: OnThisDayCardProps) => {
+const OnThisDayCard = ({ query }: OnThisDayCardProps) => {
   const router = useRouter();
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [filter, setFilter] = useState<Filter>("all");
+  const [filter, setFilter] = useState<Filter>("started");
+  const { data, isLoading, isError, refetch } = query;
 
-  const today = new Date();
-  const dateLabel = formatMonthDay(toMonthDay(today.getMonth() + 1, today.getDate()));
+  const monthDay = useMemo(() => monthDayOf(todayISO()), []);
+  const dateLabel = formatMonthDay(monthDay);
 
-  const eventList = useMemo(() => events.data ?? [], [events.data]);
-  const activeList = useMemo(() => active.data ?? [], [active.data]);
+  const { entries, counts } = useMemo(() => {
+    const storms = data ?? [];
+    const starts = getStormStarts(storms, monthDay);
+    const ends = getStormEnds(storms, monthDay);
+    const ongoing = getActiveStorms(storms, monthDay);
 
-  const entries = useMemo(() => {
-    // The active range is inclusive at both ends, so a storm that started or ended today comes
-    // back from both endpoints. One record per storm keeps the counts and the lists agreeing.
+    const startedKeys = new Set(starts.map(keyOf));
+    const endedKeys = new Set(ends.map(keyOf));
+    const ongoingKeys = new Set(ongoing.map(keyOf));
+
+    // The three lists overlap: `ongoing` includes the day a storm formed or dissipated.
     const byStorm = new Map<string, DayEntry>();
 
-    for (const storm of eventList) {
-      const key = `${storm.name}-${storm.year}`;
+    for (const storm of [...starts, ...ends, ...ongoing]) {
+      const key = keyOf(storm);
+      if (byStorm.has(key)) continue;
+
+      const started = startedKeys.has(key);
+      const ended = endedKeys.has(key);
+
       byStorm.set(key, {
         key,
         name: storm.name,
         intensity: storm.intensity,
         position: storm.position,
-        year: getEventYear(storm),
-        formed: storm.reason !== "ended",
-        ended: storm.reason !== "started",
-        active: false,
-        reason: storm.reason,
-        progress: getDayProgress(storm),
+        year: eventYearOf(storm, monthDay),
+        started,
+        ended,
+        ongoing: ongoingKeys.has(key),
+        reason: started && ended ? "both" : started ? "started" : ended ? "ended" : null,
+        progress: getDayOfStorm(storm, monthDay),
       });
     }
 
-    for (const storm of activeList) {
-      const key = `${storm.name}-${storm.year}`;
-      const existing = byStorm.get(key);
-      if (existing) {
-        existing.active = true;
-        continue;
-      }
-      byStorm.set(key, {
-        key,
-        name: storm.name,
-        intensity: storm.intensity,
-        position: storm.position,
-        year: storm.year,
-        formed: false,
-        ended: false,
-        active: true,
-        reason: null,
-        progress: getDayProgress(storm),
-      });
-    }
-
-    return [...byStorm.values()].sort(
+    const sorted = [...byStorm.values()].sort(
       (a, b) =>
         b.year - a.year ||
         Number(a.reason === null) - Number(b.reason === null) ||
         a.name.localeCompare(b.name),
     );
-  }, [eventList, activeList]);
 
-  const counts = useMemo(
-    () => ({
-      formed: entries.filter((entry) => entry.formed).length,
-      ended: entries.filter((entry) => entry.ended).length,
-      active: entries.filter((entry) => entry.active).length,
-    }),
-    [entries],
-  );
+    return {
+      entries: sorted,
+      counts: {
+        started: startedKeys.size,
+        ended: endedKeys.size,
+        ongoing: ongoingKeys.size,
+      },
+    };
+  }, [data, monthDay]);
 
   const groups = useMemo(() => {
     const byYear = new Map<number, DayEntry[]>();
@@ -272,102 +244,73 @@ const OnThisDayCard = ({ events, active }: OnThisDayCardProps) => {
 
   const shownCount = groups.reduce((total, group) => total + group.entries.length, 0);
 
-  const openStorm = (name: string) => {
-    setIsExpanded(false);
-    router.push(`/info/${name.toLowerCase()}`);
-  };
+  const openStorm = (name: string) => router.push(`/info/${name.toLowerCase()}`);
+  const openCalendar = () =>
+    router.push({ pathname: "/calendar", params: { scope: SCOPE_FOR[filter] } });
 
-  const toggle = (next: Filter) => setFilter((current) => (current === next ? "all" : next));
-
-  const tiles = (
-    <View style={styles.tiles}>
-      <CountTile
-        label="Formed"
-        count={counts.formed}
-        isSelected={filter === "formed"}
-        onPress={() => toggle("formed")}
-      />
-      <CountTile
-        label="Ended"
-        count={counts.ended}
-        isSelected={filter === "ended"}
-        onPress={() => toggle("ended")}
-      />
-      <CountTile
-        label="Active"
-        count={counts.active}
-        isSelected={filter === "active"}
-        onPress={() => toggle("active")}
-      />
-    </View>
-  );
-
-  const renderGroups = (list: YearGroup[]) => (
-    <View style={styles.groups}>
-      {list.map((group) => (
-        <YearRow key={group.year} group={group} onOpen={openStorm} />
-      ))}
-    </View>
-  );
-
-  const refetchBoth = () => {
-    events.refetch();
-    active.refetch();
-  };
+  // No dead end: the link stays even when the preview already shows every year.
+  const hasHiddenYears = groups.length > PREVIEW_YEARS;
+  const linkLabel = hasHiddenYears
+    ? `See all ${shownCount} across ${groups.length} years`
+    : "Open the calendar";
+  const linkHint = hasHiddenYears
+    ? `${linkLabel} in the calendar`
+    : `Open ${dateLabel} in the calendar`;
 
   return (
-    <>
-      <HomeCard
-        icon="calendar-outline"
-        title="On this day"
-        action={<Text style={styles.date}>{dateLabel}</Text>}
-        isLoading={events.isLoading || active.isLoading}
-        isError={events.isError || active.isError}
-        onRetry={refetchBoth}
-        skeletonLines={4}
-      >
-        <View style={styles.body}>
-          {tiles}
-
-          {groups.length === 0 ? (
-            <Text style={styles.empty}>{EMPTY_TEXT[filter]}</Text>
-          ) : (
-            <>
-              {renderGroups(groups.slice(0, PREVIEW_YEARS))}
-
-              {groups.length > PREVIEW_YEARS && (
-                <Pressable
-                  onPress={() => setIsExpanded(true)}
-                  hitSlop={8}
-                  style={({ pressed }) => [styles.more, pressed && styles.pressed]}
-                  accessibilityRole="button"
-                >
-                  <Text style={styles.moreLabel}>
-                    See all {shownCount} across {groups.length} years
-                  </Text>
-                  <Ionicons name="chevron-forward" size={14} color={COLOR.accent} />
-                </Pressable>
-              )}
-            </>
-          )}
+    <HomeCard
+      icon="calendar-outline"
+      title="On this day"
+      action={<Text style={styles.date}>{dateLabel}</Text>}
+      isLoading={isLoading}
+      isError={isError}
+      onRetry={refetch}
+      skeletonLines={4}
+    >
+      <View style={styles.body}>
+        <View style={styles.tiles} accessibilityRole="tablist">
+          <CountTile
+            label="Started"
+            count={counts.started}
+            isSelected={filter === "started"}
+            onPress={() => setFilter("started")}
+          />
+          <CountTile
+            label="Ended"
+            count={counts.ended}
+            isSelected={filter === "ended"}
+            onPress={() => setFilter("ended")}
+          />
+          <CountTile
+            label="Ongoing"
+            count={counts.ongoing}
+            isSelected={filter === "ongoing"}
+            onPress={() => setFilter("ongoing")}
+          />
         </View>
-      </HomeCard>
 
-      <DefModal
-        open={isExpanded}
-        onClose={() => setIsExpanded(false)}
-        title={`On this day · ${dateLabel}`}
-      >
-        <View style={styles.body}>
-          {tiles}
-          {groups.length === 0 ? (
-            <Text style={styles.empty}>{EMPTY_TEXT[filter]}</Text>
-          ) : (
-            renderGroups(groups)
-          )}
-        </View>
-      </DefModal>
-    </>
+        {groups.length === 0 ? (
+          <Text style={styles.empty}>{EMPTY_TEXT[filter]}</Text>
+        ) : (
+          <View style={styles.groups}>
+            {groups.slice(0, PREVIEW_YEARS).map((group) => (
+              <YearRow key={group.year} group={group} onOpen={openStorm} />
+            ))}
+          </View>
+        )}
+
+        <Pressable
+          onPress={openCalendar}
+          hitSlop={8}
+          style={({ pressed }) => [styles.more, pressed && styles.pressed]}
+          accessibilityRole="link"
+          accessibilityLabel={linkHint}
+        >
+          <Text style={styles.moreLabel}>{linkLabel}</Text>
+          <Ionicons name="chevron-forward" size={14} color={COLOR.accent} />
+        </Pressable>
+      </View>
+    </HomeCard>
   );
 };
 

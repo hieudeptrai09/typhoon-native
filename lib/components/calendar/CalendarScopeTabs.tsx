@@ -4,12 +4,14 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import * as Haptics from "expo-haptics";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
-export type CalendarScope = "started" | "ended" | "active";
+export type CalendarScope = "started" | "ended" | "active" | "todate";
 
 export const CALENDAR_SCOPES: { key: CalendarScope; label: string; icon: IconName }[] = [
   { key: "started", label: "Started", icon: "play-outline" },
   { key: "ended", label: "Ended", icon: "stop-outline" },
-  { key: "active", label: "Active", icon: "water-outline" },
+  // Not "Active": the Today tab spends that word on storms happening right now.
+  { key: "active", label: "Ongoing", icon: "water-outline" },
+  { key: "todate", label: "Pace", icon: "stats-chart-outline" },
 ];
 
 interface CalendarScopeTabsProps {
@@ -39,7 +41,7 @@ const CalendarScopeTabs = ({ scope, onChange }: CalendarScopeTabsProps) => (
           accessibilityState={{ selected: isActive }}
           accessibilityLabel={label}
         >
-          <Ionicons name={icon} size={15} color={isActive ? COLOR.accent : COLOR.textMuted} />
+          <Ionicons name={icon} size={14} color={isActive ? COLOR.accent : COLOR.textMuted} />
           <Text style={[styles.label, isActive && styles.labelActive]} numberOfLines={1}>
             {label}
           </Text>
@@ -60,11 +62,13 @@ const styles = StyleSheet.create({
     backgroundColor: COLOR.surfaceSunken,
   },
   tab: {
+    // minWidth releases the content-based floor, or the widest label pushes the rest off the row.
     flex: 1,
+    minWidth: 0,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 6,
+    gap: 4,
     height: 38,
     borderRadius: 9,
   },
@@ -76,7 +80,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontFamily: "OpenSans_600SemiBold",
-    fontSize: 14,
+    fontSize: 13,
     color: COLOR.textMuted,
   },
   labelActive: {
