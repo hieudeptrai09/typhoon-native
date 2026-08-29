@@ -49,6 +49,12 @@ export const formatMonthDay = (monthDay: string): string => {
   return parts ? `${parts.day} ${MONTH_NAMES[parts.month]}` : monthDay;
 };
 
+// "31 Aug 2024" — for the half-width fact columns, where the full month name wraps.
+export const formatShortDate = (date: string): string => {
+  const { year, month, day } = parseStormDate(date);
+  return MONTH_NAMES[month] ? `${day} ${MONTH_NAMES[month].slice(0, 3)} ${year}` : date;
+};
+
 // "31 August 2024"
 export const formatLongDate = (date: string): string => {
   const { year, month, day } = parseStormDate(date);
@@ -57,20 +63,6 @@ export const formatLongDate = (date: string): string => {
 
 export const isLeapYear = (year: number): boolean =>
   year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
-
-const ordinalSuffix = (day: number): string => {
-  // 11th, 12th and 13th break the pattern the last digit would otherwise set.
-  if (day % 100 >= 11 && day % 100 <= 13) return "th";
-  return { 1: "st", 2: "nd", 3: "rd" }[day % 10] ?? "th";
-};
-
-export const formatOrdinalDate = (monthDay: string, year: number): string => {
-  const parts = parseMonthDay(monthDay);
-  if (!parts) return monthDay;
-
-  const day = parts.month === 2 && parts.day === 29 && !isLeapYear(year) ? 28 : parts.day;
-  return `${MONTH_NAMES[parts.month]} ${day}${ordinalSuffix(day)}, ${year}`;
-};
 
 // Steps through the 366-day calendar, so 29/2 stays reachable whatever the year.
 export const shiftMonthDay = (monthDay: string, delta: 1 | -1): string => {
@@ -88,6 +80,23 @@ export const shiftMonthDay = (monthDay: string, delta: 1 | -1): string => {
   }
   return toMonthDay(month, day);
 };
+
+// The calendar as 366 slots, so 29 February keeps a place of its own instead of collapsing onto
+// the 28th. Everything that scans a whole year — the density strip, the day ranking — indexes here.
+export const DAYS_OF_YEAR: string[] = DAYS_IN_MONTH_MAX.flatMap((days, index) =>
+  Array.from({ length: days }, (_, day) => toMonthDay(index + 1, day + 1)),
+);
+
+export const MONTH_START_INDEX: number[] = DAYS_IN_MONTH_MAX.map((_, index) =>
+  DAYS_IN_MONTH_MAX.slice(0, index).reduce((sum, days) => sum + days, 0),
+);
+
+const DAY_INDEX = new Map(DAYS_OF_YEAR.map((monthDay, index) => [monthDay, index]));
+
+export const dayIndexOf = (monthDay: string): number => DAY_INDEX.get(monthDay) ?? 0;
+
+export const monthDayAt = (index: number): string =>
+  DAYS_OF_YEAR[Math.min(DAYS_OF_YEAR.length - 1, Math.max(0, index))];
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 

@@ -2,91 +2,76 @@ import ComparisonBarList, {
   type ComparisonBarRow,
 } from "@/lib/components/common/ComparisonBarList";
 import DefModal from "@/lib/components/common/DefModal";
-import StatTile from "@/lib/components/common/StatTile";
+import type { PaceRow } from "@/lib/components/season/SeasonPaceRow";
 import { MONTH_NAMES, TEXT_COLOR_WHITE_BACKGROUND } from "@/lib/constants";
 import { COLOR } from "@/lib/constants/theme";
 import type { BaseModalProps } from "@/lib/types";
 import { getAvgDateColor } from "@/lib/utils/colors";
-import { formatOrdinalDate, formatStormDateRange } from "@/lib/utils/date";
-import { getSeasonMonths, hasStartedBy, type SeasonToDateRow } from "@/lib/utils/storm/calendar";
-import { StyleSheet, Text, View } from "react-native";
+import { formatMonthDay, formatStormDateRange } from "@/lib/utils/date";
+import { getSeasonMonths, hasStartedBy } from "@/lib/utils/storm/calendar";
+import { StyleSheet, Text } from "react-native";
+
+const monthRows = (row: PaceRow, monthDay: string): ComparisonBarRow[] =>
+  getSeasonMonths(row.storms, monthDay).map((month) => ({
+    key: String(month.month),
+    label: MONTH_NAMES[month.month],
+    color: getAvgDateColor(month.month),
+    count: month.storms.length,
+    filled: month.toDate,
+    valueLabel:
+      month.toDate === month.storms.length
+        ? String(month.storms.length)
+        : `${month.toDate} of ${month.storms.length}`,
+    details: (
+      <>
+        {month.storms.map((storm, index) => (
+          <Text key={`${storm.name}-${index}`} style={styles.storm}>
+            <Text
+              style={[styles.stormName, { color: TEXT_COLOR_WHITE_BACKGROUND[storm.intensity] }]}
+            >
+              {storm.name}
+            </Text>
+            <Text style={styles.stormMeta}>
+              {" · "}
+              {formatStormDateRange(storm.dateStart, storm.dateEnd)}
+              {hasStartedBy(storm, monthDay) ? "" : " · after this day"}
+            </Text>
+          </Text>
+        ))}
+      </>
+    ),
+  }));
 
 interface SeasonMonthsModalProps extends BaseModalProps {
-  row: SeasonToDateRow | null;
+  row: PaceRow | null;
   monthDay: string;
 }
 
-const SeasonMonthsModal = ({ isOpen, onClose, row, monthDay }: SeasonMonthsModalProps) => {
-  const months = row ? getSeasonMonths(row.storms, monthDay) : [];
-  const share = row && row.total > 0 ? row.toDate / row.total : 0;
+const SeasonMonthsModal = ({ isOpen, onClose, row, monthDay }: SeasonMonthsModalProps) => (
+  <DefModal
+    open={isOpen && row !== null}
+    onClose={onClose}
+    title={
+      <Text style={styles.title} numberOfLines={1}>
+        {formatMonthDay(monthDay)} {row?.year}
+      </Text>
+    }
+  >
+    <Text style={styles.summary}>
+      {row === null
+        ? ""
+        : row.share === null
+          ? `${row.toDate} so far — the season is still running.`
+          : `${row.toDate} of ${row.total}, so ${Math.round(row.share * 100)}% of the season was already past by this day.`}
+    </Text>
 
-  const rows: ComparisonBarRow[] = months.map((month) => {
-    const total = month.storms.length;
-
-    return {
-      key: String(month.month),
-      label: MONTH_NAMES[month.month],
-      color: getAvgDateColor(month.month),
-      count: total,
-      filled: month.toDate,
-      valueLabel: month.toDate === total ? String(total) : `${month.toDate} of ${total}`,
-      details: (
-        <>
-          {month.storms.map((storm, index) => (
-            <Text key={`${storm.name}-${index}`} style={styles.storm}>
-              <Text
-                style={[styles.stormName, { color: TEXT_COLOR_WHITE_BACKGROUND[storm.intensity] }]}
-              >
-                {storm.name}
-              </Text>
-              <Text style={styles.stormMeta}>
-                {" · "}
-                {formatStormDateRange(storm.dateStart, storm.dateEnd)}
-                {!hasStartedBy(storm, monthDay) ? " · after this day" : ""}
-              </Text>
-            </Text>
-          ))}
-        </>
-      ),
-    };
-  });
-
-  return (
-    <DefModal
-      open={isOpen && row !== null}
-      onClose={onClose}
-      title={
-        <Text style={styles.title} numberOfLines={1}>
-          {row ? formatOrdinalDate(monthDay, row.year) : ""}
-        </Text>
-      }
-    >
-      <View style={styles.tiles}>
-        <View style={styles.tile}>
-          <StatTile label="By this day" hint="Storms the season had produced by the chosen date">
-            {row?.toDate}
-          </StatTile>
-        </View>
-        <View style={styles.tile}>
-          <StatTile label="Season total" hint="Storms in the whole season">
-            {row?.total}
-          </StatTile>
-        </View>
-        <View style={styles.tile}>
-          <StatTile label="Season done" hint="Share of the season already past by this day">
-            {Math.round(share * 100)}%
-          </StatTile>
-        </View>
-      </View>
-
-      <ComparisonBarList
-        heading="Storms by month, solid up to this day:"
-        emptyText="This season produced no storms."
-        rows={rows}
-      />
-    </DefModal>
-  );
-};
+    <ComparisonBarList
+      heading="Storms by month, solid up to this day:"
+      emptyText="This season produced no storms."
+      rows={row === null ? [] : monthRows(row, monthDay)}
+    />
+  </DefModal>
+);
 
 const styles = StyleSheet.create({
   title: {
@@ -94,12 +79,11 @@ const styles = StyleSheet.create({
     fontSize: 20,
     color: COLOR.accent,
   },
-  tiles: {
-    flexDirection: "row",
-    gap: 8,
-  },
-  tile: {
-    flex: 1,
+  summary: {
+    fontFamily: "OpenSans_400Regular",
+    fontSize: 14,
+    lineHeight: 21,
+    color: COLOR.textBody,
   },
   storm: {
     fontFamily: "OpenSans_400Regular",

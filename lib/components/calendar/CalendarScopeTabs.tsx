@@ -9,8 +9,7 @@ export type CalendarScope = "started" | "ended" | "active" | "todate";
 export const CALENDAR_SCOPES: { key: CalendarScope; label: string; icon: IconName }[] = [
   { key: "started", label: "Started", icon: "play-outline" },
   { key: "ended", label: "Ended", icon: "stop-outline" },
-  // Not "Active": the Today tab spends that word on storms happening right now.
-  { key: "active", label: "Ongoing", icon: "water-outline" },
+  { key: "active", label: "Ongoing", icon: "pulse-outline" },
   { key: "todate", label: "Pace", icon: "stats-chart-outline" },
 ];
 

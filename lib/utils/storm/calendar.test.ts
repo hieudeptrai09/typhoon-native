@@ -1,8 +1,13 @@
+import { dayIndexOf } from "@/lib/utils/date";
 import {
   averageToDate,
   averageTotal,
+  buildDaySpine,
+  countDaySeasons,
   eventYearOf,
   getActiveStorms,
+  getDayDensity,
+  getDayEntries,
   getDayOfStorm,
   getSeasonMonths,
   getSeasonToDate,
@@ -11,6 +16,8 @@ import {
   groupBySeason,
   hasStartedBy,
   isSeasonOngoing,
+  matchesDayKind,
+  rankDay,
   seasonMonthOf,
 } from "@/lib/utils/storm/calendar";
 import { storm } from "@/lib/utils/storm/testFixtures";
@@ -286,5 +293,184 @@ describe("averageToDate", () => {
 
   it("returns 0 rather than NaN when there is nothing to average", () => {
     expect(averageToDate([])).toBe(0);
+  });
+});
+
+describe("getDayEntries", () => {
+  it("returns one entry per storm however many lists it lands in", () => {
+    const { entries } = getDayEntries(storms, "09-09");
+    expect(entries.map((entry) => entry.storm.name)).toEqual(["Krathon", "Yagi", "Solo"]);
+  });
+
+  it("reads a storm that formed and dissipated on the day as both", () => {
+    const { entries } = getDayEntries([storms[3]], "09-09");
+    expect(entries[0].reason).toBe("both");
+    expect(entries[0].started).toBe(true);
+    expect(entries[0].ended).toBe(true);
+  });
+
+  it("leaves a storm that was only passing through without a reason", () => {
+    const { entries } = getDayEntries([storms[0]], "09-05");
+    expect(entries[0].reason).toBeNull();
+    expect(entries[0].active).toBe(true);
+    expect(matchesDayKind(entries[0], "active")).toBe(true);
+    expect(matchesDayKind(entries[0], "started")).toBe(false);
+  });
+
+  it("counts each kind on its own", () => {
+    expect(getDayEntries(storms, "09-09").counts).toEqual({ started: 2, ended: 2, active: 3 });
+  });
+
+  it("dates an entry by the calendar year, not the season", () => {
+    const carried = storm({ year: 2023, dateStart: "2023-12-30", dateEnd: "2024-01-02" });
+    expect(getDayEntries([carried], "01-02").entries[0].year).toBe(2024);
+  });
+});
+
+describe("buildDaySpine", () => {
+  it("runs newest first, and lists only the years that had a storm", () => {
+    expect(buildDaySpine(storms, "09-09", "started")).toEqual([
+      expect.objectContaining({ year: 2024 }),
+      expect.objectContaining({ year: 2020 }),
+    ]);
+  });
+
+  it("groups every storm of a year into that year's row", () => {
+    const rows = buildDaySpine(storms, "09-09", "active");
+    expect(rows[0].year).toBe(2024);
+    expect(rows[0].entries).toHaveLength(2);
+  });
+
+  it("keeps a year out of one scope while keeping it in another", () => {
+    expect(buildDaySpine(storms, "09-09", "ended").map((row) => row.year)).toEqual([2024, 2020]);
+    expect(buildDaySpine(storms, "10-04", "started")).toEqual([]);
+    expect(buildDaySpine(storms, "10-04", "ended").map((row) => row.year)).toEqual([2024]);
+  });
+
+  it("dates a row by the calendar year a storm crossing New Year met the day in", () => {
+    const carried = storm({ year: 2023, dateStart: "2023-12-30", dateEnd: "2024-01-02" });
+    expect(buildDaySpine([carried], "01-02", "ended").map((row) => row.year)).toEqual([2024]);
+  });
+
+  it("has nothing to draw without storms", () => {
+    expect(buildDaySpine([], "09-09", "started")).toEqual([]);
+  });
+});
+
+describe("countDaySeasons", () => {
+  it("counts every season in the record", () => {
+    expect(countDaySeasons(storms, "09-09")).toBe(3); // 2019, 2020 and 2024
+  });
+
+  it("counts only the leap years on 29 February", () => {
+    expect(countDaySeasons(storms, "02-29")).toBe(2); // 2020 and 2024, not 2019
+  });
+
+  it("counts nothing when there are no storms", () => {
+    expect(countDaySeasons([], "09-09")).toBe(0);
+  });
+});
+
+describe("getDayDensity", () => {
+  it("counts a formation on the day it started", () => {
+    const density = getDayDensity(storms, "started");
+    expect(density[dayIndexOf("09-09")]).toBe(2);
+    expect(density[dayIndexOf("08-31")]).toBe(1);
+    expect(density[dayIndexOf("09-01")]).toBe(0);
+  });
+
+  it("counts a dissipation on the day it ended", () => {
+    const density = getDayDensity(storms, "ended");
+    expect(density[dayIndexOf("09-09")]).toBe(2);
+    expect(density[dayIndexOf("10-04")]).toBe(1);
+  });
+
+  it("counts every day a storm was out over the basin", () => {
+    const density = getDayDensity(
+      [storm({ year: 2024, dateStart: "2024-08-31", dateEnd: "2024-09-02" })],
+      "active",
+    );
+    expect(density[dayIndexOf("08-31")]).toBe(1);
+    expect(density[dayIndexOf("09-01")]).toBe(1);
+    expect(density[dayIndexOf("09-02")]).toBe(1);
+    expect(density[dayIndexOf("09-03")]).toBe(0);
+  });
+
+  it("never credits 29 February to a storm that ran through a common year", () => {
+    const density = getDayDensity(
+      [storm({ year: 2019, dateStart: "2019-02-27", dateEnd: "2019-03-02" })],
+      "active",
+    );
+    expect(density[dayIndexOf("02-28")]).toBe(1);
+    expect(density[dayIndexOf("02-29")]).toBe(0);
+    expect(density[dayIndexOf("03-01")]).toBe(1);
+  });
+
+  it("carries a storm across the new year", () => {
+    const density = getDayDensity(
+      [storm({ year: 2023, dateStart: "2023-12-30", dateEnd: "2024-01-02" })],
+      "active",
+    );
+    expect(density[dayIndexOf("12-31")]).toBe(1);
+    expect(density[dayIndexOf("01-01")]).toBe(1);
+    expect(density[dayIndexOf("01-03")]).toBe(0);
+  });
+});
+
+describe("rankDay", () => {
+  const density = getDayDensity(storms, "started");
+
+  it("ranks the busiest day first and names it", () => {
+    expect(rankDay(density, "09-09")).toMatchObject({
+      count: 2,
+      rank: 1,
+      busiest: { monthDay: "09-09", count: 2 },
+    });
+  });
+
+  it("puts every emptier day behind the ones above it", () => {
+    expect(rankDay(density, "08-31").rank).toBe(2);
+  });
+
+  it("shares a rank between days that tie", () => {
+    expect(rankDay(density, "08-31").rank).toBe(rankDay(density, "11-05").rank);
+  });
+
+  it("drops a day nothing ever happened on to the bottom", () => {
+    expect(rankDay(density, "01-01")).toMatchObject({ count: 0, rank: 4 });
+  });
+});
+
+describe("the 2000 floor on the day views", () => {
+  // Positions 141 and up are storms that wandered in from another basin; the only ones on record
+  // before the naming list began have no season of their own to belong to.
+  const wanderer = storm({
+    name: "Georgette",
+    year: 1986,
+    position: 141,
+    dateStart: "1986-09-09",
+    dateEnd: "1986-09-12",
+  });
+  const record = [...storms, wanderer];
+
+  it("keeps a pre-2000 storm out of the entries", () => {
+    const { entries, counts } = getDayEntries(record, "09-09");
+    expect(entries.map((entry) => entry.storm.name)).not.toContain("Georgette");
+    expect(counts).toEqual(getDayEntries(storms, "09-09").counts);
+  });
+
+  it("keeps it out of the spine", () => {
+    expect(buildDaySpine(record, "09-09", "started").map((row) => row.year)).toEqual([2024, 2020]);
+  });
+
+  it("keeps it out of the density, so the chart and the list agree", () => {
+    expect(getDayDensity(record, "started")[dayIndexOf("09-09")]).toBe(2);
+    expect(getDayDensity(record, "active")[dayIndexOf("09-10")]).toBe(
+      getDayDensity(storms, "active")[dayIndexOf("09-10")],
+    );
+  });
+
+  it("keeps it out of the season count the summary divides by", () => {
+    expect(countDaySeasons(record, "09-09")).toBe(3); // 2019, 2020 and 2024, not 1986
   });
 });

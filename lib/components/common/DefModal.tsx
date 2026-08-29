@@ -13,6 +13,7 @@ import {
   Text,
   View,
 } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const SHEET_OFFSCREEN = 600;
@@ -93,7 +94,7 @@ const DefModal = ({ open = true, onClose, title, footer, children }: DefModalPro
 
   return (
     <Modal visible transparent animationType="none" statusBarTranslucent onRequestClose={onClose}>
-      <View style={styles.root}>
+      <GestureHandlerRootView style={styles.root}>
         <Animated.View style={[styles.backdrop, { opacity: backdrop }]}>
           <Pressable
             style={StyleSheet.absoluteFill}
@@ -150,7 +151,7 @@ const DefModal = ({ open = true, onClose, title, footer, children }: DefModalPro
             {footer ? <View style={styles.footer}>{footer}</View> : null}
           </Animated.View>
         </KeyboardAvoidingView>
-      </View>
+      </GestureHandlerRootView>
     </Modal>
   );
 };

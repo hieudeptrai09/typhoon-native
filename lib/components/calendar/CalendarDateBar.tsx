@@ -1,3 +1,4 @@
+import DayOverviewModal from "@/lib/components/calendar/DayOverviewModal";
 import MonthDayPicker from "@/lib/components/calendar/MonthDayPicker";
 import { COLOR, SPACE } from "@/lib/constants/theme";
 import { formatMonthDay, shiftMonthDay } from "@/lib/utils/date";
@@ -11,10 +12,20 @@ interface CalendarDateBarProps {
   today: string; // "MM-DD"
   onChange: (monthDay: string) => void;
   summary: string;
+  density: number[];
+  densityVerb: string;
 }
 
-const CalendarDateBar = ({ monthDay, today, onChange, summary }: CalendarDateBarProps) => {
+const CalendarDateBar = ({
+  monthDay,
+  today,
+  onChange,
+  summary,
+  density,
+  densityVerb,
+}: CalendarDateBarProps) => {
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [overviewOpen, setOverviewOpen] = useState(false);
   const isToday = monthDay === today;
 
   const step = (delta: 1 | -1) => {
@@ -79,11 +90,32 @@ const CalendarDateBar = ({ monthDay, today, onChange, summary }: CalendarDateBar
 
       <Text style={styles.summary}>{summary}</Text>
 
+      <Pressable
+        onPress={() => setOverviewOpen(true)}
+        hitSlop={8}
+        style={({ pressed }) => [styles.overview, pressed && styles.pressed]}
+        accessibilityRole="button"
+        accessibilityLabel="Show the overview chart for the whole year"
+      >
+        <Ionicons name="stats-chart-outline" size={14} color={COLOR.accent} />
+        <Text style={styles.overviewLabel}>Show overview chart</Text>
+        <Ionicons name="chevron-forward" size={14} color={COLOR.accent} />
+      </Pressable>
+
       <MonthDayPicker
         open={pickerOpen}
         onClose={() => setPickerOpen(false)}
         value={monthDay}
         onChange={onChange}
+      />
+
+      <DayOverviewModal
+        isOpen={overviewOpen}
+        onClose={() => setOverviewOpen(false)}
+        density={density}
+        monthDay={monthDay}
+        today={today}
+        verb={densityVerb}
       />
     </View>
   );
@@ -153,6 +185,17 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 17,
     color: COLOR.textMuted,
+  },
+  overview: {
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "flex-start",
+    gap: 5,
+  },
+  overviewLabel: {
+    fontFamily: "OpenSans_600SemiBold",
+    fontSize: 13,
+    color: COLOR.accent,
   },
 });
 

@@ -1,23 +1,19 @@
 import CalendarDateBar from "@/lib/components/calendar/CalendarDateBar";
 import CalendarScopeTabs, { type CalendarScope } from "@/lib/components/calendar/CalendarScopeTabs";
-import CalendarSeasonList from "@/lib/components/calendar/CalendarSeasonList";
-import CalendarSeasonModal, {
-  type CalendarSeasonKind,
-} from "@/lib/components/calendar/CalendarSeasonModal";
+import CalendarSpine from "@/lib/components/calendar/CalendarSpine";
 import StaleBanner from "@/lib/components/common/StaleBanner";
 import SwipePager from "@/lib/components/common/SwipePager";
 import SeasonPacePane from "@/lib/components/season/SeasonPacePane";
 import type { Storm } from "@/lib/types";
 import { formatMonthDay } from "@/lib/utils/date";
 import {
-  getActiveStorms,
-  getStormEnds,
-  getStormStarts,
-  groupBySeason,
+  buildDaySpine,
+  countDaySeasons,
+  getDayDensity,
   NAMING_LIST_FIRST_YEAR,
-  type SeasonGroup,
+  type DayEventKind,
 } from "@/lib/utils/storm/calendar";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { StyleSheet, View } from "react-native";
 
 interface CalendarPageContentProps {
@@ -32,27 +28,34 @@ interface CalendarPageContentProps {
 
 const SCOPE_ORDER: CalendarScope[] = ["started", "ended", "active", "todate"];
 
-const PICK = {
-  started: getStormStarts,
-  ended: getStormEnds,
-  active: getActiveStorms,
+const DENSITY_VERB: Record<DayEventKind, string> = {
+  started: "formed",
+  ended: "dissipated",
+  active: "out over the basin",
 };
 
-const isSeasonKind = (scope: CalendarScope): scope is CalendarSeasonKind => scope !== "todate";
+const isDayKind = (scope: CalendarScope): scope is DayEventKind => scope !== "todate";
 
 const plural = (count: number, noun: string) => `${count} ${noun}${count === 1 ? "" : "s"}`;
 
-const summaryFor = (scope: CalendarScope, storms: number, seasons: number, date: string) => {
-  const across = `across ${plural(seasons, "season")}.`;
+const summaryFor = (
+  scope: CalendarScope,
+  storms: number,
+  years: number,
+  span: number,
+  date: string,
+) => {
+  const inYears = `in ${years} of ${plural(span, "season")}.`;
+
   switch (scope) {
     case "ended":
-      return `${plural(storms, "storm")} dissipated on ${date}, ${across}`;
+      return `${plural(storms, "storm")} dissipated on ${date}, ${inYears}`;
     case "active":
-      return `${plural(storms, "storm")} were out over the basin on ${date}, ${across}`;
+      return `${plural(storms, "storm")} were out over the basin on ${date}, ${inYears}`;
     case "todate":
       return `Storms JMA numbered, by season since ${NAMING_LIST_FIRST_YEAR}, counted up to ${date}. Open a season for its months.`;
     default:
-      return `${plural(storms, "storm")} formed on ${date}, ${across}`;
+      return `${plural(storms, "storm")} formed on ${date}, ${inYears}`;
   }
 };
 
@@ -76,15 +79,23 @@ const CalendarPageContent = ({
   onMonthDayChange,
   staleError = false,
 }: CalendarPageContentProps) => {
-  const [openSeason, setOpenSeason] = useState<SeasonGroup | null>(null);
+  // The pace pane counts storms as they form, so the strip under the date keeps meaning there.
+  const densityKind: DayEventKind = isDayKind(scope) ? scope : "started";
 
-  const seasons = useMemo(
-    () => (isSeasonKind(scope) ? groupBySeason(PICK[scope](stormsData, monthDay)) : []),
+  const density = useMemo(() => getDayDensity(stormsData, densityKind), [stormsData, densityKind]);
+
+  const rows = useMemo(
+    () => (isDayKind(scope) ? buildDaySpine(stormsData, monthDay, scope) : []),
     [stormsData, monthDay, scope],
   );
 
+  const stormCount = useMemo(
+    () => rows.reduce((total, row) => total + row.entries.length, 0),
+    [rows],
+  );
+  const spanYears = useMemo(() => countDaySeasons(stormsData, monthDay), [stormsData, monthDay]);
+
   const dateLabel = formatMonthDay(monthDay);
-  const stormCount = seasons.reduce((sum, season) => sum + season.storms.length, 0);
 
   const stepScope = (step: 1 | -1) => {
     const index = SCOPE_ORDER.indexOf(scope);
@@ -99,31 +110,27 @@ const CalendarPageContent = ({
         monthDay={monthDay}
         today={today}
         onChange={onMonthDayChange}
-        summary={summaryFor(scope, stormCount, seasons.length, dateLabel)}
+        summary={summaryFor(scope, stormCount, rows.length, spanYears, dateLabel)}
+        density={density}
+        densityVerb={DENSITY_VERB[densityKind]}
       />
 
       {staleError && <StaleBanner />}
 
       <SwipePager onPrev={() => stepScope(-1)} onNext={() => stepScope(1)}>
-        {scope === "todate" ? (
-          <SeasonPacePane stormsData={stormsData} monthDay={monthDay} />
-        ) : (
-          <CalendarSeasonList
-            seasons={seasons}
-            filter={scope}
+        {isDayKind(scope) ? (
+          <CalendarSpine
+            // A new day is a new history: start it at the top, with nothing left expanded.
+            key={`${scope}-${monthDay}`}
+            rows={rows}
+            kind={scope}
+            monthDay={monthDay}
             emptyDescription={emptyFor(scope, dateLabel)}
-            onSeasonPress={setOpenSeason}
           />
+        ) : (
+          <SeasonPacePane stormsData={stormsData} monthDay={monthDay} />
         )}
       </SwipePager>
-
-      <CalendarSeasonModal
-        isOpen={openSeason !== null}
-        onClose={() => setOpenSeason(null)}
-        season={openSeason}
-        kind={isSeasonKind(scope) ? scope : "started"}
-        monthDay={monthDay}
-      />
     </View>
   );
 };

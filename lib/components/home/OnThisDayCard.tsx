@@ -1,17 +1,14 @@
 import type { QueryState } from "@/lib/api/client";
-import type { CalendarScope } from "@/lib/components/calendar/CalendarScopeTabs";
+import DayStormChip from "@/lib/components/calendar/DayStormChip";
 import HomeCard from "@/lib/components/home/HomeCard";
-import { INTENSITY_LABEL, TEXT_COLOR_WHITE_BACKGROUND } from "@/lib/constants";
 import { COLOR, RADIUS, SPACE } from "@/lib/constants/theme";
-import type { IconName, Storm } from "@/lib/types";
+import type { Storm } from "@/lib/types";
 import { formatMonthDay, monthDayOf, todayISO } from "@/lib/utils/date";
-import { isExternalPosition } from "@/lib/utils/position";
 import {
-  eventYearOf,
-  getActiveStorms,
-  getDayOfStorm,
-  getStormEnds,
-  getStormStarts,
+  getDayEntries,
+  matchesDayKind,
+  type DayEventKind,
+  type DayStormEntry,
 } from "@/lib/utils/storm/calendar";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import * as Haptics from "expo-haptics";
@@ -21,79 +18,17 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 
 const PREVIEW_YEARS = 3;
 
-type Reason = "started" | "ended" | "both" | null;
-type Filter = "started" | "ended" | "ongoing";
+// Not "Active": the Today tab spends that word on storms happening right now.
+const TILES: { kind: DayEventKind; label: string }[] = [
+  { kind: "started", label: "Started" },
+  { kind: "ended", label: "Ended" },
+  { kind: "active", label: "Ongoing" },
+];
 
-const SCOPE_FOR: Record<Filter, CalendarScope> = {
-  started: "started",
-  ended: "ended",
-  ongoing: "active",
-};
-
-interface Marker {
-  icon: IconName;
-  color: string;
-  label: string;
-}
-
-const ONGOING_MARKER: Marker = {
-  icon: "ellipse",
-  color: COLOR.accentBorder,
-  label: "was already under way",
-};
-
-const getMarker = (reason: Exclude<Reason, null>, position: number): Marker => {
-  if (isExternalPosition(position)) {
-    if (reason === "both") {
-      return {
-        icon: "refresh",
-        color: COLOR.warning,
-        label: "entered and exited the West Pacific basin",
-      };
-    }
-    return reason === "started"
-      ? { icon: "log-in-outline", color: COLOR.success, label: "entered the West Pacific basin" }
-      : {
-          icon: "log-out-outline",
-          color: COLOR.danger,
-          label: "exited the West Pacific basin or dissipated",
-        };
-  }
-
-  if (reason === "both") {
-    return { icon: "refresh", color: COLOR.warning, label: "formed and dissipated" };
-  }
-  return reason === "started"
-    ? { icon: "play", color: COLOR.success, label: "formed" }
-    : { icon: "stop", color: COLOR.danger, label: "dissipated" };
-};
-
-interface DayEntry {
-  key: string;
-  name: string;
-  intensity: Storm["intensity"];
-  position: number;
-  // The calendar year this date fell in — not the season year, for a storm that crossed New Year.
-  year: number;
-  started: boolean;
-  ended: boolean;
-  ongoing: boolean;
-  reason: Reason;
-  progress: { day: number; total: number | null };
-}
-
-const keyOf = (storm: Storm) => `${storm.name}-${storm.year}`;
-
-const matchesFilter = (entry: DayEntry, filter: Filter): boolean => {
-  if (filter === "ended") return entry.ended;
-  if (filter === "ongoing") return entry.ongoing;
-  return entry.started;
-};
-
-const EMPTY_TEXT: Record<Filter, string> = {
+const EMPTY_TEXT: Record<DayEventKind, string> = {
   started: "No storm has formed on this date.",
   ended: "No storm has dissipated on this date.",
-  ongoing: "No storm was under way on this date.",
+  active: "No storm was under way on this date.",
 };
 
 const CountTile = ({
@@ -127,40 +62,30 @@ const CountTile = ({
   </Pressable>
 );
 
-const StormChip = ({ entry, onPress }: { entry: DayEntry; onPress: () => void }) => {
-  const marker = entry.reason ? getMarker(entry.reason, entry.position) : ONGOING_MARKER;
-  const { day, total } = entry.progress;
-  const trailing = `${day}${total === null ? "" : `/${total}`}`;
-  const spoken = `${marker.label}, day ${day}${total === null ? "" : ` of ${total}`}`;
-
-  return (
-    <Pressable
-      onPress={onPress}
-      hitSlop={8}
-      style={({ pressed }) => [styles.chip, pressed && styles.pressed]}
-      accessibilityRole="link"
-      accessibilityLabel={`${INTENSITY_LABEL[entry.intensity]} ${entry.name}, ${spoken}`}
-    >
-      <Ionicons name={marker.icon} size={10} color={marker.color} />
-      <Text style={[styles.chipName, { color: TEXT_COLOR_WHITE_BACKGROUND[entry.intensity] }]}>
-        {entry.name}
-      </Text>
-      <Text style={styles.chipMeta}>{trailing}</Text>
-    </Pressable>
-  );
-};
-
 interface YearGroup {
   year: number;
-  entries: DayEntry[];
+  entries: DayStormEntry[];
 }
 
-const YearRow = ({ group, onOpen }: { group: YearGroup; onOpen: (name: string) => void }) => (
+const YearRow = ({
+  group,
+  kind,
+  onOpen,
+}: {
+  group: YearGroup;
+  kind: DayEventKind;
+  onOpen: (name: string) => void;
+}) => (
   <View style={styles.yearRow}>
     <Text style={styles.year}>{group.year}</Text>
     <View style={styles.chips}>
       {group.entries.map((entry) => (
-        <StormChip key={entry.key} entry={entry} onPress={() => onOpen(entry.name)} />
+        <DayStormChip
+          key={entry.key}
+          entry={entry}
+          kind={kind}
+          onPress={() => onOpen(entry.storm.name)}
+        />
       ))}
     </View>
   </View>
@@ -172,81 +97,31 @@ interface OnThisDayCardProps {
 
 const OnThisDayCard = ({ query }: OnThisDayCardProps) => {
   const router = useRouter();
-  const [filter, setFilter] = useState<Filter>("started");
+  const [kind, setKind] = useState<DayEventKind>("started");
   const { data, isLoading, isError, refetch } = query;
 
   const monthDay = useMemo(() => monthDayOf(todayISO()), []);
   const dateLabel = formatMonthDay(monthDay);
 
-  const { entries, counts } = useMemo(() => {
-    const storms = data ?? [];
-    const starts = getStormStarts(storms, monthDay);
-    const ends = getStormEnds(storms, monthDay);
-    const ongoing = getActiveStorms(storms, monthDay);
-
-    const startedKeys = new Set(starts.map(keyOf));
-    const endedKeys = new Set(ends.map(keyOf));
-    const ongoingKeys = new Set(ongoing.map(keyOf));
-
-    // The three lists overlap: `ongoing` includes the day a storm formed or dissipated.
-    const byStorm = new Map<string, DayEntry>();
-
-    for (const storm of [...starts, ...ends, ...ongoing]) {
-      const key = keyOf(storm);
-      if (byStorm.has(key)) continue;
-
-      const started = startedKeys.has(key);
-      const ended = endedKeys.has(key);
-
-      byStorm.set(key, {
-        key,
-        name: storm.name,
-        intensity: storm.intensity,
-        position: storm.position,
-        year: eventYearOf(storm, monthDay),
-        started,
-        ended,
-        ongoing: ongoingKeys.has(key),
-        reason: started && ended ? "both" : started ? "started" : ended ? "ended" : null,
-        progress: getDayOfStorm(storm, monthDay),
-      });
-    }
-
-    const sorted = [...byStorm.values()].sort(
-      (a, b) =>
-        b.year - a.year ||
-        Number(a.reason === null) - Number(b.reason === null) ||
-        a.name.localeCompare(b.name),
-    );
-
-    return {
-      entries: sorted,
-      counts: {
-        started: startedKeys.size,
-        ended: endedKeys.size,
-        ongoing: ongoingKeys.size,
-      },
-    };
-  }, [data, monthDay]);
+  const { entries, counts } = useMemo(() => getDayEntries(data ?? [], monthDay), [data, monthDay]);
 
   const groups = useMemo(() => {
-    const byYear = new Map<number, DayEntry[]>();
+    const byYear = new Map<number, DayStormEntry[]>();
 
     for (const entry of entries) {
-      if (!matchesFilter(entry, filter)) continue;
+      if (!matchesDayKind(entry, kind)) continue;
       const group = byYear.get(entry.year);
       if (group) group.push(entry);
       else byYear.set(entry.year, [entry]);
     }
 
     return [...byYear.entries()].map(([year, list]) => ({ year, entries: list }));
-  }, [entries, filter]);
+  }, [entries, kind]);
 
   const shownCount = groups.reduce((total, group) => total + group.entries.length, 0);
 
   const openStorm = (name: string) => router.push(`/info/${name.toLowerCase()}`);
-  const openCalendar = () =>
-    router.push({ pathname: "/calendar", params: { scope: SCOPE_FOR[filter] } });
+  const openCalendar = () => router.push({ pathname: "/calendar", params: { scope: kind } });
 
   // No dead end: the link stays even when the preview already shows every year.
   const hasHiddenYears = groups.length > PREVIEW_YEARS;
@@ -269,32 +144,23 @@ const OnThisDayCard = ({ query }: OnThisDayCardProps) => {
     >
       <View style={styles.body}>
         <View style={styles.tiles} accessibilityRole="tablist">
-          <CountTile
-            label="Started"
-            count={counts.started}
-            isSelected={filter === "started"}
-            onPress={() => setFilter("started")}
-          />
-          <CountTile
-            label="Ended"
-            count={counts.ended}
-            isSelected={filter === "ended"}
-            onPress={() => setFilter("ended")}
-          />
-          <CountTile
-            label="Ongoing"
-            count={counts.ongoing}
-            isSelected={filter === "ongoing"}
-            onPress={() => setFilter("ongoing")}
-          />
+          {TILES.map((tile) => (
+            <CountTile
+              key={tile.kind}
+              label={tile.label}
+              count={counts[tile.kind]}
+              isSelected={kind === tile.kind}
+              onPress={() => setKind(tile.kind)}
+            />
+          ))}
         </View>
 
         {groups.length === 0 ? (
-          <Text style={styles.empty}>{EMPTY_TEXT[filter]}</Text>
+          <Text style={styles.empty}>{EMPTY_TEXT[kind]}</Text>
         ) : (
           <View style={styles.groups}>
             {groups.slice(0, PREVIEW_YEARS).map((group) => (
-              <YearRow key={group.year} group={group} onOpen={openStorm} />
+              <YearRow key={group.year} group={group} kind={kind} onOpen={openStorm} />
             ))}
           </View>
         )}
@@ -365,7 +231,7 @@ const styles = StyleSheet.create({
   year: {
     // Fixed width so the chips line up into a column instead of stepping with the year.
     width: 34,
-    paddingTop: 5,
+    paddingTop: 6,
     fontFamily: "OpenSans_600SemiBold",
     fontSize: 12,
     color: COLOR.textMuted,
@@ -376,25 +242,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     gap: SPACE.xs,
-  },
-  chip: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 5,
-    paddingHorizontal: 8,
-    paddingVertical: 5,
-    borderRadius: RADIUS.pill,
-    backgroundColor: COLOR.surfaceSubtle,
-  },
-  chipName: {
-    fontFamily: "OpenSans_700Bold",
-    fontSize: 13,
-  },
-  chipMeta: {
-    fontFamily: "OpenSans_600SemiBold",
-    fontSize: 11,
-    color: COLOR.textFaint,
-    fontVariant: ["tabular-nums"],
   },
   empty: {
     fontFamily: "OpenSans_400Regular",
