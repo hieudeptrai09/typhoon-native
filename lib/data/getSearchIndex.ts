@@ -1,5 +1,4 @@
-import rpc, { type ApiListResponse } from "@/be";
-import { cached } from "@/be/cache";
+import { rpc } from "@/lib/data/rpc";
 import type { RetirementReason, SearchResult } from "@/lib/types";
 
 interface SearchRow {
@@ -15,11 +14,11 @@ interface SearchRow {
   stormCount: string;
 }
 
-// An empty pattern is the "everything" case of the ILIKE `search_names` already runs.
-async function querySearchIndex(): Promise<ApiListResponse<SearchResult[]>> {
-  const rows = await rpc.call<SearchRow[]>("search_names", { p_query: "" });
+export async function getSearchIndex(): Promise<SearchResult[]> {
+  // An empty pattern is the "everything" case of the ILIKE `search_names` already runs.
+  const rows = await rpc<SearchRow[]>("search_names", { p_query: "" });
 
-  const data: SearchResult[] = rows.map((row) => ({
+  return rows.map((row) => ({
     id: row.id !== null ? Number(row.id) : null,
     name: row.name,
     position: row.position,
@@ -30,8 +29,4 @@ async function querySearchIndex(): Promise<ApiListResponse<SearchResult[]>> {
     replacementName: row.replacementName,
     stormCount: Number(row.stormCount),
   }));
-
-  return { data, count: data.length };
 }
-
-export const searchIndex = cached(querySearchIndex, ["searchIndex"], { revalidate: 3600 });

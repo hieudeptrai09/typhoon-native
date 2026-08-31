@@ -1,46 +1,44 @@
-# typhoon-native
+# Cá Tra's Typhoons App
 
-Ứng dụng React Native (Expo SDK 54) tra cứu dữ liệu bão Tây Bắc Thái Bình Dương.
-Chỉ nhắm tới Android và iOS — không có giao diện web.
+Android and iOS app for looking up Western Pacific typhoons, covering 2000 to
+now. Personal, non-commercial.
 
-## Cấu trúc
+## Screens
 
-| Thư mục               | Vai trò                                                                          |
-| --------------------- | -------------------------------------------------------------------------------- |
-| `app/(tabs)`, `app/*` | Màn hình, định tuyến bằng expo-router                                            |
-| `app/api/v1`          | API routes, chạy trên server chứ không nằm trong bundle của app                  |
-| `be/`                 | Truy vấn Supabase qua HTTP RPC, chỉ được import từ `+api.ts`                     |
-| `lib/`                | Component, hook, type, util dùng chung cho phía app                              |
-| `db/`                 | Schema và các hàm SQL (`db/functions.sql` là nguồn thật của các RPC trong `be/`) |
+- **Today** — the active storm or the next name up, season pace against the
+  long-run average, storms that fell on today's date, a fact from the data.
+- **Storms** — every named storm as a list, a record book, or stats (average
+  intensity, name recurrence, season dates) grouped by year, country, position
+  or category.
+- **Calendar** — pick a date, see what formed, dissipated or was still running
+  on it in every year on record.
+- **Names** — the 140-name rotation from 14 countries plus the retired list,
+  each with meaning, language, IPA, retirement reason and proposed
+  replacements.
+- **Search** — by storm or name, with suggestions when the spelling is off.
 
-## Chạy dev
+## Data
+
+JMA (RSMC Tokyo) for official names and best-track, JTWC for warnings and
+intensity, Wikipedia for naming history. Full credits in the app's About
+screen.
+
+## Development
+
+React Native on Expo SDK 54. No backend of its own: screens call Supabase
+PostgREST directly through `lib/data/`, and every query goes through a
+`SECURITY DEFINER` function in `db/functions.sql`.
 
 ```bash
 npm install
-cp .env.example .env.local   # điền SUPABASE_URL và SUPABASE_PUBLISHABLE_KEY
+cp .env.example .env.local   # Supabase URL + publishable key
 npm start
 ```
 
-Trong dev, Metro chính là server phục vụ `app/api/v1`, nên các màn hình gọi đường dẫn tương đối
-là chạy được ngay.
-
-## Build và deploy
-
-API routes phải được deploy trước, vì bản build không có dev server:
+Metro inlines `EXPO_PUBLIC_*` at build time and EAS builds do not read
+`.env.local`, so register both there before `npm run build:preview`:
 
 ```bash
-npm run deploy:preview   # export web (chỉ để lấy server bundle) rồi đẩy lên EAS Hosting
-npm run build:preview    # APK, đọc EXPO_PUBLIC_API_ORIGIN từ eas.json
-```
-
-`web.output: "server"` trong `app.json` và hai package `react-dom` / `react-native-web` chỉ tồn tại
-để `expo export --platform web` dựng được server bundle cho API routes — app không render trên web.
-
-## Lệnh khác
-
-```bash
-npm test         # jest (chỉ test cho lib/utils)
-npm run lint
-npm run format
-npm run facts    # sinh dữ liệu fun fact, kết nối Postgres trực tiếp qua be/direct.ts
+eas env:create --environment preview --visibility plaintext --name EXPO_PUBLIC_SUPABASE_URL --value https://[ref].supabase.co
+eas env:create --environment preview --visibility plaintext --name EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY --value sb_publishable_...
 ```

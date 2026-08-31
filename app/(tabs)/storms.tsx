@@ -1,10 +1,11 @@
-import { useApiQuery } from "@/lib/api/client";
+import { useQuery } from "@/lib/api/client";
 import { SortMemoryProvider } from "@/lib/components/common/DataList/sortMemory";
 import FrownError from "@/lib/components/common/FrownError";
 import { RefreshProvider } from "@/lib/components/common/RefreshContext";
 import ScreenLoading from "@/lib/components/common/ScreenLoading";
 import DashboardPageContent from "@/lib/components/dashboard/DashboardPageContent";
-import type { DashboardParams, Storm } from "@/lib/types";
+import { getStorms } from "@/lib/data/getStorms";
+import type { DashboardParams } from "@/lib/types";
 import { usePersistedState } from "@/lib/utils/persistedState";
 import { normalizeParams, paramsForView } from "@/lib/utils/storm/routing";
 import { useCallback, useEffect, useMemo, useRef } from "react";
@@ -22,8 +23,7 @@ export default function StormsScreen() {
     byView.current[params.view] = params;
   }, [params]);
 
-  const { data, isLoading, isError, isRefetching, refetch } =
-    useApiQuery<Storm[]>("/api/v1/storms");
+  const { data, isLoading, isError, isRefetching, refetch } = useQuery("storms", getStorms);
 
   const refreshValue = useMemo(
     () => ({ refreshing: isRefetching, onRefresh: refetch }),

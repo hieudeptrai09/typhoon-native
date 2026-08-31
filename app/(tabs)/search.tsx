@@ -1,11 +1,11 @@
-import { useApiQuery } from "@/lib/api/client";
+import { useQuery } from "@/lib/api/client";
 import FrownError from "@/lib/components/common/FrownError";
 import { RefreshProvider } from "@/lib/components/common/RefreshContext";
 import ScreenLoading from "@/lib/components/common/ScreenLoading";
 import SearchField from "@/lib/components/search/SearchField";
 import SearchPageContent from "@/lib/components/search/SearchPageContent";
 import { useRecentNames } from "@/lib/components/search/useRecentNames";
-import type { SearchResult } from "@/lib/types";
+import { getSearchIndex } from "@/lib/data/getSearchIndex";
 import { topSuggestions } from "@/lib/utils/fuzzy";
 import { rankMatches } from "@/lib/utils/search";
 import { useRouter } from "expo-router";
@@ -17,7 +17,7 @@ export default function SearchScreen() {
   const [query, setQuery] = useState("");
   const trimmed = query.trim();
 
-  const index = useApiQuery<SearchResult[]>("/api/v1/search-index");
+  const index = useQuery("search-index", getSearchIndex);
   const catalogue = index.data;
   const recent = useRecentNames();
 

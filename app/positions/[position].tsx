@@ -1,4 +1,4 @@
-import { useApiQuery } from "@/lib/api/client";
+import { useQuery } from "@/lib/api/client";
 import EmptyResults from "@/lib/components/common/EmptyResults";
 import FrownError from "@/lib/components/common/FrownError";
 import HeaderPager from "@/lib/components/common/HeaderPager";
@@ -6,7 +6,7 @@ import { RefreshProvider } from "@/lib/components/common/RefreshContext";
 import ScreenLoading from "@/lib/components/common/ScreenLoading";
 import SwipePager from "@/lib/components/common/SwipePager";
 import PositionPageContent from "@/lib/components/position/PositionPageContent";
-import type { PositionDetail } from "@/lib/types";
+import { getPositionDetails } from "@/lib/data/getPositionDetails";
 import {
   getPositionFromSlug,
   getPositionSlug,
@@ -25,8 +25,12 @@ export default function PositionScreen() {
   const position = getPositionFromSlug(slug);
   const isKnown = isKnownPosition(position);
 
-  const { data, isLoading, isError, isNotFound, isRefetching, refetch } =
-    useApiQuery<PositionDetail>(isKnown ? `/api/v1/position-detail?position=${position}` : null);
+  const { data, isLoading, isError, isNotFound, isRefetching, refetch } = useQuery(
+    isKnown ? `position-detail:${position}` : null,
+    // The null key keeps this from running on an unknown slug, which is what makes the cast safe;
+    // TypeScript cannot carry `isKnown` into the closure.
+    () => getPositionDetails(position as number),
+  );
 
   const refreshValue = useMemo(
     () => ({ refreshing: isRefetching, onRefresh: refetch }),

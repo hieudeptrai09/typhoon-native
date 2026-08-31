@@ -1,7 +1,7 @@
 import postgres from "postgres";
 
-// A direct TCP connection, for Node scripts only — the deployed server runtime has no raw sockets,
-// which is why be/index.ts speaks HTTP instead. Never import this from a route handler.
+// A direct TCP connection, for Node scripts only. The app has no raw sockets, which is why it
+// reaches the same data over HTTP through lib/data/rpc.ts. Never import this from lib/ or app/.
 
 export type QueryParam = postgres.Serializable;
 export type QueryRow = postgres.Row;

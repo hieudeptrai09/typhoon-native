@@ -1,4 +1,4 @@
-import { toImageCredit, type ImageCreditRow } from "@/be/module/imageCredit";
+import { toImageCredit, type ImageCreditRow } from "@/lib/data/rows/imageCredit";
 import type { RetiredName, RetirementReason } from "@/lib/types";
 
 // Mirrors the v_typhoon_names view in db/functions.sql: field types are what the columns emit, not

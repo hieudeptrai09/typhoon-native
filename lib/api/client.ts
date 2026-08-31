@@ -1,30 +1,6 @@
-import Constants from "expo-constants";
+import { runCached } from "@/lib/api/cache";
+import { NotFoundError } from "@/lib/data/rpc";
 import { useCallback, useEffect, useRef, useState } from "react";
-
-// Mirrors the envelope that be/http.ts json() writes. Redeclared here instead of imported from
-// @/be so the screen bundle never pulls in the server module and its env lookups.
-interface ApiEnvelope<T> {
-  data: T;
-}
-
-// Expo's fetch polyfill resolves a relative path against the dev server in development and against
-// the expo-router `origin` in a release build. Without that origin every request fails with an
-// opaque URL error that reads as "the server is down", so name the real cause once at startup.
-const originError = ((): string | null => {
-  if (__DEV__) return null;
-
-  const router = Constants.expoConfig?.extra?.router as
-    { origin?: unknown; generatedOrigin?: unknown } | undefined;
-
-  if (typeof router?.origin === "string" || typeof router?.generatedOrigin === "string") {
-    return null;
-  }
-  return "This build has no API origin. Set EXPO_PUBLIC_API_ORIGIN (see eas.json) and rebuild.";
-})();
-
-if (originError) {
-  console.error(`[api] ${originError}`);
-}
 
 export interface QueryState<T> {
   data: T | null;
@@ -35,6 +11,14 @@ export interface QueryState<T> {
   refetch: () => void;
 }
 
+export interface QueryOptions {
+  // Seconds. The reference data moves when the naming committee meets, so an hour is generous
+  // without ever showing a season that has already changed.
+  ttl?: number;
+}
+
+const DEFAULT_TTL = 3600;
+
 const idle = {
   data: null,
   isLoading: false,
@@ -43,34 +27,43 @@ const idle = {
   isRefetching: false,
 } as const;
 
-// A null `path` means "nothing to ask for yet". `path` stays relative so the same call works
-// against the dev server and the deployed one.
-export function useApiQuery<T>(path: string | null): QueryState<T> {
+// A null `key` means "nothing to ask for yet". Two calls sharing a key share the cached answer, so
+// the key must identify the request, arguments included.
+export function useQuery<T>(
+  key: string | null,
+  fetcher: () => Promise<T>,
+  options: QueryOptions = {},
+): QueryState<T> {
   const [nonce, setNonce] = useState(0);
   const [state, setState] = useState<Omit<QueryState<T>, "refetch">>(idle);
   // A refetch asks the same question again, so the answer already on screen stays valid until the
-  // new one lands. A new path asks a different question and must clear it.
-  const lastPath = useRef<string | null>(null);
+  // new one lands. A new key asks a different question and must clear it.
+  const lastKey = useRef<string | null>(null);
+  // The fetcher closes over render values and so is a new function every render; reading it through
+  // a ref keeps it out of the effect's dependencies, which would otherwise restart every request.
+  const run = useRef(fetcher);
+  run.current = fetcher;
+  const forceNext = useRef(false);
+
+  const ttl = options.ttl ?? DEFAULT_TTL;
 
   useEffect(() => {
-    if (path === null) {
-      lastPath.current = null;
+    if (key === null) {
+      lastKey.current = null;
       setState(idle);
       return;
     }
 
-    if (originError) {
-      setState({ ...idle, isError: true });
-      return;
-    }
+    let cancelled = false;
+    const sameKey = lastKey.current === key;
+    lastKey.current = key;
 
-    const controller = new AbortController();
-    const samePath = lastPath.current === path;
-    lastPath.current = path;
+    const force = forceNext.current;
+    forceNext.current = false;
 
     setState((current) => {
       // Retrying from an error page has nothing to keep, so it is a fresh load, not a quiet refresh.
-      const refreshing = samePath && current.data !== null;
+      const refreshing = sameKey && current.data !== null;
       return {
         data: refreshing ? current.data : null,
         isLoading: !refreshing,
@@ -82,23 +75,20 @@ export function useApiQuery<T>(path: string | null): QueryState<T> {
 
     const settled = { isLoading: false, isRefetching: false };
 
-    fetch(path, { signal: controller.signal })
-      .then(async (response) => {
-        // The routes answer 404 for "no such name/position", which is a real state the screen
-        // renders rather than an error to retry.
-        if (response.status === 404) {
+    runCached(key, { ttl, force }, run.current)
+      .then((data) => {
+        if (cancelled) return;
+        setState({ data, isError: false, isNotFound: false, ...settled });
+      })
+      .catch((error: unknown) => {
+        if (cancelled) return;
+
+        if (error instanceof NotFoundError) {
           setState({ data: null, isError: false, isNotFound: true, ...settled });
           return;
         }
-        if (!response.ok) {
-          throw new Error(`${response.status} ${response.statusText}`);
-        }
 
-        const body = (await response.json()) as ApiEnvelope<T>;
-        setState({ data: body.data, isError: false, isNotFound: false, ...settled });
-      })
-      .catch(() => {
-        if (controller.signal.aborted) return;
+        console.error(`[data] ${key}`, error);
         // A failed refresh keeps what it was refreshing; callers holding data decide how to say so.
         setState((current) => ({
           data: current.data,
@@ -108,10 +98,17 @@ export function useApiQuery<T>(path: string | null): QueryState<T> {
         }));
       });
 
-    return () => controller.abort();
-  }, [path, nonce]);
+    // The request is left to finish and fill the cache — another screen may be awaiting the same
+    // promise, so it must not be aborted here.
+    return () => {
+      cancelled = true;
+    };
+  }, [key, nonce, ttl]);
 
-  const refetch = useCallback(() => setNonce((value) => value + 1), []);
+  const refetch = useCallback(() => {
+    forceNext.current = true;
+    setNonce((value) => value + 1);
+  }, []);
 
   return { ...state, refetch };
 }

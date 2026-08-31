@@ -1,17 +1,21 @@
-import { useApiQuery } from "@/lib/api/client";
+import { useQuery } from "@/lib/api/client";
 import FunFactCard from "@/lib/components/home/FunFactCard";
 import NowCard from "@/lib/components/home/NowCard";
 import OnThisDayCard from "@/lib/components/home/OnThisDayCard";
 import SeasonCard from "@/lib/components/home/SeasonCard";
 import { COLOR, SPACE } from "@/lib/constants/theme";
-import type { Storm, StormHighlight } from "@/lib/types";
+import { getRandomFact } from "@/lib/data/getRandomFact";
+import { getStormHighlight } from "@/lib/data/getStormHighlight";
+import { getStorms } from "@/lib/data/getStorms";
 import { useEffect, useRef, useState } from "react";
 import { RefreshControl, ScrollView, StyleSheet } from "react-native";
 
 export default function TodayScreen() {
-  const highlight = useApiQuery<StormHighlight[]>("/api/v1/storm-highlight");
-  const storms = useApiQuery<Storm[]>("/api/v1/storms");
-  const fact = useApiQuery<string | null>("/api/v1/random-fact");
+  // Neither is cached: the highlight is the app's "what is happening right now" surface, and a
+  // fact repeated on every tap of the shuffle button is not a shuffle.
+  const highlight = useQuery("storm-highlight", getStormHighlight, { ttl: 0 });
+  const storms = useQuery("storms", getStorms);
+  const fact = useQuery("random-fact", getRandomFact, { ttl: 0 });
 
   const isAnyLoading = highlight.isLoading || storms.isLoading || fact.isLoading;
 
