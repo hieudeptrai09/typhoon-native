@@ -1,20 +1,4 @@
-import { DELIMITER, normalizeParam, toArr, toStr } from "@/lib/utils/params";
-
-describe("normalizeParam", () => {
-  it("takes the first entry of a repeated query param", () => {
-    expect(normalizeParam(["a", "b"])).toBe("a");
-  });
-
-  it("collapses every empty form to an empty string", () => {
-    expect(normalizeParam([])).toBe("");
-    expect(normalizeParam(undefined)).toBe("");
-    expect(normalizeParam("")).toBe("");
-  });
-
-  it("passes a single value through", () => {
-    expect(normalizeParam("retired")).toBe("retired");
-  });
-});
+import { DELIMITER, toArr, toStr } from "@/lib/utils/params";
 
 describe("delimited filter values", () => {
   it("splits and joins on the delimiter", () => {

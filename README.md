@@ -1,50 +1,44 @@
-# Welcome to your Expo app 👋
+# Cá Tra's Typhoons App
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Android and iOS app for looking up Western Pacific typhoons, covering 2000 to
+now. Personal, non-commercial.
 
-## Get started
+## Screens
 
-1. Install dependencies
+- **Today** — the active storm or the next name up, season pace against the
+  long-run average, storms that fell on today's date, a fact from the data.
+- **Storms** — every named storm as a list, a record book, or stats (average
+  intensity, name recurrence, season dates) grouped by year, country, position
+  or category.
+- **Calendar** — pick a date, see what formed, dissipated or was still running
+  on it in every year on record.
+- **Names** — the 140-name rotation from 14 countries plus the retired list,
+  each with meaning, language, IPA, retirement reason and proposed
+  replacements.
+- **Search** — by storm or name, with suggestions when the spelling is off.
 
-   ```bash
-   npm install
-   ```
+## Data
 
-2. Start the app
+JMA (RSMC Tokyo) for official names and best-track, JTWC for warnings and
+intensity, Wikipedia for naming history. Full credits in the app's About
+screen.
 
-   ```bash
-   npx expo start
-   ```
+## Development
 
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+React Native on Expo SDK 54. No backend of its own: screens call Supabase
+PostgREST directly through `lib/data/`, and every query goes through a
+`SECURITY DEFINER` function in `db/functions.sql`.
 
 ```bash
-npm run reset-project
+npm install
+cp .env.example .env.local   # Supabase URL + publishable key
+npm start
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Metro inlines `EXPO_PUBLIC_*` at build time and EAS builds do not read
+`.env.local`, so register both there before `npm run build:preview`:
 
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+```bash
+eas env:create --environment preview --visibility plaintext --name EXPO_PUBLIC_SUPABASE_URL --value https://[ref].supabase.co
+eas env:create --environment preview --visibility plaintext --name EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY --value sb_publishable_...
+```

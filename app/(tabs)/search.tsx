@@ -1,0 +1,68 @@
+import { useQuery } from "@/lib/api/client";
+import FrownError from "@/lib/components/common/FrownError";
+import { RefreshProvider } from "@/lib/components/common/RefreshContext";
+import ScreenLoading from "@/lib/components/common/ScreenLoading";
+import SearchField from "@/lib/components/search/SearchField";
+import SearchPageContent from "@/lib/components/search/SearchPageContent";
+import { useRecentNames } from "@/lib/components/search/useRecentNames";
+import { getSearchIndex } from "@/lib/data/getSearchIndex";
+import { topSuggestions } from "@/lib/utils/fuzzy";
+import { rankMatches } from "@/lib/utils/search";
+import { useRouter } from "expo-router";
+import { useMemo, useState } from "react";
+import { Keyboard, StyleSheet, View } from "react-native";
+
+export default function SearchScreen() {
+  const router = useRouter();
+  const [query, setQuery] = useState("");
+  const trimmed = query.trim();
+
+  const index = useQuery("search-index", getSearchIndex);
+  const catalogue = index.data;
+  const recent = useRecentNames();
+
+  const results = useMemo(
+    () => (catalogue ? rankMatches(catalogue, trimmed, (row) => row.name) : []),
+    [catalogue, trimmed],
+  );
+
+  const suggestions = useMemo(() => {
+    if (!catalogue || trimmed === "" || results.length > 0) return [];
+    return topSuggestions(
+      trimmed,
+      catalogue.map((row) => row.name),
+    );
+  }, [catalogue, trimmed, results.length]);
+
+  if (index.isLoading) return <ScreenLoading />;
+  if (!catalogue) return <FrownError onRetry={index.refetch} />;
+
+  const open = (name: string) => {
+    recent.remember(name);
+    Keyboard.dismiss();
+    router.push(`/info/${encodeURIComponent(name.toLowerCase())}`);
+  };
+
+  return (
+    <RefreshProvider value={{ refreshing: index.isRefetching, onRefresh: index.refetch }}>
+      <View style={styles.root}>
+        <SearchField value={query} onChangeText={setQuery} />
+
+        <SearchPageContent
+          query={trimmed}
+          results={results}
+          suggestions={suggestions}
+          recent={recent.names}
+          onOpen={open}
+          onClearRecent={recent.clear}
+        />
+      </View>
+    </RefreshProvider>
+  );
+}
+
+const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
+});

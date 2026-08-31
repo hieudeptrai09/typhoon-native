@@ -1,9 +1,13 @@
 import {
+  dayIndexOf,
+  DAYS_OF_YEAR,
   daysBetween,
   formatLongDate,
   formatMonthDay,
-  formatOrdinalDate,
+  formatShortDate,
   formatStormDateRange,
+  MONTH_START_INDEX,
+  monthDayAt,
   monthDayOf,
   parseDateParts,
   parseMonthDay,
@@ -86,7 +90,7 @@ describe("month-day dates", () => {
     expect(monthDayOf("2024-08-31")).toBe("08-31");
   });
 
-  it("range-checks a value that came in off a query string", () => {
+  it("range-checks a value that came in off stored state", () => {
     expect(parseMonthDay("08-26")).toEqual({ month: 8, day: 26 });
     expect(parseMonthDay(null)).toBeNull();
     expect(parseMonthDay("8-26")).toBeNull(); // unpadded
@@ -113,38 +117,6 @@ describe("formatLongDate", () => {
 
   it("hands back anything it cannot name a month for", () => {
     expect(formatLongDate("2024-13-01")).toBe("2024-13-01");
-  });
-});
-
-describe("formatOrdinalDate", () => {
-  it("pins a year-less date to one year", () => {
-    expect(formatOrdinalDate("08-26", 2021)).toBe("August 26th, 2021");
-  });
-
-  it("uses the suffix the last digit calls for", () => {
-    expect(formatOrdinalDate("09-01", 2024)).toBe("September 1st, 2024");
-    expect(formatOrdinalDate("09-02", 2024)).toBe("September 2nd, 2024");
-    expect(formatOrdinalDate("09-03", 2024)).toBe("September 3rd, 2024");
-    expect(formatOrdinalDate("09-04", 2024)).toBe("September 4th, 2024");
-    expect(formatOrdinalDate("10-21", 2024)).toBe("October 21st, 2024");
-    expect(formatOrdinalDate("10-31", 2024)).toBe("October 31st, 2024");
-  });
-
-  it("keeps the teens on th, which their last digit would not", () => {
-    expect(formatOrdinalDate("07-11", 2024)).toBe("July 11th, 2024");
-    expect(formatOrdinalDate("07-12", 2024)).toBe("July 12th, 2024");
-    expect(formatOrdinalDate("07-13", 2024)).toBe("July 13th, 2024");
-  });
-
-  it("clamps 29 February onto the 28th in a year with no leap day", () => {
-    expect(formatOrdinalDate("02-29", 2024)).toBe("February 29th, 2024");
-    expect(formatOrdinalDate("02-29", 2002)).toBe("February 28th, 2002");
-    expect(formatOrdinalDate("02-29", 1900)).toBe("February 28th, 1900"); // century, not a leap year
-    expect(formatOrdinalDate("02-29", 2000)).toBe("February 29th, 2000"); // but 400 years is
-  });
-
-  it("hands back a value it could not parse", () => {
-    expect(formatOrdinalDate("nonsense", 2024)).toBe("nonsense");
   });
 });
 
@@ -185,5 +157,60 @@ describe("todayISO", () => {
     jest.useFakeTimers().setSystemTime(new Date(2024, 0, 5));
     expect(todayISO()).toBe("2024-01-05");
     jest.useRealTimers();
+  });
+});
+
+describe("formatShortDate", () => {
+  it("abbreviates the month", () => {
+    expect(formatShortDate("2024-08-31")).toBe("31 Aug 2024");
+  });
+
+  it("hands back anything it cannot read", () => {
+    expect(formatShortDate("nonsense")).toBe("nonsense");
+  });
+});
+
+describe("DAYS_OF_YEAR", () => {
+  it("keeps a slot of its own for 29 February", () => {
+    expect(DAYS_OF_YEAR).toHaveLength(366);
+    expect(DAYS_OF_YEAR).toContain("02-29");
+  });
+
+  it("runs from the first day to the last", () => {
+    expect(DAYS_OF_YEAR[0]).toBe("01-01");
+    expect(DAYS_OF_YEAR[365]).toBe("12-31");
+  });
+
+  it("starts every month where MONTH_START_INDEX says it does", () => {
+    expect(MONTH_START_INDEX.map((start) => DAYS_OF_YEAR[start])).toEqual([
+      "01-01",
+      "02-01",
+      "03-01",
+      "04-01",
+      "05-01",
+      "06-01",
+      "07-01",
+      "08-01",
+      "09-01",
+      "10-01",
+      "11-01",
+      "12-01",
+    ]);
+  });
+});
+
+describe("dayIndexOf / monthDayAt", () => {
+  it("round-trips a date through its slot", () => {
+    expect(monthDayAt(dayIndexOf("08-31"))).toBe("08-31");
+    expect(monthDayAt(dayIndexOf("02-29"))).toBe("02-29");
+  });
+
+  it("falls back to the first slot for a date it does not know", () => {
+    expect(dayIndexOf("13-01")).toBe(0);
+  });
+
+  it("clamps an index that runs off either end of the year", () => {
+    expect(monthDayAt(-1)).toBe("01-01");
+    expect(monthDayAt(999)).toBe("12-31");
   });
 });
