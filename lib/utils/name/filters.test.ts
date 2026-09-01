@@ -58,6 +58,13 @@ describe("applyNameFilters", () => {
     ]);
   });
 
+  it("filters by initial letter", () => {
+    expect(applyNameFilters(names, withFilters({ letter: "H" })).map((n) => n.name)).toEqual([
+      "Haikui",
+      "Haiyan",
+    ]);
+  });
+
   it("treats a multi-select as any-of", () => {
     expect(
       applyNameFilters(names, withFilters({ country: "China|Macao" })).map((n) => n.id),
@@ -98,6 +105,12 @@ describe("applyRetiredFilters", () => {
     ).toEqual([3]);
   });
 
+  it("filters retired names by initial letter", () => {
+    expect(
+      applyRetiredFilters(names, withRetiredFilters({ letter: "H" })).map((n) => n.id),
+    ).toEqual([1, 3]);
+  });
+
   it("treats reasons as any-of", () => {
     const filters = withRetiredFilters({ reason: "destructive|language" });
     expect(applyRetiredFilters(names, filters)).toHaveLength(3);
@@ -117,6 +130,12 @@ describe("filter chips", () => {
 
   it("never chips status, which the history toggle owns rather than the filter sheet", () => {
     expect(nameFilterChips(withFilters({ status: "current" }))).toEqual([]);
+  });
+
+  it("spells out the initial a letter filter is on", () => {
+    expect(nameFilterChips(withFilters({ letter: "H" }))).toEqual([
+      { key: "letter", label: "Starts with H" },
+    ]);
   });
 
   it("labels a position by its grid cell", () => {

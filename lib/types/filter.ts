@@ -1,5 +1,7 @@
 export interface FilterParams {
   name: string;
+  // A single upper-case A-Z initial, not a prefix search.
+  letter: string;
   country: string;
   language: string;
   position: string;
@@ -9,6 +11,7 @@ export interface FilterParams {
 
 export interface RetiredFilterParams {
   name: string;
+  letter: string;
   year: string;
   country: string;
   reason: string;

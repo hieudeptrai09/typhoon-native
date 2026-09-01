@@ -1,9 +1,9 @@
 import CountryFlag, { COUNTRY_NAMES } from "@/lib/components/common/CountryFlag";
 import EdgeFade from "@/lib/components/common/EdgeFade";
+import PositionRow from "@/lib/components/position/PositionRow";
 import { GRID_COLS, GRID_ROWS } from "@/lib/constants/position";
 import { COLOR, SPACE } from "@/lib/constants/theme";
-import { getPositionTitle, positionColumnLetter } from "@/lib/utils/position";
-import Ionicons from "@expo/vector-icons/Ionicons";
+import { positionColumnLetter } from "@/lib/utils/position";
 import * as Haptics from "expo-haptics";
 import { useRef, useState, type ReactNode } from "react";
 import {
@@ -66,24 +66,16 @@ const CountryPager = ({ renderPosition, onPositionPress, positionEnabled }: Coun
     >
       {Array.from({ length: GRID_ROWS }, (_, row) => {
         const position = row * GRID_COLS + col + 1;
-        const enabled = positionEnabled?.(position) ?? Boolean(onPositionPress);
 
         return (
-          <Pressable
+          <PositionRow
             key={position}
-            onPress={enabled ? () => onPositionPress?.(position) : undefined}
-            disabled={!enabled}
-            style={({ pressed }) => [styles.row, pressed && enabled && styles.rowPressed]}
-            android_ripple={enabled ? { color: COLOR.accentSoft } : undefined}
-            accessibilityRole={enabled ? "button" : "text"}
-            accessibilityLabel={`Position ${getPositionTitle(position)}`}
+            position={position}
+            enabled={positionEnabled?.(position) ?? Boolean(onPositionPress)}
+            onPress={() => onPositionPress?.(position)}
           >
-            <View style={styles.positionChip}>
-              <Text style={styles.positionText}>{getPositionTitle(position)}</Text>
-            </View>
-            <View style={styles.rowContent}>{renderPosition(position)}</View>
-            {enabled && <Ionicons name="chevron-forward" size={16} color={COLOR.textFaint} />}
-          </Pressable>
+            {renderPosition(position)}
+          </PositionRow>
         );
       })}
     </ScrollView>
@@ -187,37 +179,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingBottom: 16,
     gap: 8,
-  },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    minHeight: 56,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: 12,
-    backgroundColor: COLOR.surface,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: COLOR.border,
-  },
-  rowPressed: {
-    opacity: 0.8,
-  },
-  positionChip: {
-    minWidth: 38,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-    backgroundColor: COLOR.surfaceMuted,
-    alignItems: "center",
-  },
-  positionText: {
-    fontFamily: "OpenSans_700Bold",
-    fontSize: 12,
-    color: COLOR.textBody,
-  },
-  rowContent: {
-    flex: 1,
   },
 });
 

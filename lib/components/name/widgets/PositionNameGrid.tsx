@@ -1,11 +1,13 @@
+import CountryFlag from "@/lib/components/common/CountryFlag";
 import EmptyResults from "@/lib/components/common/EmptyResults";
 import { TagIcon } from "@/lib/components/name/widgets/TagIcon";
 import CountryPager from "@/lib/components/position/CountryPager";
-import { COLOR } from "@/lib/constants/theme";
+import PositionRow from "@/lib/components/position/PositionRow";
+import { COLOR, SPACE } from "@/lib/constants/theme";
 import type { TyphoonName } from "@/lib/types";
 import { getNameStatusColor } from "@/lib/utils/colors";
 import { useMemo } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { FlatList, StyleSheet, Text, View } from "react-native";
 
 const sortByOldest = (names: TyphoonName[]) => [...names].sort((a, b) => a.id - b.id);
 
@@ -13,10 +15,18 @@ interface PositionNameGridProps {
   names: TyphoonName[];
   showName: boolean;
   showHistory: boolean;
+  // A filtered set is scattered across the 14 country pages, so it is listed instead of paged.
+  isFiltered: boolean;
   onCellPress: (position: number, names: TyphoonName[]) => void;
 }
 
-const PositionNameGrid = ({ names, showName, showHistory, onCellPress }: PositionNameGridProps) => {
+const PositionNameGrid = ({
+  names,
+  showName,
+  showHistory,
+  isFiltered,
+  onCellPress,
+}: PositionNameGridProps) => {
   const namesByPosition = useMemo(
     () =>
       names.reduce<Record<number, TyphoonName[]>>((acc, name) => {
@@ -24,6 +34,16 @@ const PositionNameGrid = ({ names, showName, showHistory, onCellPress }: Positio
         return acc;
       }, {}),
     [names],
+  );
+
+  // Ascending position is the naming table read left to right, top to bottom — the order the
+  // committee actually assigns names in.
+  const matchedPositions = useMemo(
+    () =>
+      Object.keys(namesByPosition)
+        .map(Number)
+        .sort((a, b) => a - b),
+    [namesByPosition],
   );
 
   // Deliberately not pressable: the row underneath is the target, and two nested targets a few
@@ -41,8 +61,48 @@ const PositionNameGrid = ({ names, showName, showHistory, onCellPress }: Positio
     </View>
   );
 
+  const renderPositionNames = (positionNames: TyphoonName[]) =>
+    showHistory ? (
+      <View style={styles.history}>{sortByOldest(positionNames).map(renderName)}</View>
+    ) : (
+      renderName(positionNames[0])
+    );
+
   // Otherwise a filter that matches nothing leaves fourteen pages of dashes to swipe through.
   if (names.length === 0) return <EmptyResults />;
+
+  if (isFiltered) {
+    return (
+      <FlatList
+        data={matchedPositions}
+        keyExtractor={String}
+        contentContainerStyle={styles.list}
+        showsVerticalScrollIndicator={false}
+        initialNumToRender={12}
+        windowSize={9}
+        ListHeaderComponent={
+          <Text style={styles.listHeader}>
+            {names.length} name{names.length === 1 ? "" : "s"} in {matchedPositions.length} position
+            {matchedPositions.length === 1 ? "" : "s"}
+          </Text>
+        }
+        renderItem={({ item: position }) => {
+          const positionNames = namesByPosition[position];
+
+          return (
+            <PositionRow
+              position={position}
+              enabled
+              onPress={() => onCellPress(position, positionNames)}
+            >
+              {renderPositionNames(positionNames)}
+              <CountryFlag country={positionNames[0].country} size={14} showName />
+            </PositionRow>
+          );
+        }}
+      />
+    );
+  }
 
   return (
     <CountryPager
@@ -52,15 +112,24 @@ const PositionNameGrid = ({ names, showName, showHistory, onCellPress }: Positio
         const positionNames = namesByPosition[position] ?? [];
         if (positionNames.length === 0) return <Text style={styles.empty}>—</Text>;
 
-        if (!showHistory) return <View>{renderName(positionNames[0])}</View>;
-
-        return <View style={styles.history}>{sortByOldest(positionNames).map(renderName)}</View>;
+        return renderPositionNames(positionNames);
       }}
     />
   );
 };
 
 const styles = StyleSheet.create({
+  list: {
+    padding: SPACE.lg,
+    paddingBottom: SPACE.xxl,
+    gap: SPACE.sm,
+  },
+  listHeader: {
+    fontFamily: "OpenSans_500Medium",
+    fontSize: 13,
+    color: COLOR.textMuted,
+    paddingBottom: SPACE.xs,
+  },
   history: {
     gap: 4,
   },

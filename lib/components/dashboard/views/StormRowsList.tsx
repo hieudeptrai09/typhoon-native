@@ -65,8 +65,6 @@ const IntensityCell = ({ intensity }: { intensity: IntensityType }) => (
   </View>
 );
 
-const NAME_INDEX = { key: "name", letterOf: (row: StormRow) => row.name[0]?.toUpperCase() ?? "#" };
-
 interface StormRowsListProps {
   storms: Storm[];
   sortKey: string;
@@ -96,7 +94,6 @@ const StormRowsList = ({
       sortFields={sortFields}
       sortKey={sortKey}
       defaultSort={defaultSort}
-      indexField={NAME_INDEX}
       countLabel={(count) => `${count} storm${count === 1 ? "" : "s"}`}
       onRowPress={(row) => router.push(`/info/${encodeURIComponent(row.name)}`)}
       renderCard={(row, index) => (

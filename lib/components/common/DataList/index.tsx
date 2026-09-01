@@ -1,4 +1,3 @@
-import IndexBar from "@/lib/components/common/DataList/IndexBar";
 import { useSortMemory } from "@/lib/components/common/DataList/sortMemory";
 import SortSheet from "@/lib/components/common/DataList/SortSheet";
 import ListControls, { type ControlChip } from "@/lib/components/common/ListControls";
@@ -11,9 +10,8 @@ import {
   liveCriteria,
   type SortCriterion,
   type SortField,
-  type SortKey,
 } from "@/lib/utils/table";
-import { useMemo, useRef, useState, type ReactNode } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { FlatList, Pressable, StyleSheet, View } from "react-native";
 
 interface DataListProps<T> {
@@ -29,9 +27,6 @@ interface DataListProps<T> {
   // Names this list's sort so it survives the view being switched away and back.
   sortKey?: string;
   defaultSort?: SortCriterion[];
-  // Only valid while the list is actually ordered by `key`: an index over rows that aren't
-  // grouped by their initial would point at the wrong place.
-  indexField?: { key: SortKey; letterOf: (row: T) => string };
   filter?: {
     chips: { key: string; label: string }[];
     onOpen: () => void;
@@ -53,36 +48,16 @@ const DataList = <T,>({
   header,
   sortKey,
   defaultSort,
-  indexField,
   filter,
   options,
 }: DataListProps<T>) => {
   const [criteria, setCriteria] = useSortMemory(sortKey, defaultSort);
   const [sheetOpen, setSheetOpen] = useState(false);
   const refreshControl = useRefreshControl();
-  const listRef = useRef<FlatList<T>>(null);
 
   // Switching a view's filter swaps its sort fields, which can strand a criterion.
   const active = useMemo(() => liveCriteria(criteria, sortFields), [criteria, sortFields]);
   const sorted = useMemo(() => applySort(data, active, sortFields), [data, active, sortFields]);
-
-  const indexed =
-    indexField !== undefined && active.length === 1 && active[0].key === indexField.key;
-  const letters = useMemo(() => {
-    if (!indexed || !indexField) return [];
-    const seen: string[] = [];
-    for (const row of sorted) {
-      const letter = indexField.letterOf(row);
-      if (letter !== seen[seen.length - 1]) seen.push(letter);
-    }
-    return seen;
-  }, [indexed, indexField, sorted]);
-
-  const jumpTo = (letter: string) => {
-    if (!indexField) return;
-    const index = sorted.findIndex((row) => indexField.letterOf(row) === letter);
-    if (index >= 0) listRef.current?.scrollToIndex({ index, animated: false, viewPosition: 0 });
-  };
 
   const labelOf = (key: string) => sortFields.find((field) => field.key === key)?.label ?? key;
 
@@ -144,33 +119,19 @@ const DataList = <T,>({
 
       <View style={styles.body}>
         <FlatList
-          ref={listRef}
           data={sorted}
           keyExtractor={keyExtractor}
           renderItem={renderItem}
           ListHeaderComponent={header ? <>{header}</> : null}
           ListEmptyComponent={empty ? <>{empty}</> : null}
-          contentContainerStyle={[
-            sorted.length === 0 ? styles.contentEmpty : styles.content,
-            indexed && letters.length > 1 && styles.contentIndexed,
-          ]}
+          contentContainerStyle={sorted.length === 0 ? styles.contentEmpty : styles.content}
           refreshControl={refreshControl}
           initialNumToRender={12}
           windowSize={9}
           removeClippedSubviews
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="on-drag"
-          // Cards vary in height, so a jump far down the list can land before its target has been
-          // measured. Fall back to the estimate, then land the jump on the next frame.
-          onScrollToIndexFailed={({ index, averageItemLength }) => {
-            listRef.current?.scrollToOffset({ offset: index * averageItemLength, animated: false });
-            requestAnimationFrame(() =>
-              listRef.current?.scrollToIndex({ index, animated: false, viewPosition: 0 }),
-            );
-          }}
         />
-
-        {indexed && <IndexBar letters={letters} onSelect={jumpTo} />}
       </View>
 
       <SortSheet
@@ -200,10 +161,6 @@ const styles = StyleSheet.create({
     padding: SPACE.lg,
     paddingBottom: SPACE.xxl,
     gap: 10,
-  },
-  // Clears the alphabet rail so a card's right edge never runs under it.
-  contentIndexed: {
-    paddingRight: SPACE.lg + 20,
   },
   contentEmpty: {
     flexGrow: 1,

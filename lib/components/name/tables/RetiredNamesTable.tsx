@@ -31,11 +31,6 @@ const sortFields: SortField<RetiredName>[] = [
 // Module-level so the identity is stable: DataList memoises the sorted rows off this.
 const BY_NAME: SortCriterion[] = [{ key: "name", order: "ascend" }];
 
-const indexField = {
-  key: "name",
-  letterOf: (name: RetiredName) => name.name.charAt(0).toUpperCase(),
-};
-
 const RetiredNamesTable = ({ retiredNames, onNamePress, filter }: RetiredNamesTableProps) => (
   <DataList<RetiredName>
     data={retiredNames}
@@ -43,7 +38,6 @@ const RetiredNamesTable = ({ retiredNames, onNamePress, filter }: RetiredNamesTa
     sortFields={sortFields}
     sortKey="retiredNames"
     defaultSort={BY_NAME}
-    indexField={indexField}
     countLabel={(count) => `${count} name${count === 1 ? "" : "s"}`}
     onRowPress={onNamePress}
     filter={filter}

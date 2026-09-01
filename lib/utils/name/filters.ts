@@ -11,6 +11,7 @@ import { getPositionTitle } from "@/lib/utils/position";
 
 export const EMPTY_NAME_FILTERS: FilterParams = {
   name: "",
+  letter: "",
   country: "",
   language: "",
   tag: "",
@@ -20,11 +21,17 @@ export const EMPTY_NAME_FILTERS: FilterParams = {
 
 export const EMPTY_RETIRED_FILTERS: RetiredFilterParams = {
   name: "",
+  letter: "",
   year: "",
   country: "",
   reason: "",
   position: "",
 };
+
+export const ALPHABET = Array.from({ length: 26 }, (_, idx) => String.fromCharCode(65 + idx));
+
+const startsWith = (name: string, letter: string) =>
+  !letter || name.charAt(0).toUpperCase() === letter;
 
 export const applyNameFilters = (names: TyphoonName[], filters: FilterParams): TyphoonName[] => {
   const country = toArr(filters.country);
@@ -34,6 +41,7 @@ export const applyNameFilters = (names: TyphoonName[], filters: FilterParams): T
 
   return names.filter((name) => {
     if (query && !name.name.toLowerCase().includes(query)) return false;
+    if (!startsWith(name.name, filters.letter)) return false;
     if (country.length > 0 && !country.includes(name.country)) return false;
     if (language.length > 0 && !language.includes(name.language)) return false;
     if (tag.length > 0 && !tag.includes(name.tag)) return false;
@@ -57,6 +65,7 @@ export const applyRetiredFilters = (
 
   return names.filter((name) => {
     if (query && !name.name.toLowerCase().includes(query)) return false;
+    if (!startsWith(name.name, filters.letter)) return false;
     if (filters.year && name.lastYear !== Number(filters.year)) return false;
     if (country.length > 0 && !country.includes(name.country)) return false;
     if (reason.length > 0 && !(name.retirementReason && reason.includes(name.retirementReason))) {
@@ -84,6 +93,7 @@ const singleChip = (field: string, value: string, label: string): FilterChip[] =
 // `status` has no chip: it is never set from the filter sheet, only implied by the history toggle.
 export const nameFilterChips = (filters: FilterParams): FilterChip[] => [
   ...singleChip("name", filters.name, `"${filters.name}"`),
+  ...singleChip("letter", filters.letter, `Starts with ${filters.letter}`),
   ...multiChips("country", filters.country),
   ...multiChips("language", filters.language),
   ...multiChips("tag", filters.tag),
@@ -92,6 +102,7 @@ export const nameFilterChips = (filters: FilterParams): FilterChip[] => [
 
 export const retiredFilterChips = (filters: RetiredFilterParams): FilterChip[] => [
   ...singleChip("name", filters.name, `"${filters.name}"`),
+  ...singleChip("letter", filters.letter, `Starts with ${filters.letter}`),
   ...singleChip("year", filters.year, filters.year),
   ...multiChips("country", filters.country),
   ...multiChips(

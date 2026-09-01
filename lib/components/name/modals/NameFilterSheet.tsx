@@ -12,6 +12,7 @@ import type {
   RetiredFilterParams,
   RetirementReason,
 } from "@/lib/types";
+import { ALPHABET } from "@/lib/utils/name/filters";
 import { toOpts } from "@/lib/utils/name/selectOptions";
 import { toArr, toStr } from "@/lib/utils/params";
 import {
@@ -37,6 +38,7 @@ interface NameFilterSheetProps<T extends NameFilters> extends BaseModalProps {
 
 interface FormValues {
   name: string;
+  letter: string[];
   country: string[];
   language: string[];
   tag: string[];
@@ -44,6 +46,8 @@ interface FormValues {
   year: string[];
   reason: string[];
 }
+
+const LETTER_OPTIONS = toOpts(ALPHABET);
 
 const FIRST_YEAR = 2000;
 
@@ -60,6 +64,7 @@ const toFilters = (values: FormValues, scope: NamesScope): NameFilters => {
   const position = positionFromValue(values.position);
   const shared = {
     name: values.name ?? "",
+    letter: values.letter[0] ?? "",
     country: toStr(values.country),
     position: position != null ? String(position) : "",
   };
@@ -89,6 +94,7 @@ const NameFilterSheet = <T extends NameFilters>({
     const seed = initialFilters as Partial<FilterParams & RetiredFilterParams>;
     return {
       name: seed.name ?? "",
+      letter: seed.letter ? [seed.letter] : [],
       country: toArr(seed.country ?? ""),
       language: toArr(seed.language ?? ""),
       tag: toArr(seed.tag ?? ""),
@@ -115,6 +121,7 @@ const NameFilterSheet = <T extends NameFilters>({
   const filled = pending as Partial<FilterParams & RetiredFilterParams>;
   const hasFilters = Boolean(
     filled.name ||
+    filled.letter ||
     filled.country ||
     filled.position ||
     filled.language ||
@@ -128,6 +135,7 @@ const NameFilterSheet = <T extends NameFilters>({
   const handleClearAll = () =>
     setValues({
       name: "",
+      letter: [],
       country: [],
       language: [],
       tag: [],
@@ -179,6 +187,14 @@ const NameFilterSheet = <T extends NameFilters>({
           placeholder="Enter typhoon name..."
           value={values.name}
           onChangeText={(name) => update("name", name)}
+        />
+
+        <OptionPicker
+          label="Starts With"
+          placeholder="Any letter"
+          options={LETTER_OPTIONS}
+          value={values.letter}
+          onChange={(letter) => update("letter", letter)}
         />
 
         {isRetired && (

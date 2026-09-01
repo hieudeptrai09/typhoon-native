@@ -102,6 +102,7 @@ const NamesView = ({
         names={filteredNames}
         showName={showName}
         showHistory={showHistory}
+        isFiltered={chips.length > 0}
         onCellPress={handleCellPress}
       />
 
