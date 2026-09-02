@@ -12,7 +12,6 @@ interface DataCardProps {
   ordinal?: number;
   title: ReactNode;
   titleColor?: string;
-  subtitle?: ReactNode;
   accentColor?: string;
   fields?: DataField[];
   pressable?: boolean;
@@ -29,7 +28,6 @@ const DataCard = ({
   ordinal,
   title,
   titleColor,
-  subtitle,
   accentColor,
   fields,
   pressable = false,
@@ -47,7 +45,6 @@ const DataCard = ({
 
         <View style={styles.titleBlock}>
           {asNode(title, { ...styles.title, ...(titleColor ? { color: titleColor } : null) })}
-          {subtitle !== undefined && asNode(subtitle, styles.subtitle)}
         </View>
 
         {pressable && <Ionicons name="chevron-forward" size={16} color={COLOR.textFaint} />}
@@ -113,17 +110,11 @@ const styles = StyleSheet.create({
   },
   titleBlock: {
     flex: 1,
-    gap: 2,
   },
   title: {
     fontFamily: "OpenSans_700Bold",
     fontSize: 16,
     color: COLOR.text,
-  },
-  subtitle: {
-    fontFamily: "OpenSans_400Regular",
-    fontSize: 12,
-    color: COLOR.textMuted,
   },
   fields: {
     flexDirection: "row",

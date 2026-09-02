@@ -11,7 +11,6 @@ const VIEW_FILTERS: Record<string, string[]> = {
   stats: ["position", "name", "country", "year", "month"],
 };
 
-// Groupings a metric can actually be computed over, rather than every grouping the view offers.
 const METRIC_GROUPS: Record<string, string[]> = {
   intensity: ["position", "name", "country", "year", "month"],
   recurrence: ["position", "name"],
@@ -24,7 +23,6 @@ const DEFAULT_FILTER: Record<string, string> = {
   stats: "position",
 };
 
-// Only these two are laid out on the naming table; the rest have nowhere to go but a list.
 const GRIDDABLE_GROUPS = new Set(["position", "name"]);
 
 export const isKnownView = (view: string): boolean => VIEW_FILTERS[view] !== undefined;
@@ -35,8 +33,6 @@ export const filtersForView = (view: string, metric: string): string[] =>
 export const hasGrid = (view: string, filter: string): boolean =>
   view !== "stats" || GRIDDABLE_GROUPS.has(filter);
 
-// The storms list is a flat run of storms, which is what "by name" already means; grouping by
-// position has nothing to list that the grid does not say better.
 export const hasList = (view: string, filter: string): boolean =>
   view !== "all" || filter === "name";
 

@@ -1,7 +1,7 @@
 import ScreenScroll from "@/lib/components/common/ScreenScroll";
 import NamesGrid from "@/lib/components/dashboard/grids/NamesGrid";
 import StormsGrid from "@/lib/components/dashboard/grids/StormsGrid";
-import StormRowsList from "@/lib/components/dashboard/views/StormRowsList";
+import NameRowsList from "@/lib/components/dashboard/views/NameRowsList";
 import SpecialButtons from "@/lib/components/dashboard/widgets/SpecialButtons";
 import SpecialNamesList from "@/lib/components/dashboard/widgets/SpecialNamesList";
 import type { DashboardParams, Storm } from "@/lib/types";
@@ -16,12 +16,9 @@ interface StormsViewProps {
 
 const openName = (name: string) => router.push(`/info/${encodeURIComponent(name)}`);
 
-// The storm list opens on the newest season rather than on whatever the alphabet puts at the top.
-const NEWEST_FIRST = [{ key: "year", order: "descend" as const }];
-
 const StormsView = ({ params, stormsData, onSelectPosition }: StormsViewProps) => {
   if (params.mode === "list") {
-    return <StormRowsList storms={stormsData} sortKey="all/storms" defaultSort={NEWEST_FIRST} />;
+    return <NameRowsList storms={stormsData} />;
   }
 
   if (params.filter === "name") {

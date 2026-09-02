@@ -21,7 +21,7 @@ interface StatGridProps {
 
 const readoutLines = (row: StatRow, metric: string): string[] => {
   if (metric === "recurrence") {
-    return [row.value < 0 ? "Recurrence not measurable" : `Avg recurrence ${row.display} years`];
+    return [row.value < 0 ? "Reuse gap not measurable" : `Avg reuse gap ${row.display} years`];
   }
   if (metric === "dates") {
     return [`Avg season ${row.display}`, `Avg duration ${formatDuration(row.duration ?? -1)}`];
@@ -30,7 +30,7 @@ const readoutLines = (row: StatRow, metric: string): string[] => {
 };
 
 // Two characters at most: the cell is about 24dp wide, and a month abbreviation or a decimal
-// shrinks to unreadable there. Recurrence reads against six years, roughly how long the
+// shrinks to unreadable there. The reuse gap reads against six years, roughly how long the
 // 140-position list takes to come round.
 const cellLabel = (row: StatRow, metric: string): string | undefined => {
   if (metric === "recurrence") {

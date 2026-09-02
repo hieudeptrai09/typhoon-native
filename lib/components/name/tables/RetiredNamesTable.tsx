@@ -17,8 +17,16 @@ interface RetiredNamesTableProps {
   };
 }
 
+const reasonLabel = (name: RetiredName): string =>
+  name.retirementReason ? RETIRED_REASON_LABEL[name.retirementReason] : "Retired";
+
 const sortFields: SortField<RetiredName>[] = [
   { key: "name", label: "Name", compare: (a, b) => a.name.localeCompare(b.name) },
+  {
+    key: "reason",
+    label: "Reason",
+    compare: (a, b) => reasonLabel(a).localeCompare(reasonLabel(b)),
+  },
   {
     key: "country",
     label: "Contributed by",
@@ -46,18 +54,16 @@ const RetiredNamesTable = ({ retiredNames, onNamePress, filter }: RetiredNamesTa
     empty={<EmptyResults />}
     renderCard={(name) => {
       const color = getRetiredReasonColor(name.retirementReason);
-      const reason = name.retirementReason
-        ? RETIRED_REASON_LABEL[name.retirementReason]
-        : "Retired";
 
       return (
         <DataCard
           title={name.name}
           titleColor={color}
-          subtitle={`${getPositionTitle(name.position)} · ${reason}`}
           accentColor={color}
           fields={[
+            { label: "Reason", value: reasonLabel(name) },
             { label: "Last used", value: String(name.lastYear) },
+            { label: "Position", value: getPositionTitle(name.position) },
             {
               label: "Contributed by",
               value: <CountryFlag country={name.country} size={16} showName />,

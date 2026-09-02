@@ -90,7 +90,6 @@ const DashboardControlBar = ({ params, onChange, onSelectView }: DashboardContro
     onChange: (next) => apply({ mode: next }),
   });
 
-  const viewOption = optionFor(VIEW_TABS, view);
   const chipOptions = [
     view === "stats" ? optionFor(METRIC_OPTIONS, metric) : undefined,
     optionFor(filterOptions, filter),
@@ -142,12 +141,7 @@ const DashboardControlBar = ({ params, onChange, onSelectView }: DashboardContro
         ))}
       </EdgeFade>
 
-      <ViewOptionsSheet
-        open={sheetOpen}
-        onClose={() => setSheetOpen(false)}
-        subtitle={viewOption?.description ?? ""}
-        axes={axes}
-      />
+      <ViewOptionsSheet open={sheetOpen} onClose={() => setSheetOpen(false)} axes={axes} />
     </View>
   );
 };

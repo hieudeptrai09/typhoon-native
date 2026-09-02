@@ -24,7 +24,7 @@ const RecurrenceBreakdown = ({ storms }: RecurrenceBreakdownProps) => {
     <View>
       <Text style={styles.caption}>
         {timeline.length === 1
-          ? "Only one storm, so no recurrence can be measured:"
+          ? "Only one storm, so no reuse gap can be measured:"
           : "Storm timeline:"}
       </Text>
 

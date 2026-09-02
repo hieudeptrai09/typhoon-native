@@ -24,7 +24,7 @@ interface StatsViewProps {
 
 const VALUE_LABEL: Record<string, string> = {
   intensity: "Average intensity",
-  recurrence: "Avg. recurrence",
+  recurrence: "Avg. reuse gap",
   dates: "Avg. season",
 };
 

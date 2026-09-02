@@ -100,12 +100,12 @@ const StormRowsList = ({
         <DataCard
           ordinal={index + 1}
           title={row.name}
-          subtitle={`${row.startMonth}/${row.startYear}`}
           fields={[
             ...(showIntensity
               ? [{ label: "Intensity", value: <IntensityCell intensity={row.intensity} /> }]
               : []),
             { label: "Year", value: String(row.year) },
+            { label: "Month", value: `${row.startMonth}/${row.startYear}` },
             { label: "Position", value: getPositionTitle(row.position) },
             {
               label: "Contributed by",

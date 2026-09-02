@@ -93,9 +93,9 @@ const statsFor = (group: OpenGroup): GroupStat[] => {
   if (metric === "recurrence") {
     return [
       {
-        label: "Avg. recurrence",
+        label: "Avg. reuse gap",
         value: row.value < 0 ? "N/A" : `${row.display} years`,
-        hint: "Average number of years between reuses",
+        hint: "About six years is one full turn of the 140-position list",
       },
       count,
     ];

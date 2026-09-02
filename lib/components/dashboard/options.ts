@@ -29,21 +29,18 @@ export const METRIC_OPTIONS: SegmentOption[] = [
     label: "Avg. intensity",
     shortLabel: "Intensity",
     icon: "pulse-outline",
-    description: "Mean intensity of the storms in each group",
   },
   {
     value: "recurrence",
-    label: "Recurrence",
+    label: "Avg. reuse gap",
+    shortLabel: "Reuse gap",
     icon: "repeat-outline",
-    description:
-      "Typical gap in years between reuses. The 140-position list takes about six years to come round, so the grid reads against six.",
   },
   {
     value: "dates",
-    label: "Season dates",
+    label: "Avg. dates",
     shortLabel: "Dates",
     icon: "calendar-number-outline",
-    description: "When in the season each group's storms start and end",
   },
 ];
 
@@ -74,19 +71,16 @@ const RECORD_OPTIONS: SegmentOption[] = [
     value: "strongest",
     label: "Strongest",
     icon: "flash-outline",
-    description: "The peak storm of each naming position",
   },
   {
     value: "first",
     label: "First",
     icon: "medal-outline",
-    description: "The first storm to use each name",
   },
   {
     value: "last",
     label: "Last",
     icon: "download-outline",
-    description: "The most recent storm at each position",
   },
   ...INTENSITIES_BY_STRENGTH.map((intensity) => ({
     value: getIntensitySlug(intensity),
