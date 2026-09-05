@@ -2,7 +2,6 @@ import { COLOR } from "@/lib/constants/theme";
 import { Link } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
-// Renders nothing when nothing came close, so callers can drop it in unconditionally.
 const DidYouMean = ({ names }: { names: string[] }) => {
   if (names.length === 0) return null;
 

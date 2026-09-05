@@ -1,8 +1,8 @@
--- The queries live here rather than in TypeScript because the app's server routes run without raw
--- TCP sockets and reach the data over HTTP instead.
+-- The queries live here rather than in TypeScript because the app has no raw TCP sockets and
+-- reaches the data over HTTP instead.
 --
 -- Two rules keep the TypeScript mappers unchanged:
---   * column aliases stay camelCase, matching the Row interfaces in lib/db/module/
+--   * column aliases stay camelCase, matching the Row interfaces in lib/data/rows/
 --   * every bigint is cast to text — as JSON numbers they would lose precision silently
 --
 -- Apply with: psql "$SUPABASE_POSTGRES_URL" -f db/functions.sql
@@ -116,7 +116,7 @@ $$;
 
 -- Returns a json array: every ongoing storm, newest first, or the single next name in the
 -- rotation when nothing is ongoing. The card shows one at a time and offers the rest, so the
--- route serving this must not cache it — a storm that starts has to reach the card.
+-- caller must not cache it — a storm that starts has to reach the card.
 CREATE OR REPLACE FUNCTION public.get_storm_highlight()
 RETURNS json
 LANGUAGE plpgsql
@@ -237,7 +237,7 @@ AS $$
 $$;
 
 -- Two queries bundled into one payload, since each call is now an HTTP round trip. `name` is null
--- when nothing matched, which together with an empty storm list is the route's 404.
+-- when nothing matched, which together with an empty storm list is the not-found state.
 CREATE OR REPLACE FUNCTION public.get_typhoon_name_by_name(p_name text)
 RETURNS json
 LANGUAGE sql
@@ -297,7 +297,7 @@ $$;
 -- ============================================================================================
 
 -- Three queries bundled into one payload, since each call is now an HTTP round trip. Returns null
--- for an unknown position, which is the route's 404.
+-- for an unknown position, which is the not-found state.
 CREATE OR REPLACE FUNCTION public.get_position_details(p_position integer)
 RETURNS json
 LANGUAGE sql

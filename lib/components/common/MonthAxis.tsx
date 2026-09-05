@@ -6,7 +6,6 @@ const MONTH_LETTERS = "JFMAMJJASOND";
 const MID_MONTH = 15;
 const LETTER_WIDTH = 12;
 
-// Twelve letters under a chart that spans a whole year, placed at each month's midpoint.
 const MonthAxis = ({ width }: { width: number }) => {
   const slot = width / DAYS_OF_YEAR.length;
 

@@ -18,8 +18,7 @@ const toDate = (monthDay: string): Date => {
 interface MonthDayPickerProps {
   open: boolean;
   onClose: () => void;
-  /** "MM-DD" */
-  value: string;
+  value: string; // "MM-DD"
   onChange: (monthDay: string) => void;
 }
 
