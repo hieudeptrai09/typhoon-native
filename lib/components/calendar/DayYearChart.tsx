@@ -2,10 +2,10 @@ import MonthAxis from "@/lib/components/common/MonthAxis";
 import { COLOR, SPACE } from "@/lib/constants/theme";
 import { dayIndexOf, DAYS_OF_YEAR, MONTH_START_INDEX, monthDayAt } from "@/lib/utils/date";
 import * as Haptics from "expo-haptics";
-import { useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { LayoutChangeEvent, StyleSheet, Text, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
-import { runOnJS, useSharedValue } from "react-native-reanimated";
+import { runOnJS, useSharedValue, type SharedValue } from "react-native-reanimated";
 import Svg, { Circle, Line, Path } from "react-native-svg";
 
 const DAY_COUNT = DAYS_OF_YEAR.length;
@@ -38,6 +38,16 @@ const monthTicksPath = (width: number): string => {
     .join(" ");
 };
 
+// Decided on the UI thread, so a scrub across the year does not hop to JS just to find out it is
+// too soon to buzz again. Module scope keeps the impure clock read out of the component's render.
+const dueForHaptic = (last: SharedValue<number>): boolean => {
+  "worklet";
+  const now = Date.now();
+  if (now - last.value <= HAPTIC_INTERVAL_MS) return false;
+  last.value = now;
+  return true;
+};
+
 interface DayYearChartProps {
   density: number[];
   inspected: string;
@@ -52,7 +62,7 @@ const DayYearChart = ({ density, inspected, pageDay, today, onInspect }: DayYear
 
   const plotValue = useSharedValue(0);
   const lastIndex = useSharedValue(-1);
-  const lastHaptic = useRef(0);
+  const lastHaptic = useSharedValue(0);
 
   const peak = useMemo(() => Math.max(...density, 1), [density]);
   // Round the axis up to a whole number of steps, so every label is an integer.
@@ -66,14 +76,13 @@ const DayYearChart = ({ density, inspected, pageDay, today, onInspect }: DayYear
   );
   const months = useMemo(() => (plotWidth > 0 ? monthTicksPath(plotWidth) : ""), [plotWidth]);
 
-  const pickDay = (index: number) => {
-    const now = Date.now();
-    if (now - lastHaptic.current > HAPTIC_INTERVAL_MS) {
-      lastHaptic.current = now;
-      Haptics.selectionAsync();
-    }
-    onInspect(monthDayAt(index));
-  };
+  const pickDay = useCallback(
+    (index: number, buzz: boolean) => {
+      if (buzz) Haptics.selectionAsync();
+      onInspect(monthDayAt(index));
+    },
+    [onInspect],
+  );
 
   const scrub = useMemo(
     () => {
@@ -85,7 +94,7 @@ const DayYearChart = ({ density, inspected, pageDay, today, onInspect }: DayYear
       const tap = Gesture.Tap().onEnd((event) => {
         if (plotValue.value <= 0) return;
         lastIndex.value = indexAt(event.x);
-        runOnJS(pickDay)(lastIndex.value);
+        runOnJS(pickDay)(lastIndex.value, dueForHaptic(lastHaptic));
       });
 
       // Only a sideways drag scrubs, so a vertical one still scrolls the sheet it sits in.
@@ -100,7 +109,7 @@ const DayYearChart = ({ density, inspected, pageDay, today, onInspect }: DayYear
           const index = indexAt(event.x);
           if (index === lastIndex.value) return;
           lastIndex.value = index;
-          runOnJS(pickDay)(index);
+          runOnJS(pickDay)(index, dueForHaptic(lastHaptic));
         });
 
       return Gesture.Race(pan, tap);

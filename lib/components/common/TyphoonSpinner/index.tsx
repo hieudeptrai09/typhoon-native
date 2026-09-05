@@ -1,5 +1,5 @@
 import { COLOR } from "@/lib/constants/theme";
-import { useEffect, useRef } from "react";
+import { useEffect, useState } from "react";
 import { AccessibilityInfo, Animated, Easing, StyleSheet, View } from "react-native";
 import TyphoonSymbol from "./TyphoonSymbol";
 
@@ -18,7 +18,9 @@ interface TyphoonSpinnerProps {
 
 const TyphoonSpinner = ({ size = "medium", color = COLOR.accent }: TyphoonSpinnerProps) => {
   const px = sizeMap[size];
-  const spin = useRef(new Animated.Value(0)).current;
+  // A lazy useState initializer, not useRef: the compiler's rules forbid reading a ref during
+  // render, and `rotate` below is derived at render time.
+  const [spin] = useState(() => new Animated.Value(0));
 
   useEffect(() => {
     let animation: Animated.CompositeAnimation | undefined;

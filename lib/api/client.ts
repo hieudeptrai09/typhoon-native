@@ -42,7 +42,11 @@ export function useQuery<T>(
   // The fetcher closes over render values and so is a new function every render; reading it through
   // a ref keeps it out of the effect's dependencies, which would otherwise restart every request.
   const run = useRef(fetcher);
-  run.current = fetcher;
+  // Synced here rather than during render, and declared above the effect that reads it so a commit
+  // changing both the key and the fetcher still runs this first.
+  useEffect(() => {
+    run.current = fetcher;
+  }, [fetcher]);
   const forceNext = useRef(false);
 
   const ttl = options.ttl ?? DEFAULT_TTL;
@@ -50,7 +54,6 @@ export function useQuery<T>(
   useEffect(() => {
     if (key === null) {
       lastKey.current = null;
-      setState(idle);
       return;
     }
 
@@ -110,5 +113,8 @@ export function useQuery<T>(
     setNonce((value) => value + 1);
   }, []);
 
-  return { ...state, refetch };
+  // With no key there is nothing to report, so idle is derived instead of stored — clearing `state`
+  // from the effect would cost a second render. `lastKey` is null by then, so the next real key is
+  // treated as a fresh question and never shows what is left in `state`.
+  return { ...(key === null ? idle : state), refetch };
 }

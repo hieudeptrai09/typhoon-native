@@ -21,7 +21,7 @@ import {
   positionFromValue,
   positionToValue,
 } from "@/lib/utils/position";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 export type NameFilters = FilterParams | RetiredFilterParams;
@@ -106,11 +106,13 @@ const NameFilterSheet = <T extends NameFilters>({
 
   const [values, setValues] = useState<FormValues>(buildOpenValues);
 
-  // The sheet stays mounted between opens, so the fields have to be re-seeded on each one.
-  useEffect(() => {
+  // The sheet stays mounted between opens, so the fields have to be re-seeded on each one. Keyed on
+  // `isOpen` alone: re-seeding whenever the seed changes would overwrite what the user is typing.
+  const [wasOpen, setWasOpen] = useState(isOpen);
+  if (wasOpen !== isOpen) {
+    setWasOpen(isOpen);
     if (isOpen) setValues(buildOpenValues());
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen]);
+  }
 
   const update = <K extends keyof FormValues>(key: K, value: FormValues[K]) =>
     setValues((current) => ({ ...current, [key]: value }));

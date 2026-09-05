@@ -1,7 +1,7 @@
 import { COLOR } from "@/lib/constants/theme";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useFocusEffect } from "expo-router";
-import { useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { InteractionManager, Pressable, StyleSheet, TextInput, View } from "react-native";
 
 interface SearchFieldProps {
@@ -19,7 +19,9 @@ const SearchField = ({
   // Read inside the focus effect instead of listed as a dependency, so re-focusing is decided by
   // what is typed *now* without the effect tearing down on every keystroke.
   const typed = useRef(value);
-  typed.current = value;
+  useEffect(() => {
+    typed.current = value;
+  }, [value]);
 
   // Opening the Search tab with nothing typed should land on the keyboard — that is the only reason
   // to be here. Coming back to a query still on screen must not steal it: the user left to read a

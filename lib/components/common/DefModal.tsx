@@ -1,11 +1,10 @@
 import { COLOR } from "@/lib/constants/theme";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import {
   Animated,
   KeyboardAvoidingView,
   Modal,
-  PanResponder,
   Platform,
   Pressable,
   ScrollView,
@@ -13,12 +12,15 @@ import {
   Text,
   View,
 } from "react-native";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { Gesture, GestureDetector, GestureHandlerRootView } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const SHEET_OFFSCREEN = 600;
 const DISMISS_DISTANCE = 110;
-const DISMISS_VELOCITY = 0.7;
+const DISMISS_VELOCITY_PER_SEC = 700;
+// A drag must clear this before it takes over, so a horizontal swipe inside the sheet still works.
+const DRAG_ACTIVATE_Y = 6;
+const DRAG_CANCEL_X = 12;
 
 interface DefModalProps {
   open?: boolean;
@@ -30,17 +32,19 @@ interface DefModalProps {
 
 const DefModal = ({ open = true, onClose, title, footer, children }: DefModalProps) => {
   const insets = useSafeAreaInsets();
-  const translateY = useRef(new Animated.Value(SHEET_OFFSCREEN)).current;
-  const backdrop = useRef(new Animated.Value(0)).current;
+  // Lazy useState initializers, not useRef: the compiler's rules forbid reading a ref during
+  // render, and both values are read from the style props below.
+  const [translateY] = useState(() => new Animated.Value(SHEET_OFFSCREEN));
+  const [backdrop] = useState(() => new Animated.Value(0));
   // Keeps the sheet mounted through its exit animation, after `open` is already false.
   const [mounted, setMounted] = useState(open);
-  // The drag-to-dismiss responder is built once, so it can't close over the prop directly.
-  const onCloseRef = useRef(onClose);
-  onCloseRef.current = onClose;
+
+  // Adjusted during render rather than in the effect below: the sheet has to be in the tree on the
+  // very first frame it opens, and a setState inside the effect would cost an extra render first.
+  if (open && !mounted) setMounted(true);
 
   useEffect(() => {
     if (open) {
-      setMounted(true);
       translateY.setValue(SHEET_OFFSCREEN);
       Animated.parallel([
         Animated.spring(translateY, {
@@ -67,28 +71,31 @@ const DefModal = ({ open = true, onClose, title, footer, children }: DefModalPro
     });
   }, [open, translateY, backdrop]);
 
-  const pan = useRef(
-    PanResponder.create({
-      // Claim only a clear downward drag, so a horizontal swipe inside the sheet still works.
-      onMoveShouldSetPanResponder: (_event, gesture) =>
-        gesture.dy > 6 && Math.abs(gesture.dy) > Math.abs(gesture.dx),
-      onPanResponderMove: (_event, gesture) => {
-        if (gesture.dy > 0) translateY.setValue(gesture.dy);
-      },
-      onPanResponderRelease: (_event, gesture) => {
-        if (gesture.dy > DISMISS_DISTANCE || gesture.vy > DISMISS_VELOCITY) {
-          onCloseRef.current();
-          return;
-        }
-        Animated.spring(translateY, {
-          toValue: 0,
-          useNativeDriver: true,
-          damping: 24,
-          stiffness: 260,
-        }).start();
-      },
-    }),
-  ).current;
+  // A Gesture is meant to be rebuilt whenever what it closes over changes, so it can read `onClose`
+  // directly. runOnJS keeps the callbacks off the UI thread, where the RN Animated value lives.
+  const drag = useMemo(
+    () =>
+      Gesture.Pan()
+        .runOnJS(true)
+        .activeOffsetY(DRAG_ACTIVATE_Y)
+        .failOffsetX([-DRAG_CANCEL_X, DRAG_CANCEL_X])
+        .onUpdate((event) => {
+          if (event.translationY > 0) translateY.setValue(event.translationY);
+        })
+        .onEnd((event) => {
+          if (event.translationY > DISMISS_DISTANCE || event.velocityY > DISMISS_VELOCITY_PER_SEC) {
+            onClose();
+            return;
+          }
+          Animated.spring(translateY, {
+            toValue: 0,
+            useNativeDriver: true,
+            damping: 24,
+            stiffness: 260,
+          }).start();
+        }),
+    [onClose, translateY],
+  );
 
   if (!mounted) return null;
 
@@ -115,29 +122,31 @@ const DefModal = ({ open = true, onClose, title, footer, children }: DefModalPro
               { paddingBottom: insets.bottom + 12, transform: [{ translateY }] },
             ]}
           >
-            <View {...pan.panHandlers}>
-              <View style={styles.grabber} />
-              {title !== undefined && (
-                <View style={styles.header}>
-                  {typeof title === "string" ? (
-                    <Text style={styles.title} numberOfLines={2}>
-                      {title}
-                    </Text>
-                  ) : (
-                    <View style={styles.titleSlot}>{title}</View>
-                  )}
-                  <Pressable
-                    onPress={onClose}
-                    hitSlop={12}
-                    style={styles.close}
-                    accessibilityRole="button"
-                    accessibilityLabel="Close"
-                  >
-                    <Ionicons name="close" size={22} color={COLOR.textBody} />
-                  </Pressable>
-                </View>
-              )}
-            </View>
+            <GestureDetector gesture={drag}>
+              <View>
+                <View style={styles.grabber} />
+                {title !== undefined && (
+                  <View style={styles.header}>
+                    {typeof title === "string" ? (
+                      <Text style={styles.title} numberOfLines={2}>
+                        {title}
+                      </Text>
+                    ) : (
+                      <View style={styles.titleSlot}>{title}</View>
+                    )}
+                    <Pressable
+                      onPress={onClose}
+                      hitSlop={12}
+                      style={styles.close}
+                      accessibilityRole="button"
+                      accessibilityLabel="Close"
+                    >
+                      <Ionicons name="close" size={22} color={COLOR.textBody} />
+                    </Pressable>
+                  </View>
+                )}
+              </View>
+            </GestureDetector>
 
             <ScrollView
               style={styles.body}
@@ -162,7 +171,7 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
   },
   backdrop: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: COLOR.overlay,
   },
   // flex:1 is load-bearing: without it the sheet's percentage maxHeight has no height to

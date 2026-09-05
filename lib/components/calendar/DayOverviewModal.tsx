@@ -4,7 +4,7 @@ import { COLOR, SPACE } from "@/lib/constants/theme";
 import type { BaseModalProps } from "@/lib/types";
 import { DAYS_OF_YEAR, formatMonthDay } from "@/lib/utils/date";
 import { NAMING_LIST_FIRST_YEAR, rankDay } from "@/lib/utils/storm/calendar";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
 interface DayOverviewModalProps extends BaseModalProps {
@@ -25,9 +25,13 @@ const DayOverviewModal = ({
   // Scrubbing inspects the chart only; the calendar underneath keeps the day it was opened on.
   const [inspected, setInspected] = useState(monthDay);
 
-  useEffect(() => {
+  // Adjusted during render rather than in an effect, which would paint one frame of the previous
+  // day before correcting itself.
+  const [seen, setSeen] = useState({ isOpen, monthDay });
+  if (seen.isOpen !== isOpen || seen.monthDay !== monthDay) {
+    setSeen({ isOpen, monthDay });
     if (isOpen) setInspected(monthDay);
-  }, [isOpen, monthDay]);
+  }
 
   const rank = rankDay(density, inspected);
 

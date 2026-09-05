@@ -1,5 +1,5 @@
 import type { DashboardParams } from "@/lib/types";
-import { INTENSITY_SLUGS_BY_STRENGTH, intensityFromSlug } from "@/lib/utils/storm/intensity";
+import { INTENSITY_SLUGS_BY_STRENGTH } from "@/lib/utils/storm/intensity";
 
 export const VIEWS = ["all", "records", "stats"] as const;
 

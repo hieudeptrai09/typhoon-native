@@ -4,7 +4,7 @@ import { COLOR } from "@/lib/constants/theme";
 import { getPositionTitle, positionColumnLetter } from "@/lib/utils/position";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import * as Haptics from "expo-haptics";
-import { memo, useCallback, useMemo, useRef, useState, type ReactNode } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { LayoutChangeEvent, Pressable, StyleSheet, Text, View } from "react-native";
 
 export interface GridCell {
@@ -69,7 +69,9 @@ const PositionGrid = ({ renderCell, renderReadout, onPositionPress }: PositionGr
   // Read by the tap handler, which is kept stable so the 140 memoised cells survive a selection.
   const selectedRef = useRef<number | null>(null);
   const latest = useRef({ onPositionPress, hasReadout: renderReadout !== undefined });
-  latest.current = { onPositionPress, hasReadout: renderReadout !== undefined };
+  useEffect(() => {
+    latest.current = { onPositionPress, hasReadout: renderReadout !== undefined };
+  }, [onPositionPress, renderReadout]);
 
   const cellSize = plotWidth > 0 ? Math.max(MIN_CELL, plotWidth / GRID_COLS) : 0;
 
@@ -82,7 +84,9 @@ const PositionGrid = ({ renderCell, renderReadout, onPositionPress }: PositionGr
     [renderCell],
   );
   const cellsRef = useRef(cells);
-  cellsRef.current = cells;
+  useEffect(() => {
+    cellsRef.current = cells;
+  }, [cells]);
 
   const handleSelect = useCallback((position: number) => {
     Haptics.selectionAsync();

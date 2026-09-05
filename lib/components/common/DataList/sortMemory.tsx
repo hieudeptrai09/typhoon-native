@@ -1,28 +1,37 @@
 import type { SortCriterion } from "@/lib/utils/table";
-import { createContext, useCallback, useContext, useRef, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
 
 type Store = Record<string, SortCriterion[]>;
 
-const SortMemoryContext = createContext<{ current: Store } | null>(null);
+interface SortMemory {
+  store: Store;
+  remember: (key: string, criteria: SortCriterion[]) => void;
+}
+
+const SortMemoryContext = createContext<SortMemory | null>(null);
 
 // Switching views unmounts the list, which would otherwise throw away the sort the user just set up.
 export const SortMemoryProvider = ({ children }: { children: ReactNode }) => {
-  const store = useRef<Store>({});
-  return <SortMemoryContext.Provider value={store}>{children}</SortMemoryContext.Provider>;
+  const [store, setStore] = useState<Store>({});
+
+  const remember = useCallback((key: string, criteria: SortCriterion[]) => {
+    setStore((current) => ({ ...current, [key]: criteria }));
+  }, []);
+
+  const value = useMemo(() => ({ store, remember }), [store, remember]);
+
+  return <SortMemoryContext.Provider value={value}>{children}</SortMemoryContext.Provider>;
 };
 
 // Remembered criteria when the list names a `key` inside a provider, plain local state otherwise.
-// Only the one mounted list owning a key ever writes it, so a re-render tick is enough to publish
-// the change.
 export const useSortMemory = (
   key?: string,
   initial: SortCriterion[] = [],
 ): [SortCriterion[], (criteria: SortCriterion[]) => void] => {
-  const store = useContext(SortMemoryContext);
+  const memory = useContext(SortMemoryContext);
   const [local, setLocal] = useState<SortCriterion[]>(initial);
-  const [, tick] = useState(0);
 
-  const remembered = store !== null && key !== undefined;
+  const remembered = memory !== null && key !== undefined;
 
   const set = useCallback(
     (criteria: SortCriterion[]) => {
@@ -30,11 +39,10 @@ export const useSortMemory = (
         setLocal(criteria);
         return;
       }
-      store.current[key] = criteria;
-      tick((count) => count + 1);
+      memory.remember(key, criteria);
     },
-    [remembered, store, key],
+    [remembered, memory, key],
   );
 
-  return [remembered ? (store.current[key] ?? initial) : local, set];
+  return [remembered ? (memory.store[key] ?? initial) : local, set];
 };

@@ -2,7 +2,7 @@ import { COLOR } from "@/lib/constants/theme";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Stack, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useEffect, useRef } from "react";
+import { useEffect, useState } from "react";
 import {
   AccessibilityInfo,
   Animated,
@@ -16,7 +16,9 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function NotFoundScreen() {
   const router = useRouter();
-  const spin = useRef(new Animated.Value(0)).current;
+  // A lazy useState initializer, not useRef: the compiler's rules forbid reading a ref during
+  // render, and `rotate` below is derived at render time.
+  const [spin] = useState(() => new Animated.Value(0));
 
   useEffect(() => {
     let cancelled = false;
