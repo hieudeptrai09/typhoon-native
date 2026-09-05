@@ -24,6 +24,10 @@ interface ImageWithLoaderProps {
   spinnerSize?: "small" | "medium" | "large";
   showErrorLabel?: boolean;
   credit?: ImageCreditType;
+  // expo-image keys its disk cache by URL, so content re-rendered upstream behind a stable URL
+  // would be served from the first copy ever downloaded. Pass a key that rotates as often as the
+  // content changes.
+  cacheKey?: string;
 }
 
 const ImageWithLoader = ({
@@ -34,6 +38,7 @@ const ImageWithLoader = ({
   spinnerSize = "medium",
   showErrorLabel = true,
   credit,
+  cacheKey,
 }: ImageWithLoaderProps) => {
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
@@ -62,7 +67,7 @@ const ImageWithLoader = ({
       >
         <View style={[styles.root, style]}>
           <Image
-            source={{ uri: source }}
+            source={{ uri: source, cacheKey }}
             style={StyleSheet.absoluteFill}
             contentFit={contentFit}
             transition={200}
@@ -91,7 +96,7 @@ const ImageWithLoader = ({
       >
         <Pressable style={styles.viewer} onPress={() => setOpen(false)} accessibilityRole="button">
           <Image
-            source={{ uri: source }}
+            source={{ uri: source, cacheKey }}
             style={styles.full}
             contentFit="contain"
             transition={150}

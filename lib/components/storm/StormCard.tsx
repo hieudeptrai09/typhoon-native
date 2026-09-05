@@ -4,7 +4,7 @@ import StormHighlightBadges, { hasHighlight } from "@/lib/components/storm/Storm
 import { BACKGROUND_BADGE, INTENSITY_LABEL, TEXT_COLOR_BADGE } from "@/lib/constants";
 import { COLOR } from "@/lib/constants/theme";
 import type { Storm } from "@/lib/types";
-import { formatStormDateRange } from "@/lib/utils/date";
+import { formatStormDateRange, hourBucket } from "@/lib/utils/date";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { StyleSheet, Text, View } from "react-native";
 
@@ -13,6 +13,10 @@ const StormCard = ({ storm }: { storm: Storm }) => {
   const textColor = TEXT_COLOR_BADGE[storm.intensity];
   const label = INTENSITY_LABEL[storm.intensity];
   const dateRange = formatStormDateRange(storm.dateStart, storm.dateEnd);
+  const mapUri = storm.map?.trim() || null;
+  // A storm still over the basin has its track map redrawn upstream every day behind the same URL,
+  // so the cached copy has to expire on its own or the card would show the first day forever.
+  const mapCacheKey = mapUri && !storm.dateEnd ? `${mapUri}#${hourBucket()}` : undefined;
 
   return (
     <View style={styles.card}>
@@ -41,9 +45,10 @@ const StormCard = ({ storm }: { storm: Storm }) => {
       </View>
 
       <ImageWithLoader
-        source={storm.map?.trim() || null}
+        source={mapUri}
         label={`${storm.name} ${storm.year} track`}
         style={styles.map}
+        cacheKey={mapCacheKey}
       />
 
       <ZoomEarthLink storm={storm} variant="row" />

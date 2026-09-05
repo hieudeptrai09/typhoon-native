@@ -28,6 +28,11 @@ export const todayISO = (): string => {
   return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
 };
 
+// Cache key suffix for remote content that is re-rendered upstream behind a stable URL. The width
+// matches the query TTL in lib/api/client.ts, so an image and the row describing it go stale
+// together.
+export const hourBucket = (): string => String(Math.floor(Date.now() / 3_600_000));
+
 export const toMonthDay = (month: number, day: number): string =>
   `${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 
