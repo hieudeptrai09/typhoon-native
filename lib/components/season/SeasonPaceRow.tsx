@@ -1,5 +1,6 @@
 import { COLOR, RADIUS, SPACE } from "@/lib/constants/theme";
 import { getSeasonPaceColor } from "@/lib/utils/colors";
+import { formatPaceDelta } from "@/lib/utils/format";
 import type { SeasonToDateRow } from "@/lib/utils/storm/calendar";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { StyleSheet, Text, View } from "react-native";
@@ -8,8 +9,6 @@ export interface PaceRow extends SeasonToDateRow {
   delta: number; // storms ahead of (or behind) the average season by this date
   share: number | null; // null while the season is still running, with no final total to divide by
 }
-
-const formatDelta = (delta: number) => `${delta > 0 ? "+" : ""}${delta.toFixed(1)}`;
 
 interface SeasonPaceRowProps {
   row: PaceRow;
@@ -33,7 +32,7 @@ const SeasonPaceRow = ({ row, average, scaleMax }: SeasonPaceRowProps) => {
       </View>
 
       <Text style={styles.toDate}>{row.toDate}</Text>
-      <Text style={[styles.delta, { color: paceColor }]}>{formatDelta(row.delta)}</Text>
+      <Text style={[styles.delta, { color: paceColor }]}>{formatPaceDelta(row.delta)}</Text>
       <Ionicons name="chevron-forward" size={14} color={COLOR.textFaint} />
     </View>
   );

@@ -1,5 +1,11 @@
-import { GRID_EMPTY_CELL_COLOR, STORM_COUNT_COLORS } from "@/lib/constants/colors";
-import { getStormCountColor } from "@/lib/utils/colors";
+import {
+  GRID_EMPTY_CELL_COLOR,
+  SEASON_PACE_AHEAD_COLOR,
+  SEASON_PACE_BEHIND_COLOR,
+  SEASON_PACE_EVEN_COLOR,
+  STORM_COUNT_COLORS,
+} from "@/lib/constants/colors";
+import { getSeasonPaceColor, getStormCountColor } from "@/lib/utils/colors";
 
 const [BEHIND, BUSIEST] = STORM_COUNT_COLORS;
 
@@ -38,5 +44,18 @@ describe("getStormCountColor", () => {
 
   it("keeps an empty position off the palette entirely", () => {
     expect(getStormCountColor(0, 5)).toBe(GRID_EMPTY_CELL_COLOR);
+  });
+});
+
+describe("getSeasonPaceColor", () => {
+  it("treats a gap that rounds to 0.0 as even", () => {
+    expect(getSeasonPaceColor(0.04)).toBe(SEASON_PACE_EVEN_COLOR);
+    expect(getSeasonPaceColor(-0.04)).toBe(SEASON_PACE_EVEN_COLOR);
+    expect(getSeasonPaceColor(0)).toBe(SEASON_PACE_EVEN_COLOR);
+  });
+
+  it("keeps the pace colours once the gap shows at one decimal", () => {
+    expect(getSeasonPaceColor(0.05)).toBe(SEASON_PACE_AHEAD_COLOR);
+    expect(getSeasonPaceColor(-0.06)).toBe(SEASON_PACE_BEHIND_COLOR);
   });
 });

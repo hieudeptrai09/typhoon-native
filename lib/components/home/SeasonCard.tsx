@@ -4,6 +4,7 @@ import { COLOR, RADIUS, SPACE } from "@/lib/constants/theme";
 import type { Storm } from "@/lib/types";
 import { getSeasonPaceColor } from "@/lib/utils/colors";
 import { formatMonthDay, monthDayOf, parseStormDate, todayISO } from "@/lib/utils/date";
+import { formatPaceGap, roundPaceDelta } from "@/lib/utils/format";
 import {
   averageToDate,
   getSeasonToDate,
@@ -14,9 +15,6 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { router } from "expo-router";
 import { useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-
-// Below this the two seasons are close enough that an arrow would overstate the gap.
-const EVEN_THRESHOLD = 0.05;
 
 interface SeasonCardProps {
   query: QueryState<Storm[]>;
@@ -87,9 +85,10 @@ const SeasonCard = ({ query }: SeasonCardProps) => {
   if (!isLoading && !isError && season === null) return null;
 
   const dateLabel = season ? formatMonthDay(season.monthDay) : "";
-  const delta = season?.delta ?? 0;
-  const isEven = Math.abs(delta) < EVEN_THRESHOLD;
-  const paceColor = getSeasonPaceColor(isEven ? 0 : delta);
+  // The rounded gap drives the arrow and the wording too: a gap that prints as 0.0 reads as even.
+  const delta = roundPaceDelta(season?.delta ?? 0);
+  const isEven = delta === 0;
+  const paceColor = getSeasonPaceColor(delta);
   const max = season ? Math.max(season.toDate, season.average) : 0;
 
   return (
@@ -117,7 +116,7 @@ const SeasonCard = ({ query }: SeasonCardProps) => {
                 <Text style={[styles.paceLabel, { color: paceColor }]}>
                   {isEven
                     ? "right on the average"
-                    : `${Math.abs(delta).toFixed(1)} ${delta > 0 ? "ahead of" : "behind"} average`}
+                    : `${formatPaceGap(delta)} ${delta > 0 ? "ahead of" : "behind"} average`}
                 </Text>
               </View>
             </View>

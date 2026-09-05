@@ -17,6 +17,7 @@ import {
 } from "@/lib/constants/colors";
 import { COLOR } from "@/lib/constants/theme";
 import type { RetirementReason } from "@/lib/types";
+import { roundPaceDelta } from "@/lib/utils/format";
 
 // A negative gap means there is nothing to measure against, so 0 stays free to mean a real same-year gap.
 export const getDistanceColor = (years: number): string => {
@@ -39,9 +40,11 @@ export const getStormCountColor = (count: number, maxCount: number): string =>
 export const getAvgDateColor = (month: number): string =>
   AVG_DATE_MONTH_COLOR[month] ?? AVG_DATE_FALLBACK_COLOR;
 
+// Rounded first, so a gap that prints as 0.0 is never painted ahead of or behind the average.
 export const getSeasonPaceColor = (delta: number): string => {
-  if (delta > 0) return SEASON_PACE_AHEAD_COLOR;
-  if (delta < 0) return SEASON_PACE_BEHIND_COLOR;
+  const shown = roundPaceDelta(delta);
+  if (shown > 0) return SEASON_PACE_AHEAD_COLOR;
+  if (shown < 0) return SEASON_PACE_BEHIND_COLOR;
   return SEASON_PACE_EVEN_COLOR;
 };
 
