@@ -4,6 +4,13 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import * as Haptics from "expo-haptics";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
+const ROW_HEIGHT = 52;
+
+// Lets a container reserve room for a known number of rows. Approximate: a row carrying a note
+// wraps to a second line and grows past ROW_HEIGHT.
+export const optionGroupHeight = (rows: number): number =>
+  rows > 0 ? rows * ROW_HEIGHT + (rows - 1) * SPACE.sm : 0;
+
 interface OptionRowProps {
   option: SegmentOption;
   selected: boolean;
@@ -65,7 +72,8 @@ const OptionRow = ({ option, selected, onPress }: OptionRowProps) => {
 };
 
 interface OptionGroupProps {
-  label: string;
+  // Omitted when the caller already names the group, e.g. a tab carrying the axis label.
+  label?: string;
   options: SegmentOption[];
   value: string;
   onChange: (value: string) => void;
@@ -73,7 +81,7 @@ interface OptionGroupProps {
 
 export const OptionGroup = ({ label, options, value, onChange }: OptionGroupProps) => (
   <View>
-    <Text style={styles.sectionLabel}>{label}</Text>
+    {label !== undefined && <Text style={styles.sectionLabel}>{label}</Text>}
     <View style={styles.group}>
       {options.map((option) => (
         <OptionRow
@@ -98,13 +106,12 @@ const styles = StyleSheet.create({
   },
   group: {
     gap: SPACE.sm,
-    marginBottom: SPACE.lg,
   },
   row: {
     flexDirection: "row",
     alignItems: "center",
     gap: SPACE.md,
-    minHeight: 52,
+    minHeight: ROW_HEIGHT,
     paddingVertical: SPACE.sm,
     paddingHorizontal: 14,
     borderRadius: 12,

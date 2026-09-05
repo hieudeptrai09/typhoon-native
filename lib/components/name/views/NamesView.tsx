@@ -1,6 +1,7 @@
 import ListControls from "@/lib/components/common/ListControls";
+import { type OptionAxis } from "@/lib/components/common/ViewOptionsSheet";
 import NameFilterSheet from "@/lib/components/name/modals/NameFilterSheet";
-import NameOptionsSheet from "@/lib/components/name/widgets/NameOptionsSheet";
+import { GRID_CONTENT_OPTIONS, HISTORY_OPTIONS } from "@/lib/components/name/options";
 import PositionNameGrid from "@/lib/components/name/widgets/PositionNameGrid";
 import type { FilterParams, TyphoonName } from "@/lib/types";
 import { applyNameFilters, clearNameFilter, nameFilterChips } from "@/lib/utils/name/filters";
@@ -29,7 +30,6 @@ const NamesView = ({
   onFiltersChange,
 }: NamesViewProps) => {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [isOptionsOpen, setIsOptionsOpen] = useState(false);
 
   // A misspelling is a correction to a name, not a name the committee ever assigned, so it stays
   // out of the rotation.
@@ -72,6 +72,21 @@ const NamesView = ({
     [rotationNames, showHistory],
   );
 
+  const axes: OptionAxis[] = [
+    {
+      label: "Show",
+      options: HISTORY_OPTIONS,
+      value: showHistory ? "history" : "current",
+      onChange: (value) => onShowHistoryChange(value === "history"),
+    },
+    {
+      label: "Each cell shows",
+      options: GRID_CONTENT_OPTIONS,
+      value: showName ? "name" : "tag",
+      onChange: (value) => onShowNameChange(value === "name"),
+    },
+  ];
+
   const handleCellPress = (position: number, names: TyphoonName[]) => {
     if (showHistory) {
       router.push(`/positions/${getPositionSlug(position)}`);
@@ -83,11 +98,7 @@ const NamesView = ({
   return (
     <View style={styles.root}>
       <ListControls
-        options={{
-          label: `${showHistory ? "Every name ever" : "Current rotation"} · ${showName ? "Names" : "Categories"}`,
-          icon: showHistory ? "time-outline" : "flame-outline",
-          onPress: () => setIsOptionsOpen(true),
-        }}
+        axes={axes}
         filter={{ count: chips.length, onPress: () => setIsFilterOpen(true) }}
         chips={chips.map((chip) => ({
           key: chip.key,
@@ -104,15 +115,6 @@ const NamesView = ({
         showHistory={showHistory}
         isFiltered={chips.length > 0}
         onCellPress={handleCellPress}
-      />
-
-      <NameOptionsSheet
-        open={isOptionsOpen}
-        onClose={() => setIsOptionsOpen(false)}
-        showHistory={showHistory}
-        onShowHistoryChange={onShowHistoryChange}
-        showName={showName}
-        onShowNameChange={onShowNameChange}
       />
 
       <NameFilterSheet<FilterParams>

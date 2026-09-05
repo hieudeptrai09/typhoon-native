@@ -2,6 +2,7 @@ import { useSortMemory } from "@/lib/components/common/DataList/sortMemory";
 import SortSheet from "@/lib/components/common/DataList/SortSheet";
 import ListControls, { type ControlChip } from "@/lib/components/common/ListControls";
 import { useRefreshControl } from "@/lib/components/common/RefreshContext";
+import { type OptionAxis } from "@/lib/components/common/ViewOptionsSheet";
 import { COLOR, SPACE } from "@/lib/constants/theme";
 import type { IconName } from "@/lib/types";
 import {
@@ -32,7 +33,7 @@ interface DataListProps<T> {
     onOpen: () => void;
     onRemoveChip: (key: string) => void;
   };
-  options?: { label: string; icon: IconName; onPress: () => void };
+  axes?: OptionAxis[];
 }
 
 const defaultCountLabel = (count: number) => `${count} result${count === 1 ? "" : "s"}`;
@@ -49,7 +50,7 @@ const DataList = <T,>({
   sortKey,
   defaultSort,
   filter,
-  options,
+  axes,
 }: DataListProps<T>) => {
   const [criteria, setCriteria] = useSortMemory(sortKey, defaultSort);
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -97,7 +98,7 @@ const DataList = <T,>({
     );
   };
 
-  const hasControls = sortFields.length > 0 || filter !== undefined || options !== undefined;
+  const hasControls = sortFields.length > 0 || filter !== undefined || axes !== undefined;
 
   return (
     <View style={styles.root}>
@@ -105,7 +106,7 @@ const DataList = <T,>({
         <View style={styles.toolbar}>
           <ListControls
             count={countLabel(sorted.length)}
-            options={options}
+            axes={axes}
             filter={filter ? { count: filter.chips.length, onPress: filter.onOpen } : undefined}
             sort={
               sortFields.length > 0

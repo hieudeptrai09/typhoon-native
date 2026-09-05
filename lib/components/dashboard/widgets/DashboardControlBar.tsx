@@ -1,17 +1,14 @@
-import EdgeFade from "@/lib/components/common/EdgeFade";
+import AxisChipRail from "@/lib/components/common/AxisChip";
+import ViewOptionsSheet, { type OptionAxis } from "@/lib/components/common/ViewOptionsSheet";
 import {
   filterLabelFor,
   filterOptionsFor,
   METRIC_OPTIONS,
   MODE_OPTIONS,
-  optionFor,
   VIEW_TABS,
 } from "@/lib/components/dashboard/options";
-import ViewOptionsSheet, {
-  type OptionAxis,
-} from "@/lib/components/dashboard/widgets/ViewOptionsSheet";
 import { COLOR, RADIUS, SPACE } from "@/lib/constants/theme";
-import type { DashboardParams, SegmentOption } from "@/lib/types";
+import type { DashboardParams } from "@/lib/types";
 import {
   groupBlockedReason,
   layoutBlockedReason,
@@ -28,32 +25,14 @@ interface DashboardControlBarProps {
   onSelectView: (view: string) => void;
 }
 
-const AxisChip = ({ option, onPress }: { option: SegmentOption; onPress: () => void }) => (
-  <Pressable
-    onPress={onPress}
-    style={({ pressed }) => [styles.chip, pressed && styles.pressed]}
-    accessibilityRole="button"
-    accessibilityLabel={`${option.label}. Tap to change.`}
-  >
-    {option.swatch ? (
-      <View style={[styles.swatch, { backgroundColor: option.swatch }]} />
-    ) : (
-      option.icon && <Ionicons name={option.icon} size={14} color={COLOR.accent} />
-    )}
-    <Text style={styles.chipLabel} numberOfLines={1}>
-      {option.shortLabel ?? option.label}
-    </Text>
-    <Ionicons name="chevron-down" size={12} color={COLOR.accent} />
-  </Pressable>
-);
-
 const DashboardControlBar = ({ params, onChange, onSelectView }: DashboardControlBarProps) => {
-  const [sheetOpen, setSheetOpen] = useState(false);
+  const [sheetAxis, setSheetAxis] = useState<string>();
   const { view, metric, filter, mode } = params;
 
-  const openSheet = () => {
+  // The tapped chip picks the tab the sheet opens on, so a chip never lands on an unrelated axis.
+  const openSheet = (axis: string) => {
     Haptics.selectionAsync();
-    setSheetOpen(true);
+    setSheetAxis(axis);
   };
 
   const apply = (next: Partial<DashboardParams>) =>
@@ -89,12 +68,6 @@ const DashboardControlBar = ({ params, onChange, onSelectView }: DashboardContro
     value: mode,
     onChange: (next) => apply({ mode: next }),
   });
-
-  const chipOptions = [
-    view === "stats" ? optionFor(METRIC_OPTIONS, metric) : undefined,
-    optionFor(filterOptions, filter),
-    optionFor(MODE_OPTIONS, mode),
-  ].filter((option): option is SegmentOption => option !== undefined);
 
   return (
     <View style={styles.root}>
@@ -135,13 +108,19 @@ const DashboardControlBar = ({ params, onChange, onSelectView }: DashboardContro
         })}
       </View>
 
-      <EdgeFade style={styles.rail} contentContainerStyle={styles.railContent}>
-        {chipOptions.map((option) => (
-          <AxisChip key={option.value} option={option} onPress={openSheet} />
-        ))}
-      </EdgeFade>
+      <AxisChipRail
+        axes={axes}
+        onPress={openSheet}
+        style={styles.rail}
+        contentContainerStyle={styles.railContent}
+      />
 
-      <ViewOptionsSheet open={sheetOpen} onClose={() => setSheetOpen(false)} axes={axes} />
+      <ViewOptionsSheet
+        open={sheetAxis !== undefined}
+        onClose={() => setSheetAxis(undefined)}
+        axes={axes}
+        initialAxis={sheetAxis}
+      />
     </View>
   );
 };
@@ -185,37 +164,12 @@ const styles = StyleSheet.create({
   pressed: {
     opacity: 0.6,
   },
+  // The rail sits in a column: without this the scroller claims the leftover height.
   rail: {
     flexGrow: 0,
   },
   railContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: SPACE.sm,
     paddingHorizontal: SPACE.lg,
-  },
-  chip: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 5,
-    height: 32,
-    paddingHorizontal: 10,
-    borderRadius: RADIUS.pill,
-    backgroundColor: COLOR.accentSoft,
-    borderWidth: 1,
-    borderColor: COLOR.accentBorder,
-  },
-  swatch: {
-    width: 12,
-    height: 12,
-    borderRadius: 4,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: COLOR.borderStrong,
-  },
-  chipLabel: {
-    fontFamily: "OpenSans_600SemiBold",
-    fontSize: 13,
-    color: COLOR.accent,
   },
 });
 

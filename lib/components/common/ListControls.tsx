@@ -1,8 +1,11 @@
+import AxisChipRail from "@/lib/components/common/AxisChip";
 import EdgeFade from "@/lib/components/common/EdgeFade";
+import ViewOptionsSheet, { type OptionAxis } from "@/lib/components/common/ViewOptionsSheet";
 import { COLOR, SPACE } from "@/lib/constants/theme";
 import type { IconName } from "@/lib/types";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import * as Haptics from "expo-haptics";
+import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 export interface ControlChip {
@@ -20,9 +23,9 @@ interface ControlButton {
 }
 
 interface ListControlsProps {
-  // The options pill wins this slot when both are given.
+  // The axis rail wins this slot when both are given.
   count?: string;
-  options?: { label: string; icon: IconName; onPress: () => void };
+  axes?: OptionAxis[];
   filter?: ControlButton;
   sort?: ControlButton;
   chips?: ControlChip[];
@@ -62,77 +65,79 @@ const Pill = ({
   );
 };
 
-const ListControls = ({ count, options, filter, sort, chips = [] }: ListControlsProps) => (
-  <View style={styles.root}>
-    <View style={styles.row}>
-      {options ? (
-        <Pressable
-          onPress={options.onPress}
-          style={({ pressed }) => [styles.options, pressed && styles.pressed]}
-          accessibilityRole="button"
-          accessibilityLabel={`View options, currently ${options.label}`}
-        >
-          <Ionicons name={options.icon} size={15} color={COLOR.accent} />
-          <Text style={styles.optionsLabel} numberOfLines={1}>
-            {options.label}
+const ListControls = ({ count, axes, filter, sort, chips = [] }: ListControlsProps) => {
+  const [sheetAxis, setSheetAxis] = useState<string>();
+
+  return (
+    <View style={styles.root}>
+      <View style={styles.row}>
+        {axes && axes.length > 0 ? (
+          <AxisChipRail axes={axes} onPress={setSheetAxis} style={styles.rail} />
+        ) : count !== undefined ? (
+          <Text style={styles.count} numberOfLines={1}>
+            {count}
           </Text>
-          <Ionicons name="chevron-down" size={14} color={COLOR.accent} />
-        </Pressable>
-      ) : count !== undefined ? (
-        <Text style={styles.count} numberOfLines={1}>
-          {count}
-        </Text>
-      ) : (
-        <View style={styles.spacer} />
+        ) : (
+          <View style={styles.spacer} />
+        )}
+
+        {filter && (
+          <Pill
+            icon="funnel-outline"
+            label="Filter"
+            count={filter.count}
+            onPress={filter.onPress}
+            accessibilityLabel={
+              filter.count > 0 ? `Filters, ${filter.count} applied` : "Filter this list"
+            }
+          />
+        )}
+
+        {sort && (
+          <Pill
+            icon="swap-vertical"
+            label="Sort"
+            count={sort.count}
+            onPress={sort.onPress}
+            accessibilityLabel={sort.count > 0 ? `Sort, ${sort.count} applied` : "Sort this list"}
+          />
+        )}
+      </View>
+
+      {chips.length > 0 && (
+        <EdgeFade contentContainerStyle={styles.chips}>
+          {chips.map((chip) => (
+            <Pressable
+              key={chip.key}
+              onPress={() => {
+                Haptics.selectionAsync();
+                chip.onPress();
+              }}
+              style={({ pressed }) => [styles.chip, pressed && styles.pressed]}
+              accessibilityRole="button"
+              accessibilityLabel={chip.accessibilityLabel}
+            >
+              {chip.rank !== undefined && <Text style={styles.chipRank}>{chip.rank}</Text>}
+              <Text style={styles.chipLabel} numberOfLines={1}>
+                {chip.label}
+              </Text>
+              <Ionicons name={chip.icon} size={13} color={COLOR.accent} />
+            </Pressable>
+          ))}
+        </EdgeFade>
       )}
 
-      {filter && (
-        <Pill
-          icon="funnel-outline"
-          label="Filter"
-          count={filter.count}
-          onPress={filter.onPress}
-          accessibilityLabel={
-            filter.count > 0 ? `Filters, ${filter.count} applied` : "Filter this list"
-          }
-        />
-      )}
-
-      {sort && (
-        <Pill
-          icon="swap-vertical"
-          label="Sort"
-          count={sort.count}
-          onPress={sort.onPress}
-          accessibilityLabel={sort.count > 0 ? `Sort, ${sort.count} applied` : "Sort this list"}
+      {axes && (
+        <ViewOptionsSheet
+          open={sheetAxis !== undefined}
+          onClose={() => setSheetAxis(undefined)}
+          axes={axes}
+          initialAxis={sheetAxis}
         />
       )}
     </View>
-
-    {chips.length > 0 && (
-      <EdgeFade contentContainerStyle={styles.chips}>
-        {chips.map((chip) => (
-          <Pressable
-            key={chip.key}
-            onPress={() => {
-              Haptics.selectionAsync();
-              chip.onPress();
-            }}
-            style={({ pressed }) => [styles.chip, pressed && styles.pressed]}
-            accessibilityRole="button"
-            accessibilityLabel={chip.accessibilityLabel}
-          >
-            {chip.rank !== undefined && <Text style={styles.chipRank}>{chip.rank}</Text>}
-            <Text style={styles.chipLabel} numberOfLines={1}>
-              {chip.label}
-            </Text>
-            <Ionicons name={chip.icon} size={13} color={COLOR.accent} />
-          </Pressable>
-        ))}
-      </EdgeFade>
-    )}
-  </View>
-);
+  );
+};
 
 const styles = StyleSheet.create({
   root: {
@@ -155,23 +160,9 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: COLOR.textMuted,
   },
-  options: {
+  // Shrinkable, so the Filter and Sort pills keep their width and the chips scroll instead.
+  rail: {
     flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    height: 36,
-    paddingHorizontal: 12,
-    borderRadius: 18,
-    backgroundColor: COLOR.accentSoft,
-    borderWidth: 1,
-    borderColor: COLOR.accentBorder,
-  },
-  optionsLabel: {
-    flex: 1,
-    fontFamily: "OpenSans_600SemiBold",
-    fontSize: 13,
-    color: COLOR.accent,
   },
   pill: {
     flexDirection: "row",

@@ -8,8 +8,8 @@ export const NAME_SCOPE_TABS: { key: NamesScope; label: string; icon: IconName }
 ];
 
 export const HISTORY_OPTIONS: SegmentOption[] = [
-  { value: "current", label: "Current rotation", icon: "flame-outline" },
-  { value: "history", label: "Every name ever", icon: "time-outline" },
+  { value: "current", label: "Current rotation", shortLabel: "Current", icon: "flame-outline" },
+  { value: "history", label: "Every name ever", shortLabel: "All time", icon: "time-outline" },
 ];
 
 export const GRID_CONTENT_OPTIONS: SegmentOption[] = [

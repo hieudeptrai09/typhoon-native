@@ -100,6 +100,3 @@ export const filterOptionsFor = (view: string): SegmentOption[] =>
 
 // "Group by" is wrong on records, where the options pick one slice rather than a grouping.
 export const filterLabelFor = (view: string): string => (view === "records" ? "Show" : "Group by");
-
-export const optionFor = (options: SegmentOption[], value: string): SegmentOption | undefined =>
-  options.find((option) => option.value === value);
