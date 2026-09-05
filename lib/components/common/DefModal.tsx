@@ -27,10 +27,19 @@ interface DefModalProps {
   onClose: () => void;
   title?: ReactNode;
   footer?: ReactNode;
+  // Off when the body scrolls itself, so two vertical scroll views never stack.
+  scroll?: boolean;
   children: ReactNode;
 }
 
-const DefModal = ({ open = true, onClose, title, footer, children }: DefModalProps) => {
+const DefModal = ({
+  open = true,
+  onClose,
+  title,
+  footer,
+  scroll = true,
+  children,
+}: DefModalProps) => {
   const insets = useSafeAreaInsets();
   // Lazy useState initializers, not useRef: the compiler's rules forbid reading a ref during
   // render, and both values are read from the style props below.
@@ -148,14 +157,18 @@ const DefModal = ({ open = true, onClose, title, footer, children }: DefModalPro
               </View>
             </GestureDetector>
 
-            <ScrollView
-              style={styles.body}
-              contentContainerStyle={styles.bodyContent}
-              showsVerticalScrollIndicator={false}
-              keyboardShouldPersistTaps="handled"
-            >
-              {children}
-            </ScrollView>
+            {scroll ? (
+              <ScrollView
+                style={styles.body}
+                contentContainerStyle={styles.bodyContent}
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+              >
+                {children}
+              </ScrollView>
+            ) : (
+              <View style={[styles.body, styles.bodyContent]}>{children}</View>
+            )}
 
             {footer ? <View style={styles.footer}>{footer}</View> : null}
           </Animated.View>
@@ -218,6 +231,7 @@ const styles = StyleSheet.create({
   },
   body: {
     flexGrow: 0,
+    flexShrink: 1,
   },
   bodyContent: {
     paddingTop: 14,

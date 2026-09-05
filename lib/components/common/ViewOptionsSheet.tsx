@@ -5,7 +5,7 @@ import type { SegmentOption } from "@/lib/types";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import * as Haptics from "expo-haptics";
 import { useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 export interface OptionAxis {
   label: string;
@@ -21,10 +21,10 @@ interface ViewOptionsSheetProps {
   initialAxis?: string;
 }
 
-// Tabs are floored to the tallest axis so switching between them doesn't resize the sheet. Capped
-// because the records axis carries 12 options, and matching that would leave a two-option tab
-// nearly fullscreen.
-const FLOOR_ROWS = 5;
+// Every tab gets the same viewport so switching between them never resizes the sheet: shorter
+// axes leave slack below, longer ones (records carries 12 options) scroll. Five rows because
+// matching the tallest axis would leave a two-option tab nearly fullscreen.
+const VIEWPORT_ROWS = 5;
 
 export const selectedOptionFor = (axis: OptionAxis): SegmentOption | undefined =>
   axis.options.find((option) => option.value === axis.value);
@@ -103,10 +103,10 @@ const ViewOptionsSheet = ({ open, onClose, axes, initialAxis }: ViewOptionsSheet
   const active = axes.find((axis) => axis.label === activeLabel) ?? axes[0];
 
   const tallest = Math.max(...axes.map((axis) => axis.options.length), 0);
-  const floor = optionGroupHeight(Math.min(tallest, FLOOR_ROWS));
+  const viewport = optionGroupHeight(Math.min(tallest, VIEWPORT_ROWS));
 
   return (
-    <DefModal open={open} onClose={onClose} title="View options">
+    <DefModal open={open} onClose={onClose} title="View options" scroll={false}>
       {axes.length > 1 && (
         <View style={styles.tabs} accessibilityRole="tablist">
           {axes.map((axis) => (
@@ -120,7 +120,11 @@ const ViewOptionsSheet = ({ open, onClose, axes, initialAxis }: ViewOptionsSheet
         </View>
       )}
 
-      <View style={{ minHeight: floor }}>
+      <ScrollView
+        style={[styles.viewport, { height: viewport }]}
+        contentContainerStyle={styles.viewportContent}
+        keyboardShouldPersistTaps="handled"
+      >
         {active && (
           <OptionGroup
             key={active.label}
@@ -129,12 +133,19 @@ const ViewOptionsSheet = ({ open, onClose, axes, initialAxis }: ViewOptionsSheet
             onChange={active.onChange}
           />
         )}
-      </View>
+      </ScrollView>
     </DefModal>
   );
 };
 
 const styles = StyleSheet.create({
+  // Shrinks below the fixed height rather than clipping when the sheet hits its own max height.
+  viewport: {
+    flexShrink: 1,
+  },
+  viewportContent: {
+    paddingBottom: 2,
+  },
   tabs: {
     flexDirection: "row",
     gap: SPACE.xs,
