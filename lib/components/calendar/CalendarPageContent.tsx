@@ -4,13 +4,13 @@ import CalendarSpine from "@/lib/components/calendar/CalendarSpine";
 import StaleBanner from "@/lib/components/common/StaleBanner";
 import SwipePager from "@/lib/components/common/SwipePager";
 import SeasonPacePane from "@/lib/components/season/SeasonPacePane";
+import { NAMING_LIST_FIRST_YEAR } from "@/lib/constants";
 import type { Storm } from "@/lib/types";
 import { formatMonthDay } from "@/lib/utils/date";
 import {
   buildDaySpine,
   countDaySeasons,
   getDayDensity,
-  NAMING_LIST_FIRST_YEAR,
   type DayEventKind,
 } from "@/lib/utils/storm/calendar";
 import { useMemo } from "react";

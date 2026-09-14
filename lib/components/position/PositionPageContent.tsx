@@ -2,44 +2,32 @@ import CountryFlag from "@/lib/components/common/CountryFlag";
 import EmptyResults from "@/lib/components/common/EmptyResults";
 import ImageCredit from "@/lib/components/common/ImageCredit";
 import ImageWithLoader from "@/lib/components/common/ImageWithLoader";
-import { useRefreshControl } from "@/lib/components/common/RefreshContext";
 import Section from "@/lib/components/common/Section";
 import StaleBanner from "@/lib/components/common/StaleBanner";
-import StormCard from "@/lib/components/storm/StormCard";
-import StormStats from "@/lib/components/storm/StormStats";
-import { BACKGROUND_BADGE, TEXT_COLOR_WHITE_BACKGROUND } from "@/lib/constants";
+import GroupedStormList, { type StormGroup } from "@/lib/components/storm/GroupedStormList";
+import StatisticsSection from "@/lib/components/storm/StatisticsSection";
+import { TEXT_COLOR_WHITE_BACKGROUND } from "@/lib/constants";
 import { GRID_MAX } from "@/lib/constants/position";
 import { COLOR, RADIUS, SPACE } from "@/lib/constants/theme";
 import type { PositionDetail, RetiredName, Storm, TyphoonName } from "@/lib/types";
-import { getDistanceColor, getNameStatusColor } from "@/lib/utils/colors";
+import { getNameStatusColor } from "@/lib/utils/colors";
+import { getCountrySlug, isKnownCountry } from "@/lib/utils/country";
 import { getPositionTitle } from "@/lib/utils/position";
 import {
   calculateAverage,
-  calculateGapAverage,
-  formatDistance,
   getGroupedStorms,
   getIntensityFromNumber,
   sortNamesByFirstYear,
 } from "@/lib/utils/storm/aggregate";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
-import { useMemo, useState } from "react";
-import { Pressable, SectionList, StyleSheet, Text, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useMemo } from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 interface PositionPageContentProps {
   detail: PositionDetail | null;
   position: number;
   staleError?: boolean;
-}
-
-interface StormGroup {
-  name: string;
-  data: Storm[];
-  count: number;
-  average: number;
-  recurrence: number;
 }
 
 function NameTimelineItem({ name, storms }: { name: TyphoonName | RetiredName; storms: Storm[] }) {
@@ -148,32 +136,20 @@ export default function PositionPageContent({
   position,
   staleError = false,
 }: PositionPageContentProps) {
-  const refreshControl = useRefreshControl();
-  const insets = useSafeAreaInsets();
-  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+  const router = useRouter();
 
   const storms = useMemo(() => detail?.storms ?? [], [detail]);
 
   const groups = useMemo<StormGroup[]>(
     () =>
       sortNamesByFirstYear(Object.entries(getGroupedStorms(storms, "name"))).map(
-        ([name, group]) => {
-          const sorted = [...group].sort((a, b) => a.year - b.year);
-          return {
-            name,
-            data: sorted,
-            count: sorted.length,
-            average: calculateAverage(sorted),
-            recurrence: calculateGapAverage(sorted),
-          };
-        },
+        ([name, group]) => ({
+          key: name,
+          label: name,
+          storms: [...group].sort((a, b) => a.year - b.year),
+        }),
       ),
     [storms],
-  );
-
-  const sections = useMemo(
-    () => groups.map((group) => ({ ...group, data: collapsed[group.name] ? [] : group.data })),
-    [groups, collapsed],
   );
 
   if (!detail || (detail.names.length === 0 && storms.length === 0)) {
@@ -191,30 +167,34 @@ export default function PositionPageContent({
       ? TEXT_COLOR_WHITE_BACKGROUND[getIntensityFromNumber(calculateAverage(storms))]
       : COLOR.textMuted;
 
-  const toggle = (name: string) => {
-    Haptics.selectionAsync();
-    setCollapsed((current) => ({ ...current, [name]: !current[name] }));
-  };
-
   const header = (
     <View style={styles.header}>
       <View style={styles.heading}>
         {isInGrid && <CountryFlag country={country} size={22} />}
         <Text style={[styles.title, { color: titleColor }]}>{getPositionTitle(position)}</Text>
-        {isInGrid && (
-          <Text style={styles.country} numberOfLines={1}>
-            {country}
-          </Text>
+        {isInGrid && isKnownCountry(country) && (
+          <Pressable
+            onPress={() => router.push(`/countries/${getCountrySlug(country)}`)}
+            hitSlop={8}
+            style={({ pressed }) => [styles.countryLink, pressed && styles.pressed]}
+            accessibilityRole="link"
+            accessibilityLabel={`Open ${country}`}
+          >
+            <Text style={styles.country} numberOfLines={1}>
+              {country}
+            </Text>
+            <Ionicons name="chevron-forward" size={14} color={COLOR.accent} />
+          </Pressable>
         )}
       </View>
 
       {isInGrid && <NameTimeline names={names} storms={storms} />}
 
+      <StatisticsSection storms={storms} />
+
       <Text style={styles.listTitle}>All Storms ({storms.length})</Text>
 
-      {storms.length > 0 ? (
-        <StormStats storms={storms} />
-      ) : (
+      {storms.length === 0 && (
         <Text style={styles.empty}>No storms recorded at this position.</Text>
       )}
     </View>
@@ -224,84 +204,7 @@ export default function PositionPageContent({
     <View style={styles.root}>
       {staleError && <StaleBanner />}
 
-      <SectionList<Storm, StormGroup>
-        sections={sections}
-        keyExtractor={(storm, index) => `${storm.name}-${storm.year}-${index}`}
-        // One card per row: a track map at half a phone's width is unreadable.
-        renderItem={({ item }) => (
-          <View style={styles.card}>
-            <StormCard storm={item} />
-          </View>
-        )}
-        renderSectionHeader={({ section: group }) => {
-          const intensityLabel = getIntensityFromNumber(group.average);
-          const isCollapsed = Boolean(collapsed[group.name]);
-
-          return (
-            <View style={styles.groupHeaderWrap}>
-              <Pressable
-                onPress={() => toggle(group.name)}
-                style={({ pressed }) => [
-                  styles.groupHeader,
-                  { borderLeftColor: BACKGROUND_BADGE[intensityLabel] },
-                  pressed && styles.pressed,
-                ]}
-                accessibilityRole="button"
-                accessibilityState={{ expanded: !isCollapsed }}
-                accessibilityLabel={`${group.name}, ${group.count} storms`}
-              >
-                <View style={styles.groupBody}>
-                  <Text style={styles.groupName}>{group.name}</Text>
-
-                  <View style={styles.groupStats}>
-                    <Text style={styles.stat}>
-                      Count: <Text style={styles.statValue}>{group.count}</Text>
-                    </Text>
-                    <Text style={styles.stat}>
-                      Avg:{" "}
-                      <Text
-                        style={[
-                          styles.statValue,
-                          { color: TEXT_COLOR_WHITE_BACKGROUND[intensityLabel] },
-                        ]}
-                      >
-                        {group.average.toFixed(2)}
-                      </Text>
-                    </Text>
-                    {/* A lone storm leaves no gap to measure, so the stat is left off entirely. */}
-                    {group.recurrence >= 0 && (
-                      <Text style={styles.stat}>
-                        Every:{" "}
-                        <Text
-                          style={[styles.statValue, { color: getDistanceColor(group.recurrence) }]}
-                        >
-                          {formatDistance(group.recurrence)}
-                        </Text>{" "}
-                        yrs
-                      </Text>
-                    )}
-                  </View>
-                </View>
-
-                <Ionicons
-                  name={isCollapsed ? "chevron-down" : "chevron-up"}
-                  size={18}
-                  color={COLOR.textMuted}
-                />
-              </Pressable>
-            </View>
-          );
-        }}
-        ListHeaderComponent={header}
-        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + SPACE.xl }]}
-        refreshControl={refreshControl}
-        showsVerticalScrollIndicator={false}
-        stickySectionHeadersEnabled
-        // Every card carries a remote track map, and a long-lived position runs to dozens of them.
-        initialNumToRender={4}
-        windowSize={7}
-        removeClippedSubviews
-      />
+      <GroupedStormList groups={groups} header={header} />
     </View>
   );
 }
@@ -313,10 +216,6 @@ const styles = StyleSheet.create({
   state: {
     flex: 1,
     justifyContent: "center",
-  },
-  content: {
-    paddingHorizontal: SPACE.lg,
-    paddingTop: SPACE.lg,
   },
   header: {
     gap: SPACE.lg,
@@ -331,11 +230,21 @@ const styles = StyleSheet.create({
     fontFamily: "OpenSans_700Bold",
     fontSize: 28,
   },
+  countryLink: {
+    flexShrink: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 2,
+    minHeight: 44,
+  },
   country: {
     flexShrink: 1,
-    fontFamily: "OpenSans_400Regular",
+    fontFamily: "OpenSans_600SemiBold",
     fontSize: 15,
-    color: COLOR.textBody,
+    color: COLOR.accent,
+  },
+  pressed: {
+    opacity: 0.6,
   },
   listTitle: {
     fontFamily: "OpenSans_700Bold",
@@ -430,53 +339,5 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLOR.border,
     backgroundColor: COLOR.surfaceSubtle,
-  },
-  // Opaque and full-bleed, so cards scrolling under the pinned header stay hidden.
-  groupHeaderWrap: {
-    paddingBottom: SPACE.md,
-    backgroundColor: COLOR.background,
-  },
-  groupHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: SPACE.sm,
-    minHeight: 56,
-    paddingHorizontal: SPACE.md,
-    paddingVertical: SPACE.sm,
-    borderRadius: RADIUS.sm,
-    borderLeftWidth: 4,
-    borderWidth: 1,
-    borderColor: COLOR.border,
-    backgroundColor: COLOR.surface,
-  },
-  groupBody: {
-    flex: 1,
-    gap: SPACE.xs,
-  },
-  pressed: {
-    backgroundColor: COLOR.surfaceMuted,
-  },
-  groupName: {
-    fontFamily: "OpenSans_600SemiBold",
-    fontSize: 15,
-    color: COLOR.textSecondary,
-  },
-  groupStats: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    columnGap: SPACE.md,
-    rowGap: 2,
-  },
-  stat: {
-    fontFamily: "OpenSans_400Regular",
-    fontSize: 13,
-    color: COLOR.textBody,
-  },
-  statValue: {
-    fontFamily: "OpenSans_600SemiBold",
-    color: COLOR.textSecondary,
-  },
-  card: {
-    paddingBottom: SPACE.lg,
   },
 });

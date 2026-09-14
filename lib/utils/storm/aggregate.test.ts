@@ -5,7 +5,11 @@ import {
   calculateGapAverage,
   formatDistance,
   getGroupedStorms,
+  getGroupSummaries,
   getIntensityFromNumber,
+  getIntensityGroups,
+  getSeasonStorms,
+  getSeasonYears,
   sortNamesByFirstYear,
 } from "@/lib/utils/storm/aggregate";
 import { storm } from "@/lib/utils/storm/testFixtures";
@@ -119,5 +123,57 @@ describe("sortNamesByFirstYear", () => {
     ];
     sortNamesByFirstYear(entries);
     expect(entries.map(([name]) => name)).toEqual(["Nakri", "Yagi"]);
+  });
+});
+
+describe("getIntensityGroups", () => {
+  it("orders groups strongest first and each group's storms by year", () => {
+    const groups = getIntensityGroups([
+      storm({ name: "A", intensity: "TS", year: 2010 }),
+      storm({ name: "B", intensity: "5", year: 2020 }),
+      storm({ name: "C", intensity: "5", year: 2001 }),
+    ]);
+    expect(groups.map((group) => group.intensity)).toEqual(["5", "TS"]);
+    expect(groups[0].storms.map((s) => s.name)).toEqual(["C", "B"]);
+  });
+});
+
+describe("getSeasonYears", () => {
+  it("lists each year once, ascending", () => {
+    const storms = [storm({ year: 2024 }), storm({ year: 2001 }), storm({ year: 2024 })];
+    expect(getSeasonYears(storms)).toEqual([2001, 2024]);
+  });
+
+  it("starts at the naming list's first season", () => {
+    const storms = [storm({ year: 1999 }), storm({ year: 2000 }), storm({ year: 1951 })];
+    expect(getSeasonYears(storms)).toEqual([2000]);
+  });
+});
+
+describe("getSeasonStorms", () => {
+  it("keeps one season in formation order", () => {
+    const storms = [
+      storm({ name: "Late", year: 2024, dateStart: "2024-11-01" }),
+      storm({ name: "Other", year: 2023, dateStart: "2023-05-01" }),
+      storm({ name: "Early", year: 2024, dateStart: "2024-02-01" }),
+    ];
+    expect(getSeasonStorms(storms, 2024).map((s) => s.name)).toEqual(["Early", "Late"]);
+  });
+});
+
+describe("getGroupSummaries", () => {
+  it("counts and averages each group", () => {
+    const summaries = getGroupSummaries(
+      [
+        storm({ year: 2024, intensity: "5" }),
+        storm({ year: 2024, intensity: "1" }),
+        storm({ year: 2001, intensity: "1" }),
+      ],
+      "year",
+    );
+    expect(summaries).toEqual({
+      "2024": { count: 2, average: 3 },
+      "2001": { count: 1, average: 1 },
+    });
   });
 });

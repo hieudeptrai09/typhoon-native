@@ -5,8 +5,8 @@ import StaleBanner from "@/lib/components/common/StaleBanner";
 import NameDetailsContent from "@/lib/components/name/NameDetailsContent";
 import NameStatusIcon from "@/lib/components/name/NameStatusIcon";
 import SuggestionCard from "@/lib/components/name/widgets/SuggestionCard";
+import StatisticsSection from "@/lib/components/storm/StatisticsSection";
 import StormCard from "@/lib/components/storm/StormCard";
-import StormStats from "@/lib/components/storm/StormStats";
 import { COLOR, RADIUS, SPACE } from "@/lib/constants/theme";
 import type {
   RetiredName,
@@ -17,8 +17,11 @@ import type {
   TyphoonName,
 } from "@/lib/types";
 import { getNameStatusBgColor, getNameStatusColor } from "@/lib/utils/colors";
+import { getCountrySlug, isKnownCountry } from "@/lib/utils/country";
 import { isExternalPosition } from "@/lib/utils/position";
-import { FlatList, StyleSheet, Text, View } from "react-native";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import { useRouter } from "expo-router";
+import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface InfoPageContentProps {
@@ -61,6 +64,7 @@ export default function InfoPageContent({
 }: InfoPageContentProps) {
   const refreshControl = useRefreshControl();
   const insets = useSafeAreaInsets();
+  const router = useRouter();
 
   const nameData: TyphoonName | RetiredName | null = detail?.name ?? null;
   const storms: Storm[] = detail?.storms ?? [];
@@ -92,7 +96,18 @@ export default function InfoPageContent({
 
       <View style={styles.meta}>
         {metaCountry ? (
-          isInPosition ? (
+          isInPosition && isKnownCountry(metaCountry) ? (
+            <Pressable
+              onPress={() => router.push(`/countries/${getCountrySlug(metaCountry)}`)}
+              hitSlop={8}
+              style={({ pressed }) => [styles.countryLink, pressed && styles.pressed]}
+              accessibilityRole="link"
+              accessibilityLabel={`Open ${metaCountry}`}
+            >
+              <CountryFlag country={metaCountry} size={18} showName />
+              <Ionicons name="chevron-forward" size={14} color={COLOR.textMuted} />
+            </Pressable>
+          ) : isInPosition ? (
             <CountryFlag country={metaCountry} size={18} showName />
           ) : (
             <Text style={styles.metaText}>{metaCountry}</Text>
@@ -125,9 +140,9 @@ export default function InfoPageContent({
         </Section>
       )}
 
-      <Text style={styles.listTitle}>All Storms ({storms.length})</Text>
+      <StatisticsSection storms={storms} />
 
-      {storms.length > 0 && <StormStats storms={storms} />}
+      <Text style={styles.listTitle}>All Storms ({storms.length})</Text>
     </View>
   );
 
@@ -181,6 +196,21 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     alignItems: "center",
     gap: SPACE.sm + 2,
+  },
+  countryLink: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 2,
+    paddingVertical: SPACE.xs,
+    paddingLeft: SPACE.sm,
+    paddingRight: SPACE.xs,
+    borderRadius: RADIUS.pill,
+    backgroundColor: COLOR.surface,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: COLOR.border,
+  },
+  pressed: {
+    opacity: 0.6,
   },
   metaText: {
     fontFamily: "OpenSans_600SemiBold",

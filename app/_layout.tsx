@@ -45,8 +45,14 @@ export default function RootLayout() {
         }}
       >
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="info/index" options={{ title: "Names A–Z" }} />
         <Stack.Screen name="info/[name]" />
+        <Stack.Screen name="positions/index" options={{ title: "Positions" }} />
         <Stack.Screen name="positions/[position]" />
+        <Stack.Screen name="countries/index" options={{ title: "Countries" }} />
+        <Stack.Screen name="countries/[country]" />
+        <Stack.Screen name="years/index" options={{ title: "Seasons" }} />
+        <Stack.Screen name="years/[year]" />
         <Stack.Screen name="about" options={{ title: "About" }} />
       </Stack>
     </GestureHandlerRootView>

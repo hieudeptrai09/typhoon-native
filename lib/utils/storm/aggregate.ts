@@ -1,4 +1,4 @@
-import { INTENSITY_RANK } from "@/lib/constants";
+import { INTENSITY_RANK, NAMING_LIST_FIRST_YEAR, SORTING_RANK } from "@/lib/constants";
 import type { IntensityType, Storm } from "@/lib/types";
 
 // The inverse of INTENSITY_RANK.
@@ -24,6 +24,19 @@ export const getGroupedStorms = (stormsData: Storm[], groupBy: string): Record<s
   });
   return grouped;
 };
+
+export interface IntensityGroup {
+  intensity: IntensityType;
+  storms: Storm[];
+}
+
+export const getIntensityGroups = (storms: Storm[]): IntensityGroup[] =>
+  Object.entries(getGroupedStorms(storms, "intensity"))
+    .map(([intensity, groupStorms]) => ({
+      intensity: intensity as IntensityType,
+      storms: [...groupStorms].sort((a, b) => a.year - b.year),
+    }))
+    .sort((a, b) => SORTING_RANK[b.intensity] - SORTING_RANK[a.intensity]);
 
 export const calculateAverage = (storms: Storm[]): number => {
   const sum = storms.reduce((acc, s) => acc + INTENSITY_RANK[s.intensity], 0);
@@ -63,4 +76,27 @@ export const sortNamesByFirstYear = (entries: [string, Storm[]][]): [string, Sto
   [...entries].sort(
     ([, aStorms], [, bStorms]) =>
       Math.min(...aStorms.map((s) => s.year)) - Math.min(...bStorms.map((s) => s.year)),
+  );
+
+export const isSeasonYear = (year: number): boolean => year >= NAMING_LIST_FIRST_YEAR;
+
+export const getSeasonYears = (storms: Storm[]): number[] =>
+  [...new Set(storms.map((storm) => storm.year))].filter(isSeasonYear).sort((a, b) => a - b);
+
+export const getSeasonStorms = (storms: Storm[], year: number): Storm[] =>
+  storms
+    .filter((storm) => storm.year === year)
+    .sort((a, b) => a.dateStart.localeCompare(b.dateStart));
+
+export interface GroupSummary {
+  count: number;
+  average: number;
+}
+
+export const getGroupSummaries = (storms: Storm[], groupBy: string): Record<string, GroupSummary> =>
+  Object.fromEntries(
+    Object.entries(getGroupedStorms(storms, groupBy)).map(([key, group]) => [
+      key,
+      { count: group.length, average: calculateAverage(group) },
+    ]),
   );

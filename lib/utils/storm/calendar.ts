@@ -1,3 +1,4 @@
+import { NAMING_LIST_FIRST_YEAR } from "@/lib/constants";
 import type { Storm } from "@/lib/types";
 import {
   dayIndexOf,
@@ -10,8 +11,6 @@ import {
   todayISO,
   toMonthDay,
 } from "@/lib/utils/date";
-
-export const NAMING_LIST_FIRST_YEAR = 2000;
 
 // The naming list begins in 2000. What sits before it is a handful of storms that wandered in from
 // another basin, with no season of their own, so every day-of-year view counts from 2000 on.

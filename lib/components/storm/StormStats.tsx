@@ -22,7 +22,13 @@ const DatePart = ({ doy }: { doy: number }) => (
   <Text style={{ color: getAvgDateColor(getDoyMonth(doy)) }}>{formatDayOfYear(doy)}</Text>
 );
 
-const StormStats = ({ storms }: { storms: Storm[] }) => {
+interface StormStatsProps {
+  storms: Storm[];
+  // Recurrence only means something within one name or slot: a season or a country reuses no name.
+  showRecurrence?: boolean;
+}
+
+const StormStats = ({ storms, showRecurrence = true }: StormStatsProps) => {
   if (storms.length === 0) return null;
 
   const average = calculateAverage(storms);
@@ -41,19 +47,23 @@ const StormStats = ({ storms }: { storms: Storm[] }) => {
         </StatTile>
       </View>
 
-      <View style={styles.cell}>
-        <StatTile
-          label="Recurrence"
-          hint={
-            recurrence < 0
-              ? "Only one storm, so no recurrence can be measured"
-              : "Average years between appearances"
-          }
-        >
-          <Text style={{ color: getDistanceColor(recurrence) }}>{formatDistance(recurrence)}</Text>
-          {recurrence >= 0 && <Text style={styles.unit}> yrs</Text>}
-        </StatTile>
-      </View>
+      {showRecurrence && (
+        <View style={styles.cell}>
+          <StatTile
+            label="Recurrence"
+            hint={
+              recurrence < 0
+                ? "Only one storm, so no recurrence can be measured"
+                : "Average years between appearances"
+            }
+          >
+            <Text style={{ color: getDistanceColor(recurrence) }}>
+              {formatDistance(recurrence)}
+            </Text>
+            {recurrence >= 0 && <Text style={styles.unit}> yrs</Text>}
+          </StatTile>
+        </View>
+      )}
 
       <View style={styles.cell}>
         <StatTile label="Avg. date" hint="Average start and end date">

@@ -1,16 +1,12 @@
 import type { QueryState } from "@/lib/api/client";
 import HomeCard from "@/lib/components/home/HomeCard";
+import { NAMING_LIST_FIRST_YEAR } from "@/lib/constants";
 import { COLOR, RADIUS, SPACE } from "@/lib/constants/theme";
 import type { Storm } from "@/lib/types";
 import { getSeasonPaceColor } from "@/lib/utils/colors";
 import { formatMonthDay, monthDayOf, parseStormDate, todayISO } from "@/lib/utils/date";
 import { formatPaceGap, roundPaceDelta } from "@/lib/utils/format";
-import {
-  averageToDate,
-  getSeasonToDate,
-  isSeasonOngoing,
-  NAMING_LIST_FIRST_YEAR,
-} from "@/lib/utils/storm/calendar";
+import { averageToDate, getSeasonToDate, isSeasonOngoing } from "@/lib/utils/storm/calendar";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { router } from "expo-router";
 import { useMemo } from "react";

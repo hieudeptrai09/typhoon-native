@@ -2,15 +2,15 @@ import FrownError from "@/lib/components/common/FrownError";
 import type { DetailTarget } from "@/lib/components/common/OpenDetailButton";
 import StaleBanner from "@/lib/components/common/StaleBanner";
 import SwipePager from "@/lib/components/common/SwipePager";
-import IntensityBreakdown from "@/lib/components/dashboard/breakdowns/IntensityBreakdown";
-import RecurrenceBreakdown from "@/lib/components/dashboard/breakdowns/RecurrenceBreakdown";
-import SeasonDatesBreakdown from "@/lib/components/dashboard/breakdowns/SeasonDatesBreakdown";
 import StormListBreakdown from "@/lib/components/dashboard/breakdowns/StormListBreakdown";
 import GroupSheet, { type GroupStat } from "@/lib/components/dashboard/modals/GroupSheet";
 import RecordsView from "@/lib/components/dashboard/views/RecordsView";
 import StatsView from "@/lib/components/dashboard/views/StatsView";
 import StormsView from "@/lib/components/dashboard/views/StormsView";
 import DashboardControlBar from "@/lib/components/dashboard/widgets/DashboardControlBar";
+import IntensityBreakdown from "@/lib/components/storm/breakdowns/IntensityBreakdown";
+import RecurrenceBreakdown from "@/lib/components/storm/breakdowns/RecurrenceBreakdown";
+import SeasonDatesBreakdown from "@/lib/components/storm/breakdowns/SeasonDatesBreakdown";
 import type { DashboardParams, Storm } from "@/lib/types";
 import { getPositionTitle } from "@/lib/utils/position";
 import { formatDayOfYear, formatDuration } from "@/lib/utils/storm/dates";
@@ -123,7 +123,6 @@ const Breakdown = (group: OpenGroup) => {
   return (
     <IntensityBreakdown
       storms={row.storms}
-      average={row.value}
       heading={headingFor(groupBy, row.label)}
       emptyText={emptyFor(groupBy, row.label)}
     />

@@ -1,9 +1,10 @@
 import DayYearChart from "@/lib/components/calendar/DayYearChart";
 import DefModal from "@/lib/components/common/DefModal";
+import { NAMING_LIST_FIRST_YEAR } from "@/lib/constants";
 import { COLOR, SPACE } from "@/lib/constants/theme";
 import type { BaseModalProps } from "@/lib/types";
 import { DAYS_OF_YEAR, formatMonthDay } from "@/lib/utils/date";
-import { NAMING_LIST_FIRST_YEAR, rankDay } from "@/lib/utils/storm/calendar";
+import { rankDay } from "@/lib/utils/storm/calendar";
 import { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 

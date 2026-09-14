@@ -5,27 +5,23 @@ import {
   BACKGROUND_BADGE,
   INTENSITY_LABEL,
   INTENSITY_RANK,
-  SORTING_RANK,
   TEXT_COLOR_WHITE_BACKGROUND,
 } from "@/lib/constants";
 import { COLOR } from "@/lib/constants/theme";
-import type { IntensityType, Storm } from "@/lib/types";
-import { getGroupedStorms } from "@/lib/utils/storm/aggregate";
+import type { Storm } from "@/lib/types";
+import {
+  calculateAverage,
+  getIntensityGroups,
+  type IntensityGroup,
+} from "@/lib/utils/storm/aggregate";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useState } from "react";
 import { LayoutAnimation, Pressable, StyleSheet, Text, View } from "react-native";
 
 interface IntensityBreakdownProps {
   storms: Storm[];
-  average: number;
-  heading: string;
-  emptyText: string;
-}
-
-interface IntensityGroup {
-  intensity: IntensityType;
-  count: number;
-  storms: Storm[];
+  heading?: string;
+  emptyText?: string;
 }
 
 // Negative ranks need the parentheses to stay readable next to the × sign.
@@ -41,9 +37,9 @@ const AverageFormula = ({
   groups: IntensityGroup[];
   total: number;
 }) => {
-  const rankSum = groups.reduce((sum, g) => sum + g.count * INTENSITY_RANK[g.intensity], 0);
+  const rankSum = groups.reduce((sum, g) => sum + g.storms.length * INTENSITY_RANK[g.intensity], 0);
   const terms = groups
-    .map((g) => `${g.count}×${formatRank(INTENSITY_RANK[g.intensity])}`)
+    .map((g) => `${g.storms.length}×${formatRank(INTENSITY_RANK[g.intensity])}`)
     .join(" + ");
 
   return (
@@ -56,23 +52,21 @@ const AverageFormula = ({
   );
 };
 
-const IntensityBreakdown = ({ storms, average, heading, emptyText }: IntensityBreakdownProps) => {
+const IntensityBreakdown = ({
+  storms,
+  heading = "Storms by intensity:",
+  emptyText = "No storms to show.",
+}: IntensityBreakdownProps) => {
   const [showFormula, setShowFormula] = useState(false);
 
-  const groups: IntensityGroup[] = Object.entries(getGroupedStorms(storms, "intensity"))
-    .map(([intensity, groupStorms]) => ({
-      intensity: intensity as IntensityType,
-      count: groupStorms.length,
-      storms: [...groupStorms].sort((a, b) => a.year - b.year),
-    }))
-    .sort((a, b) => SORTING_RANK[b.intensity] - SORTING_RANK[a.intensity]);
+  const groups = getIntensityGroups(storms);
 
   const rows: ComparisonBarRow[] = groups.map((group) => ({
     key: group.intensity,
     label: INTENSITY_LABEL[group.intensity],
     labelColor: TEXT_COLOR_WHITE_BACKGROUND[group.intensity],
     color: BACKGROUND_BADGE[group.intensity],
-    count: group.count,
+    count: group.storms.length,
     details: (
       <>
         {group.storms.map((storm) => (
@@ -113,7 +107,9 @@ const IntensityBreakdown = ({ storms, average, heading, emptyText }: IntensityBr
         </Pressable>
       )}
 
-      {showFormula && <AverageFormula average={average} groups={groups} total={storms.length} />}
+      {showFormula && (
+        <AverageFormula average={calculateAverage(storms)} groups={groups} total={storms.length} />
+      )}
 
       <ComparisonBarList heading={heading} emptyText={emptyText} rows={rows} />
     </View>

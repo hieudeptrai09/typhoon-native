@@ -3,6 +3,7 @@ import EmptyResults from "@/lib/components/common/EmptyResults";
 import StatTile from "@/lib/components/common/StatTile";
 import SeasonMonthsModal from "@/lib/components/season/SeasonMonthsModal";
 import SeasonPaceRow, { type PaceRow } from "@/lib/components/season/SeasonPaceRow";
+import { NAMING_LIST_FIRST_YEAR } from "@/lib/constants";
 import { COLOR, SPACE } from "@/lib/constants/theme";
 import type { Storm } from "@/lib/types";
 import {
@@ -10,7 +11,6 @@ import {
   averageTotal,
   getSeasonToDate,
   isSeasonOngoing,
-  NAMING_LIST_FIRST_YEAR,
 } from "@/lib/utils/storm/calendar";
 import type { SortField } from "@/lib/utils/table";
 import * as Haptics from "expo-haptics";
