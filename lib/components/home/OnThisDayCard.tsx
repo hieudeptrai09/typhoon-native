@@ -1,6 +1,6 @@
 import type { QueryState } from "@/lib/api/client";
 import DayStormChip from "@/lib/components/calendar/DayStormChip";
-import HomeCard from "@/lib/components/home/HomeCard";
+import Card from "@/lib/components/common/Card";
 import { COLOR, RADIUS, SPACE } from "@/lib/constants/theme";
 import type { Storm } from "@/lib/types";
 import { formatMonthDay, monthDayOf, todayISO } from "@/lib/utils/date";
@@ -133,7 +133,7 @@ const OnThisDayCard = ({ query }: OnThisDayCardProps) => {
     : `Open ${dateLabel} in the calendar`;
 
   return (
-    <HomeCard
+    <Card
       icon="calendar-outline"
       title="On this day"
       action={<Text style={styles.date}>{dateLabel}</Text>}
@@ -176,7 +176,7 @@ const OnThisDayCard = ({ query }: OnThisDayCardProps) => {
           <Ionicons name="chevron-forward" size={14} color={COLOR.accent} />
         </Pressable>
       </View>
-    </HomeCard>
+    </Card>
   );
 };
 

@@ -1,5 +1,5 @@
 import type { QueryState } from "@/lib/api/client";
-import HomeCard from "@/lib/components/home/HomeCard";
+import Card from "@/lib/components/common/Card";
 import { INTENSITY_LABEL, TEXT_COLOR_WHITE_BACKGROUND } from "@/lib/constants";
 import { COLOR, SPACE } from "@/lib/constants/theme";
 import type { StormHighlight } from "@/lib/types";
@@ -77,7 +77,7 @@ const NowCard = ({ query }: NowCardProps) => {
   const openStorm = (name: string) => router.push(`/info/${name.toLowerCase()}`);
 
   return (
-    <HomeCard
+    <Card
       icon={isActive ? "pulse-outline" : "time-outline"}
       title={isActive ? "Active now" : "Up next"}
       action={
@@ -99,7 +99,7 @@ const NowCard = ({ query }: NowCardProps) => {
           />
         ))}
       </View>
-    </HomeCard>
+    </Card>
   );
 };
 

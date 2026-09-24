@@ -4,7 +4,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import type { ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
-interface HomeCardProps {
+interface CardProps {
   icon: IconName;
   title: string;
   action?: ReactNode;
@@ -19,7 +19,7 @@ interface HomeCardProps {
 
 // Loading and error live here because FrownError is a full-screen treatment: one failing card must
 // not blank out the others beside it.
-const HomeCard = ({
+const Card = ({
   icon,
   title,
   action,
@@ -29,7 +29,7 @@ const HomeCard = ({
   onRetry,
   skeletonLines = 2,
   children,
-}: HomeCardProps) => (
+}: CardProps) => (
   <View style={styles.root}>
     <View style={styles.header}>
       <Ionicons name={icon} size={16} color={COLOR.accent} />
@@ -134,4 +134,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default HomeCard;
+export default Card;

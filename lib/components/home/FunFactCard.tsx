@@ -1,5 +1,5 @@
 import type { QueryState } from "@/lib/api/client";
-import HomeCard from "@/lib/components/home/HomeCard";
+import Card from "@/lib/components/common/Card";
 import { COLOR, SPACE } from "@/lib/constants/theme";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import * as Haptics from "expo-haptics";
@@ -13,7 +13,7 @@ const FunFactCard = ({ query }: FunFactCardProps) => {
   const { data, isLoading, isError, refetch } = query;
 
   return (
-    <HomeCard
+    <Card
       icon="bulb-outline"
       title="Did you know?"
       action={
@@ -38,7 +38,7 @@ const FunFactCard = ({ query }: FunFactCardProps) => {
       <View style={styles.body}>
         <Text style={styles.fact}>{data ?? "No facts available."}</Text>
       </View>
-    </HomeCard>
+    </Card>
   );
 };
 

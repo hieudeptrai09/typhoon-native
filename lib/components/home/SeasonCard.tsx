@@ -1,5 +1,5 @@
 import type { QueryState } from "@/lib/api/client";
-import HomeCard from "@/lib/components/home/HomeCard";
+import Card from "@/lib/components/common/Card";
 import { NAMING_LIST_FIRST_YEAR } from "@/lib/constants";
 import { COLOR, RADIUS, SPACE } from "@/lib/constants/theme";
 import type { Storm } from "@/lib/types";
@@ -88,7 +88,7 @@ const SeasonCard = ({ query }: SeasonCardProps) => {
   const max = season ? Math.max(season.toDate, season.average) : 0;
 
   return (
-    <HomeCard
+    <Card
       icon="stats-chart-outline"
       title="Season pace"
       action={season ? <Text style={styles.year}>{season.year}</Text> : undefined}
@@ -149,7 +149,7 @@ const SeasonCard = ({ query }: SeasonCardProps) => {
           </Pressable>
         </View>
       )}
-    </HomeCard>
+    </Card>
   );
 };
 

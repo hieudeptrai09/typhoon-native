@@ -1,140 +1,248 @@
-import { TITLE_COMMON } from "@/lib/constants";
-import { COLOR, SPACE } from "@/lib/constants/theme";
-import { IconName } from "@/lib/types";
+import { useQuery } from "@/lib/api/client";
+import { NAMING_LIST_FIRST_YEAR, TITLE_COMMON } from "@/lib/constants";
+import { COLOR, HIT_SIZE, RADIUS, SPACE } from "@/lib/constants/theme";
+import { getNameList } from "@/lib/data/getNameList";
+import { getStorms } from "@/lib/data/getStorms";
+import type { IconName } from "@/lib/types";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import Constants from "expo-constants";
+import { Image } from "expo-image";
+import { useRouter, type Href } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
+import { Fragment, useMemo } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 const FACEBOOK_URL = "https://www.facebook.com/profile.php?id=61586585781960";
 const CC0_URL = "https://creativecommons.org/publicdomain/zero/1.0/";
+const APP_VERSION = Constants.expoConfig?.version;
+
+// The stats card is pulled up by this much so it straddles the hero's bottom edge.
+const STATS_OVERLAP = 32;
 
 const openLink = (url: string) => {
   WebBrowser.openBrowserAsync(url);
 };
 
+interface Feature {
+  icon: IconName;
+  title: string;
+  detail: string;
+  href: Href;
+}
+
+const features: Feature[] = [
+  {
+    icon: "today-outline",
+    title: "Today",
+    detail: "Active storms, this season's pace, and what formed on this day.",
+    href: "/",
+  },
+  {
+    icon: "thunderstorm-outline",
+    title: "Storms",
+    detail: `Every storm since ${NAMING_LIST_FIRST_YEAR} — rankings, records, and season stats.`,
+    href: "/storms",
+  },
+  {
+    icon: "calendar-outline",
+    title: "Calendar",
+    detail: "When storms form, laid out season by season.",
+    href: "/calendar",
+  },
+  {
+    icon: "book-outline",
+    title: "Names",
+    detail: "The naming lists, retired names, and the stories behind them.",
+    href: "/names",
+  },
+];
+
+const browseLinks: { icon: IconName; label: string; href: Href }[] = [
+  { icon: "calendar-number-outline", label: "Seasons", href: "/years" },
+  { icon: "flag-outline", label: "Countries", href: "/countries" },
+  { icon: "grid-outline", label: "Positions", href: "/positions" },
+  { icon: "text-outline", label: "Names A–Z", href: "/info" },
+];
+
 const sources = [
   {
-    name: "Japan Meteorological Agency (JMA)",
-    detail: "RSMC Tokyo Typhoon Center — official typhoon names and best-track data.",
+    name: "Japan Meteorological Agency",
+    detail: "Official names and best-track data",
     url: "https://www.jma.go.jp/jma/jma-eng/jma-center/rsmc-hp-pub-eg/tyname.html",
   },
   {
-    name: "Joint Typhoon Warning Center (JTWC)",
-    detail: "U.S. Navy/Air Force warnings and intensity estimates (public domain).",
+    name: "Joint Typhoon Warning Center",
+    detail: "Warnings and intensity estimates",
     url: "https://www.metoc.navy.mil/jtwc/jtwc.html",
   },
   {
     name: "Wikipedia",
-    detail: "Naming history and background context, used under CC BY-SA 4.0.",
+    detail: "Naming history, CC BY-SA 4.0",
     url: "https://en.wikipedia.org/",
   },
 ];
 
-interface SectionHeadingProps {
-  icon: IconName;
-  title: string;
+const SectionTitle = ({ children }: { children: string }) => (
+  <Text style={styles.sectionTitle} accessibilityRole="header">
+    {children}
+  </Text>
+);
+
+interface StatProps {
+  value: number | undefined;
+  label: string;
 }
 
-const SectionHeading = ({ icon, title }: SectionHeadingProps) => (
-  <View style={styles.heading}>
-    <Ionicons name={icon} size={20} color={COLOR.accent} />
-    <Text style={styles.headingText}>{title}</Text>
+const Stat = ({ value, label }: StatProps) => (
+  <View style={styles.stat} accessible accessibilityLabel={`${value ?? "Unknown"} ${label}`}>
+    <Text style={styles.statValue}>{value?.toLocaleString() ?? "—"}</Text>
+    <Text style={styles.statLabel}>{label}</Text>
   </View>
 );
 
 export default function AboutScreen() {
+  const router = useRouter();
+  // Same keys as the tabs, so these are almost always cache hits by the time About opens.
+  const storms = useQuery("storms", () => getStorms());
+  const names = useQuery("name-list", getNameList);
+
+  const seasonCount = useMemo(
+    () => (storms.data ? new Set(storms.data.map((storm) => storm.year)).size : undefined),
+    [storms.data],
+  );
+
   return (
-    <ScrollView
-      style={styles.screen}
-      contentContainerStyle={styles.content}
-      contentInsetAdjustmentBehavior="automatic"
-    >
-      <View style={styles.section}>
-        <SectionHeading icon="book-outline" title="The project" />
-        <Text style={styles.body}>
-          {TITLE_COMMON} is a database of Western Pacific typhoons — storm tracking, intensity
-          analysis, naming history, and the stories behind typhoon names. It covers the Western
-          Pacific basin from 2000 to the present, and is maintained as a personal, non-commercial
-          project.
+    <ScrollView style={styles.screen} showsVerticalScrollIndicator={false}>
+      {/* iOS bounces past the top edge; without this the grey page shows above the hero. */}
+      <View style={styles.overscroll} />
+
+      <View style={styles.hero}>
+        <Image
+          source={require("@/assets/images/icon.png")}
+          style={styles.appIcon}
+          accessibilityIgnoresInvertColors
+        />
+        <Text style={styles.headline} accessibilityRole="header">
+          Every Western Pacific typhoon, in your pocket
+        </Text>
+        <Text style={styles.subhead}>
+          Follow storms as they form, compare seasons since {NAMING_LIST_FIRST_YEAR}, and discover
+          the stories behind their names.
         </Text>
       </View>
 
-      <View style={styles.section}>
-        <SectionHeading icon="server-outline" title="Data sources & credits" />
-        <Text style={styles.body}>
-          Facts and figures are compiled from the following sources. Meteorological facts themselves
-          aren&apos;t owned by anyone; the credit below acknowledges the organisations whose work
-          this database builds upon.
-        </Text>
-        <View style={styles.sourceList}>
-          {sources.map((source) => (
-            <Pressable
-              key={source.name}
-              style={({ pressed }) => [styles.sourceCard, pressed && styles.pressed]}
-              onPress={() => openLink(source.url)}
-              accessibilityRole="link"
-              accessibilityLabel={source.name}
-            >
-              <View style={styles.sourceTextBlock}>
-                <Text style={styles.sourceName}>{source.name}</Text>
-                <Text style={styles.sourceDetail}>{source.detail}</Text>
-              </View>
-              <Ionicons name="open-outline" size={16} color={COLOR.textFaint} />
-            </Pressable>
-          ))}
+      <View style={styles.body}>
+        <View style={styles.stats}>
+          <Stat value={storms.data?.length} label="Storms" />
+          <View style={styles.statDivider} />
+          <Stat value={seasonCount} label="Seasons" />
+          <View style={styles.statDivider} />
+          <Stat value={names.data?.length} label="Names" />
         </View>
-      </View>
 
-      <View style={styles.section}>
-        <SectionHeading icon="reader-outline" title="License" />
-        <View style={styles.licenseBox}>
-          <Text style={[styles.body, styles.licenseParagraph]}>
-            This database is dedicated to the public domain under{" "}
+        <View style={styles.section}>
+          <SectionTitle>Explore</SectionTitle>
+          <View style={styles.group}>
+            {features.map((feature, index) => (
+              <Fragment key={feature.title}>
+                {index > 0 && <View style={styles.insetSeparator} />}
+                <Pressable
+                  style={({ pressed }) => [styles.featureRow, pressed && styles.rowPressed]}
+                  onPress={() => router.navigate(feature.href)}
+                  accessibilityRole="link"
+                  accessibilityLabel={feature.title}
+                  accessibilityHint={feature.detail}
+                >
+                  <View style={styles.featureIcon}>
+                    <Ionicons name={feature.icon} size={20} color={COLOR.accent} />
+                  </View>
+                  <View style={styles.featureText}>
+                    <Text style={styles.featureTitle}>{feature.title}</Text>
+                    <Text style={styles.featureDetail}>{feature.detail}</Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={16} color={COLOR.textFaint} />
+                </Pressable>
+              </Fragment>
+            ))}
+          </View>
+
+          <View style={styles.browseGrid}>
+            {browseLinks.map((link) => (
+              <Pressable
+                key={link.label}
+                style={({ pressed }) => [styles.browseTile, pressed && styles.rowPressed]}
+                onPress={() => router.navigate(link.href)}
+                accessibilityRole="link"
+                accessibilityLabel={link.label}
+              >
+                <Ionicons name={link.icon} size={18} color={COLOR.accent} />
+                <Text style={styles.browseLabel} numberOfLines={1}>
+                  {link.label}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <SectionTitle>Built on open data</SectionTitle>
+          <View style={styles.group}>
+            {sources.map((source, index) => (
+              <Fragment key={source.name}>
+                {index > 0 && <View style={styles.separator} />}
+                <Pressable
+                  style={({ pressed }) => [styles.sourceRow, pressed && styles.rowPressed]}
+                  onPress={() => openLink(source.url)}
+                  accessibilityRole="link"
+                  accessibilityLabel={source.name}
+                  accessibilityHint="Opens in browser"
+                >
+                  <View style={styles.featureText}>
+                    <Text style={styles.sourceName}>{source.name}</Text>
+                    <Text style={styles.featureDetail}>{source.detail}</Text>
+                  </View>
+                  <Ionicons name="open-outline" size={16} color={COLOR.textFaint} />
+                </Pressable>
+              </Fragment>
+            ))}
+          </View>
+          <Text style={styles.fineprint}>
+            All data and text here are free to reuse under{" "}
             <Text style={styles.link} onPress={() => openLink(CC0_URL)}>
-              Creative Commons Zero 1.0 Universal (CC0 1.0)
-            </Text>
-            . To the extent possible under law, all rights are waived. You are free to copy, adapt,
-            and use the data for any purpose, without asking permission — though a credit is always
-            appreciated.
-          </Text>
-          <Text style={[styles.body, styles.licenseParagraph]}>
-            This dedication covers the <Text style={styles.emphasis}>data and text</Text> of this
-            database only. It does not extend to the images, which belong to their respective owners
-            and remain under their original copyright. No ownership of, or license over, those
-            images is claimed here.
-          </Text>
-          <Text style={[styles.body, styles.licenseParagraph, styles.lastParagraph]}>
-            Where an image&apos;s author and license are known, they are credited alongside it. This
-            is a personal, non-commercial project, and if you are a rights holder who would like an
-            image credited differently or removed, please{" "}
-            <Text style={styles.link} onPress={() => openLink(FACEBOOK_URL)}>
-              get in touch
+              CC0
             </Text>{" "}
-            and I will do so promptly.
+            — no permission needed, though credit is appreciated. Images keep their original
+            copyright and are credited where the author is known; rights holders can{" "}
+            <Text style={styles.link} onPress={() => openLink(FACEBOOK_URL)}>
+              ask for changes or removal
+            </Text>
+            .
           </Text>
         </View>
-      </View>
 
-      <View style={styles.section}>
-        <SectionHeading icon="person-outline" title="Creator" />
-        <Text style={styles.body}>
-          Built and maintained by <Text style={styles.emphasis}>Cá Tra</Text>. Questions or
-          corrections are welcome via Facebook.
+        <View style={styles.cta}>
+          <Text style={styles.ctaTitle}>Spotted a mistake?</Text>
+          <Text style={styles.ctaBody}>
+            This is a personal, non-commercial project by{" "}
+            <Text style={styles.ctaEmphasis}>Cá Tra</Text>. Corrections and questions are always
+            welcome.
+          </Text>
+          <Pressable
+            style={({ pressed }) => [styles.ctaButton, pressed && styles.buttonPressed]}
+            onPress={() => openLink(FACEBOOK_URL)}
+            accessibilityRole="link"
+            accessibilityLabel="Message on Facebook"
+          >
+            <Ionicons name="logo-facebook" size={18} color={COLOR.accent} />
+            <Text style={styles.ctaButtonLabel}>Message on Facebook</Text>
+          </Pressable>
+        </View>
+
+        <Text style={styles.footer}>
+          © {new Date().getFullYear()} {TITLE_COMMON}
+          {APP_VERSION ? ` · v${APP_VERSION}` : ""}
         </Text>
-        <Pressable
-          style={({ pressed }) => [styles.facebookButton, pressed && styles.pressed]}
-          onPress={() => openLink(FACEBOOK_URL)}
-          accessibilityRole="link"
-          accessibilityLabel="Open our Facebook page"
-        >
-          <Ionicons name="logo-facebook" size={18} color={COLOR.textInverse} />
-          <Text style={styles.facebookLabel}>Facebook</Text>
-        </Pressable>
       </View>
-
-      <Text style={styles.copyright}>
-        © {new Date().getFullYear()} {TITLE_COMMON}
-      </Text>
     </ScrollView>
   );
 }
@@ -144,102 +252,232 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLOR.background,
   },
-  content: {
-    padding: SPACE.lg,
-    paddingBottom: 40,
-    gap: SPACE.xl,
+  overscroll: {
+    position: "absolute",
+    top: -1000,
+    left: 0,
+    right: 0,
+    height: 1000,
+    backgroundColor: COLOR.accent,
   },
-  section: {
-    gap: 8,
-  },
-  heading: {
-    flexDirection: "row",
+  hero: {
     alignItems: "center",
-    gap: 8,
+    gap: SPACE.md,
+    paddingHorizontal: SPACE.xl,
+    paddingTop: SPACE.lg,
+    paddingBottom: SPACE.xl + STATS_OVERLAP,
+    backgroundColor: COLOR.accent,
   },
-  headingText: {
-    fontFamily: "OpenSans_600SemiBold",
-    fontSize: 17,
-    color: COLOR.textSecondary,
+  appIcon: {
+    width: 80,
+    height: 80,
+    borderRadius: RADIUS.lg + 4,
+    backgroundColor: COLOR.surface,
+    marginBottom: SPACE.xs,
   },
-  body: {
+  headline: {
+    fontFamily: "OpenSans_700Bold",
+    fontSize: 26,
+    lineHeight: 34,
+    color: COLOR.textInverse,
+    textAlign: "center",
+  },
+  subhead: {
     fontFamily: "OpenSans_400Regular",
     fontSize: 15,
     lineHeight: 23,
-    color: COLOR.textBody,
+    color: COLOR.onHero,
+    textAlign: "center",
   },
-  emphasis: {
-    fontFamily: "OpenSans_600SemiBold",
-    color: COLOR.textSecondary,
+  body: {
+    paddingHorizontal: SPACE.lg,
+    paddingBottom: SPACE.xxl,
+    gap: SPACE.xl,
   },
-  link: {
-    fontFamily: "OpenSans_600SemiBold",
-    color: COLOR.accent,
-  },
-  sourceList: {
-    gap: 10,
-    marginTop: 4,
-  },
-  sourceCard: {
+  stats: {
     flexDirection: "row",
-    alignItems: "flex-start",
-    justifyContent: "space-between",
-    gap: 12,
-    padding: 14,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: COLOR.border,
+    alignItems: "center",
+    marginTop: -STATS_OVERLAP,
+    paddingVertical: SPACE.lg,
+    borderRadius: RADIUS.lg,
     backgroundColor: COLOR.surface,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: COLOR.border,
   },
-  sourceTextBlock: {
+  stat: {
     flex: 1,
-    gap: 3,
+    alignItems: "center",
+    gap: 2,
   },
-  sourceName: {
+  statValue: {
+    fontFamily: "OpenSans_700Bold",
+    fontSize: 24,
+    color: COLOR.text,
+    fontVariant: ["tabular-nums"],
+  },
+  statLabel: {
     fontFamily: "OpenSans_600SemiBold",
-    fontSize: 15,
-    color: COLOR.accent,
+    fontSize: 11,
+    letterSpacing: 1,
+    textTransform: "uppercase",
+    color: COLOR.textMuted,
   },
-  sourceDetail: {
+  statDivider: {
+    width: StyleSheet.hairlineWidth,
+    alignSelf: "stretch",
+    backgroundColor: COLOR.border,
+  },
+  section: {
+    gap: SPACE.md,
+  },
+  sectionTitle: {
+    fontFamily: "OpenSans_700Bold",
+    fontSize: 12,
+    letterSpacing: 1,
+    textTransform: "uppercase",
+    color: COLOR.accent,
+    paddingHorizontal: SPACE.xs,
+  },
+  group: {
+    borderRadius: RADIUS.lg,
+    backgroundColor: COLOR.surface,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: COLOR.border,
+    overflow: "hidden",
+  },
+  featureRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: SPACE.md,
+    minHeight: HIT_SIZE + SPACE.lg,
+    paddingHorizontal: SPACE.lg,
+    paddingVertical: SPACE.md,
+  },
+  rowPressed: {
+    backgroundColor: COLOR.surfaceMuted,
+  },
+  featureIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: RADIUS.md,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: COLOR.accentSoft,
+  },
+  featureText: {
+    flex: 1,
+    gap: 2,
+  },
+  featureTitle: {
+    fontFamily: "OpenSans_600SemiBold",
+    fontSize: 16,
+    color: COLOR.text,
+  },
+  featureDetail: {
     fontFamily: "OpenSans_400Regular",
     fontSize: 13,
     lineHeight: 19,
     color: COLOR.textMuted,
   },
-  licenseBox: {
-    marginTop: 4,
-    borderRadius: 12,
-    borderWidth: 1,
+  // Starts past the icon badge so the line reads as belonging to the text column.
+  insetSeparator: {
+    height: StyleSheet.hairlineWidth,
+    marginLeft: SPACE.lg + 40 + SPACE.md,
+    backgroundColor: COLOR.border,
+  },
+  separator: {
+    height: StyleSheet.hairlineWidth,
+    marginLeft: SPACE.lg,
+    backgroundColor: COLOR.border,
+  },
+  browseGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: SPACE.sm,
+  },
+  browseTile: {
+    flexGrow: 1,
+    flexBasis: "45%",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: SPACE.sm,
+    minHeight: HIT_SIZE,
+    paddingHorizontal: SPACE.md,
+    borderRadius: RADIUS.md,
+    backgroundColor: COLOR.surface,
+    borderWidth: StyleSheet.hairlineWidth,
     borderColor: COLOR.border,
-    backgroundColor: COLOR.surfaceSubtle,
   },
-  licenseParagraph: {
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: COLOR.border,
+  browseLabel: {
+    flex: 1,
+    fontFamily: "OpenSans_600SemiBold",
+    fontSize: 14,
+    color: COLOR.textSecondary,
   },
-  lastParagraph: {
-    borderBottomWidth: 0,
+  sourceRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: SPACE.md,
+    minHeight: HIT_SIZE,
+    paddingHorizontal: SPACE.lg,
+    paddingVertical: SPACE.md,
   },
-  facebookButton: {
+  sourceName: {
+    fontFamily: "OpenSans_600SemiBold",
+    fontSize: 15,
+    color: COLOR.text,
+  },
+  fineprint: {
+    fontFamily: "OpenSans_400Regular",
+    fontSize: 12,
+    lineHeight: 18,
+    color: COLOR.textMuted,
+    paddingHorizontal: SPACE.xs,
+  },
+  link: {
+    fontFamily: "OpenSans_600SemiBold",
+    color: COLOR.accent,
+  },
+  cta: {
+    gap: SPACE.sm,
+    padding: SPACE.xl,
+    borderRadius: RADIUS.lg,
+    backgroundColor: COLOR.accent,
+  },
+  ctaTitle: {
+    fontFamily: "OpenSans_700Bold",
+    fontSize: 20,
+    color: COLOR.textInverse,
+  },
+  ctaBody: {
+    fontFamily: "OpenSans_400Regular",
+    fontSize: 15,
+    lineHeight: 23,
+    color: COLOR.onHero,
+  },
+  ctaEmphasis: {
+    fontFamily: "OpenSans_600SemiBold",
+    color: COLOR.textInverse,
+  },
+  ctaButton: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 8,
-    height: 46,
-    borderRadius: 12,
-    backgroundColor: COLOR.accent,
-    marginTop: 8,
+    gap: SPACE.sm,
+    height: HIT_SIZE,
+    marginTop: SPACE.sm,
+    borderRadius: RADIUS.pill,
+    backgroundColor: COLOR.surface,
   },
-  facebookLabel: {
-    fontFamily: "OpenSans_600SemiBold",
-    fontSize: 15,
-    color: COLOR.textInverse,
-  },
-  pressed: {
+  buttonPressed: {
     opacity: 0.85,
   },
-  copyright: {
+  ctaButtonLabel: {
+    fontFamily: "OpenSans_600SemiBold",
+    fontSize: 15,
+    color: COLOR.accent,
+  },
+  footer: {
     fontFamily: "OpenSans_400Regular",
     fontSize: 12,
     color: COLOR.textFaint,

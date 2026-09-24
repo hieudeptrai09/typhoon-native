@@ -53,7 +53,7 @@ export default function RootLayout() {
         <Stack.Screen name="countries/[country]" />
         <Stack.Screen name="years/index" options={{ title: "Seasons" }} />
         <Stack.Screen name="years/[year]" />
-        <Stack.Screen name="about" options={{ title: "About" }} />
+        <Stack.Screen name="about" options={{ title: "About", headerShadowVisible: false }} />
       </Stack>
     </GestureHandlerRootView>
   );
