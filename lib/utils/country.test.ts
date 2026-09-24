@@ -1,8 +1,6 @@
 import { COUNTRY_NAMES } from "@/lib/components/common/CountryFlag";
 import {
   getCountryFromSlug,
-  getCountryPositionGroups,
-  getCountryPositions,
   getCountrySlug,
   getCountryStorms,
   isKnownCountry,
@@ -59,21 +57,6 @@ describe("isKnownCountry / stepCountry", () => {
   });
 });
 
-describe("getCountryPositions", () => {
-  it("returns the member's column in each of the ten rows", () => {
-    expect(getCountryPositions(COUNTRY_NAMES[0])).toEqual([
-      1, 15, 29, 43, 57, 71, 85, 99, 113, 127,
-    ]);
-    expect(getCountryPositions(COUNTRY_NAMES[13])).toEqual([
-      14, 28, 42, 56, 70, 84, 98, 112, 126, 140,
-    ]);
-  });
-
-  it("returns nothing for a non-member", () => {
-    expect(getCountryPositions("Atlantis")).toEqual([]);
-  });
-});
-
 describe("getCountryStorms", () => {
   it("keeps the member's grid storms and drops agency positions", () => {
     const storms = [
@@ -82,20 +65,5 @@ describe("getCountryStorms", () => {
       storm({ name: "Other", country: "China", position: 2 }),
     ];
     expect(getCountryStorms(storms, "Japan").map((s) => s.name)).toEqual(["Mine"]);
-  });
-});
-
-describe("getCountryPositionGroups", () => {
-  it("lists all ten positions, each with its storms in year order", () => {
-    const groups = getCountryPositionGroups(
-      [
-        storm({ name: "B", position: 1, year: 2020 }),
-        storm({ name: "A", position: 1, year: 2005 }),
-      ],
-      COUNTRY_NAMES[0],
-    );
-    expect(groups).toHaveLength(10);
-    expect(groups[0][1].map((s) => s.name)).toEqual(["A", "B"]);
-    expect(groups[1][1]).toEqual([]);
   });
 });

@@ -1,15 +1,13 @@
 import CountryFlag from "@/lib/components/common/CountryFlag";
 import DataList, { DataCard } from "@/lib/components/common/DataList";
-import IntensityBadge from "@/lib/components/storm/IntensityBadge";
-import { INTENSITY_LABEL, SORTING_RANK } from "@/lib/constants";
-import { COLOR } from "@/lib/constants/theme";
+import IntensityCell from "@/lib/components/storm/IntensityCell";
+import { SORTING_RANK } from "@/lib/constants";
 import type { IntensityType, Storm } from "@/lib/types";
 import { parseStormDate } from "@/lib/utils/date";
 import { getPositionTitle } from "@/lib/utils/position";
 import type { SortCriterion, SortField } from "@/lib/utils/table";
 import { router } from "expo-router";
 import { useMemo } from "react";
-import { StyleSheet, Text, View } from "react-native";
 
 interface StormRow {
   name: string;
@@ -57,13 +55,6 @@ const toRow = (storm: Storm): StormRow => {
     startYear: start.year,
   };
 };
-
-const IntensityCell = ({ intensity }: { intensity: IntensityType }) => (
-  <View style={styles.intensity}>
-    <IntensityBadge intensity={intensity} size={26} />
-    <Text style={styles.intensityLabel}>{INTENSITY_LABEL[intensity]}</Text>
-  </View>
-);
 
 interface StormRowsListProps {
   storms: Storm[];
@@ -118,20 +109,5 @@ const StormRowsList = ({
     />
   );
 };
-
-const styles = StyleSheet.create({
-  intensity: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-  intensityLabel: {
-    flexShrink: 1,
-    fontFamily: "OpenSans_500Medium",
-    fontSize: 12,
-    lineHeight: 16,
-    color: COLOR.textBody,
-  },
-});
 
 export default StormRowsList;

@@ -7,6 +7,7 @@ import ScreenLoading from "@/lib/components/common/ScreenLoading";
 import SwipePager from "@/lib/components/common/SwipePager";
 import CountryPageContent from "@/lib/components/country/CountryPageContent";
 import { getStorms } from "@/lib/data/getStorms";
+import { getTyphoonNames } from "@/lib/data/getTyphoonNames";
 import {
   getCountryFromSlug,
   getCountrySlug,
@@ -14,7 +15,7 @@ import {
   stepCountry,
 } from "@/lib/utils/country";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { StyleSheet, View } from "react-native";
 
 export default function CountryScreen() {
@@ -23,16 +24,27 @@ export default function CountryScreen() {
 
   const country = getCountryFromSlug(slug);
 
-  // Same key as the Storms tab, so a country opened from anywhere reuses the record already loaded.
-  const { data, isLoading, isError, isRefetching, refetch } = useQuery(
-    country ? "storms" : null,
-    () => getStorms(),
-  );
+  // Same keys as the Storms and Names tabs, so a country opened from anywhere reuses what is
+  // already loaded.
+  const stormsQuery = useQuery(country ? "storms" : null, () => getStorms());
+  const namesQuery = useQuery(country ? "typhoon-names" : null, getTyphoonNames);
 
   const storms = useMemo(
-    () => (data && country ? getCountryStorms(data, country) : []),
-    [data, country],
+    () => (stormsQuery.data && country ? getCountryStorms(stormsQuery.data, country) : []),
+    [stormsQuery.data, country],
   );
+
+  const isLoading = stormsQuery.isLoading || namesQuery.isLoading;
+  const isError = stormsQuery.isError || namesQuery.isError;
+  const hasData = stormsQuery.data !== null && namesQuery.data !== null;
+  const isRefetching = stormsQuery.isRefetching || namesQuery.isRefetching;
+  const { refetch: refetchStorms } = stormsQuery;
+  const { refetch: refetchNames } = namesQuery;
+
+  const refetch = useCallback(() => {
+    refetchStorms();
+    refetchNames();
+  }, [refetchStorms, refetchNames]);
 
   const refreshValue = useMemo(
     () => ({ refreshing: isRefetching, onRefresh: refetch }),
@@ -75,13 +87,18 @@ export default function CountryScreen() {
               description={`No Typhoon Committee member matches "${slug}".`}
             />
           </View>
-        ) : isLoading ? (
-          <ScreenLoading />
-        ) : isError && !data ? (
+        ) : isError && !hasData ? (
           <FrownError onRetry={refetch} />
+        ) : isLoading || !hasData ? (
+          <ScreenLoading />
         ) : (
           <RefreshProvider value={refreshValue}>
-            <CountryPageContent country={country} storms={storms} staleError={isError} />
+            <CountryPageContent
+              country={country}
+              storms={storms}
+              names={namesQuery.data ?? []}
+              staleError={isError}
+            />
           </RefreshProvider>
         )}
       </SwipePager>

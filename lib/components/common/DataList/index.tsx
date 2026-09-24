@@ -13,7 +13,7 @@ import {
   type SortField,
 } from "@/lib/utils/table";
 import { useMemo, useState, type ReactNode } from "react";
-import { FlatList, Pressable, StyleSheet, View } from "react-native";
+import { FlatList, Pressable, SectionList, StyleSheet, View } from "react-native";
 
 interface DataListProps<T> {
   data: T[];
@@ -34,6 +34,9 @@ interface DataListProps<T> {
     onRemoveChip: (key: string) => void;
   };
   axes?: OptionAxis[];
+  // Scrolls the toolbar with the header and pins it once it reaches the top, for screens whose
+  // header is tall enough that a toolbar above it would sit far from the rows it sorts.
+  stickyToolbar?: boolean;
 }
 
 const defaultCountLabel = (count: number) => `${count} result${count === 1 ? "" : "s"}`;
@@ -51,6 +54,7 @@ const DataList = <T,>({
   defaultSort,
   filter,
   axes,
+  stickyToolbar = false,
 }: DataListProps<T>) => {
   const [criteria, setCriteria] = useSortMemory(sortKey, defaultSort);
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -100,39 +104,54 @@ const DataList = <T,>({
 
   const hasControls = sortFields.length > 0 || filter !== undefined || axes !== undefined;
 
+  const controls = (
+    <ListControls
+      count={countLabel(sorted.length)}
+      axes={axes}
+      filter={filter ? { count: filter.chips.length, onPress: filter.onOpen } : undefined}
+      sort={
+        sortFields.length > 0
+          ? { count: active.length, onPress: () => setSheetOpen(true) }
+          : undefined
+      }
+      chips={chips}
+    />
+  );
+
+  const listProps = {
+    keyExtractor,
+    renderItem,
+    ListHeaderComponent: header ? <>{header}</> : null,
+    ListEmptyComponent: empty ? <>{empty}</> : null,
+    contentContainerStyle: sorted.length === 0 ? styles.contentEmpty : styles.content,
+    refreshControl,
+    initialNumToRender: 12,
+    windowSize: 9,
+    removeClippedSubviews: true,
+    keyboardShouldPersistTaps: "handled" as const,
+    keyboardDismissMode: "on-drag" as const,
+  };
+
   return (
     <View style={styles.root}>
-      {hasControls && (
-        <View style={styles.toolbar}>
-          <ListControls
-            count={countLabel(sorted.length)}
-            axes={axes}
-            filter={filter ? { count: filter.chips.length, onPress: filter.onOpen } : undefined}
-            sort={
-              sortFields.length > 0
-                ? { count: active.length, onPress: () => setSheetOpen(true) }
-                : undefined
-            }
-            chips={chips}
-          />
-        </View>
-      )}
+      {hasControls && !stickyToolbar && <View style={styles.toolbar}>{controls}</View>}
 
       <View style={styles.body}>
-        <FlatList
-          data={sorted}
-          keyExtractor={keyExtractor}
-          renderItem={renderItem}
-          ListHeaderComponent={header ? <>{header}</> : null}
-          ListEmptyComponent={empty ? <>{empty}</> : null}
-          contentContainerStyle={sorted.length === 0 ? styles.contentEmpty : styles.content}
-          refreshControl={refreshControl}
-          initialNumToRender={12}
-          windowSize={9}
-          removeClippedSubviews
-          keyboardShouldPersistTaps="handled"
-          keyboardDismissMode="on-drag"
-        />
+        {stickyToolbar ? (
+          <SectionList<T>
+            {...listProps}
+            // No section at all when empty: a lone section would keep ListEmptyComponent hidden.
+            sections={sorted.length > 0 ? [{ data: sorted }] : []}
+            renderSectionHeader={() =>
+              hasControls ? (
+                <View style={[styles.toolbar, styles.toolbarPinned]}>{controls}</View>
+              ) : null
+            }
+            stickySectionHeadersEnabled
+          />
+        ) : (
+          <FlatList {...listProps} data={sorted} />
+        )}
       </View>
 
       <SortSheet
@@ -154,6 +173,10 @@ const styles = StyleSheet.create({
     backgroundColor: COLOR.background,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: COLOR.border,
+  },
+  // Cancels the list's gutter so the pinned bar spans edge to edge and hides the rows beneath it.
+  toolbarPinned: {
+    marginHorizontal: -SPACE.lg,
   },
   body: {
     flex: 1,

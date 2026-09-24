@@ -1,5 +1,6 @@
 import { INTENSITY_RANK, NAMING_LIST_FIRST_YEAR, SORTING_RANK } from "@/lib/constants";
 import type { IntensityType, Storm } from "@/lib/types";
+import { isExternalPosition } from "@/lib/utils/position";
 
 // The inverse of INTENSITY_RANK.
 export const getIntensityFromNumber = (avgNumber: number): IntensityType => {
@@ -88,15 +89,22 @@ export const getSeasonStorms = (storms: Storm[], year: number): Storm[] =>
     .filter((storm) => storm.year === year)
     .sort((a, b) => a.dateStart.localeCompare(b.dateStart));
 
-export interface GroupSummary {
-  count: number;
-  average: number;
-}
+// Agency names sit outside the rotation, so they have no debut to mark.
+export const getSeasonDebuts = (storms: Storm[], year: number): Storm[] => {
+  const firstYears = new Map<string, number>();
+  storms.forEach((storm) => {
+    firstYears.set(storm.name, Math.min(firstYears.get(storm.name) ?? Infinity, storm.year));
+  });
+  const seen = new Set<string>();
+  return getSeasonStorms(storms, year).filter((storm) => {
+    if (isExternalPosition(storm.position) || firstYears.get(storm.name) !== year) return false;
+    if (seen.has(storm.name)) return false;
+    seen.add(storm.name);
+    return true;
+  });
+};
 
-export const getGroupSummaries = (storms: Storm[], groupBy: string): Record<string, GroupSummary> =>
+export const getGroupCounts = (storms: Storm[], groupBy: string): Record<string, number> =>
   Object.fromEntries(
-    Object.entries(getGroupedStorms(storms, groupBy)).map(([key, group]) => [
-      key,
-      { count: group.length, average: calculateAverage(group) },
-    ]),
+    Object.entries(getGroupedStorms(storms, groupBy)).map(([key, group]) => [key, group.length]),
   );

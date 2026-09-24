@@ -4,7 +4,6 @@ import {
   calculateAvgDuration,
   formatDayOfYear,
   getDoyMonth,
-  getSeasonMonthGroups,
 } from "@/lib/utils/storm/dates";
 import { storm } from "@/lib/utils/storm/testFixtures";
 
@@ -95,21 +94,5 @@ describe("calculateAvgDuration", () => {
 
   it("returns -1 for an empty group", () => {
     expect(calculateAvgDuration([])).toBe(-1);
-  });
-});
-
-describe("getSeasonMonthGroups", () => {
-  it("groups consecutive start months, leading with a carried-over December", () => {
-    const groups = getSeasonMonthGroups([
-      storm({ name: "Carry", year: 2024, dateStart: "2023-12-30" }),
-      storm({ name: "Jan", year: 2024, dateStart: "2024-01-10" }),
-      storm({ name: "Aug1", year: 2024, dateStart: "2024-08-01" }),
-      storm({ name: "Aug2", year: 2024, dateStart: "2024-08-20" }),
-    ]);
-    expect(groups.map(([month, storms]) => [month, storms.map((s) => s.name)])).toEqual([
-      [12, ["Carry"]],
-      [1, ["Jan"]],
-      [8, ["Aug1", "Aug2"]],
-    ]);
   });
 });

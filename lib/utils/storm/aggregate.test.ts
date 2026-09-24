@@ -4,10 +4,11 @@ import {
   calculateDistances,
   calculateGapAverage,
   formatDistance,
+  getGroupCounts,
   getGroupedStorms,
-  getGroupSummaries,
   getIntensityFromNumber,
   getIntensityGroups,
+  getSeasonDebuts,
   getSeasonStorms,
   getSeasonYears,
   sortNamesByFirstYear,
@@ -161,9 +162,26 @@ describe("getSeasonStorms", () => {
   });
 });
 
-describe("getGroupSummaries", () => {
-  it("counts and averages each group", () => {
-    const summaries = getGroupSummaries(
+describe("getSeasonDebuts", () => {
+  it("keeps names first used that season, once each, skipping agency names", () => {
+    const storms = [
+      storm({ name: "Old", year: 2020, position: 1, dateStart: "2020-06-01" }),
+      storm({ name: "Old", year: 2024, position: 1, dateStart: "2024-03-01" }),
+      storm({ name: "New", year: 2024, position: 2, dateStart: "2024-08-01" }),
+      storm({ name: "New", year: 2024, position: 2, dateStart: "2024-10-01" }),
+      storm({ name: "First", year: 2024, position: 3, dateStart: "2024-05-01" }),
+      storm({ name: "Agency", year: 2024, position: 141, dateStart: "2024-04-01" }),
+    ];
+    expect(getSeasonDebuts(storms, 2024).map((s) => [s.name, s.dateStart])).toEqual([
+      ["First", "2024-05-01"],
+      ["New", "2024-08-01"],
+    ]);
+  });
+});
+
+describe("getGroupCounts", () => {
+  it("counts each group", () => {
+    const counts = getGroupCounts(
       [
         storm({ year: 2024, intensity: "5" }),
         storm({ year: 2024, intensity: "1" }),
@@ -171,9 +189,6 @@ describe("getGroupSummaries", () => {
       ],
       "year",
     );
-    expect(summaries).toEqual({
-      "2024": { count: 2, average: 3 },
-      "2001": { count: 1, average: 1 },
-    });
+    expect(counts).toEqual({ "2024": 2, "2001": 1 });
   });
 });

@@ -11,7 +11,7 @@ import { GRID_COLS, SPECIAL_POSITIONS } from "@/lib/constants/position";
 import { COLOR, SPACE } from "@/lib/constants/theme";
 import { getStorms } from "@/lib/data/getStorms";
 import { getPositionSlug, getPositionTitle } from "@/lib/utils/position";
-import { getGroupSummaries } from "@/lib/utils/storm/aggregate";
+import { getGroupCounts } from "@/lib/utils/storm/aggregate";
 import { useRouter } from "expo-router";
 import { useCallback, useMemo } from "react";
 import { StyleSheet, Text, View } from "react-native";
@@ -20,7 +20,7 @@ export default function PositionsScreen() {
   const router = useRouter();
   const { data, isLoading, isError, isRefetching, refetch } = useQuery("storms", () => getStorms());
 
-  const summaries = useMemo(() => getGroupSummaries(data ?? [], "position"), [data]);
+  const counts = useMemo(() => getGroupCounts(data ?? [], "position"), [data]);
 
   const refreshValue = useMemo(
     () => ({ refreshing: isRefetching, onRefresh: refetch }),
@@ -32,10 +32,10 @@ export default function PositionsScreen() {
     [router],
   );
 
-  // Stable per summaries, or the grid's 140 memoised cells would all re-render on every tap.
+  // Stable per counts, or the grid's 140 memoised cells would all re-render on every tap.
   const renderCell = useCallback(
     (position: number): GridCell => {
-      const hasStorms = summaries[position] !== undefined;
+      const hasStorms = counts[position] !== undefined;
 
       return {
         color: hasStorms ? COLOR.surface : COLOR.surfaceSunken,
@@ -44,12 +44,12 @@ export default function PositionsScreen() {
         labelColor: hasStorms ? COLOR.textSecondary : COLOR.textFaint,
       };
     },
-    [summaries],
+    [counts],
   );
 
   const renderReadout = useCallback(
     (position: number) => {
-      const summary = summaries[position];
+      const count = counts[position] ?? 0;
 
       return (
         <View style={styles.readout}>
@@ -61,14 +61,12 @@ export default function PositionsScreen() {
             </Text>
           </Text>
           <Text style={styles.readoutStats}>
-            {summary
-              ? `${summary.count} ${summary.count === 1 ? "storm" : "storms"}`
-              : "No storms yet"}
+            {count > 0 ? `${count} ${count === 1 ? "storm" : "storms"}` : "No storms yet"}
           </Text>
         </View>
       );
     },
-    [summaries],
+    [counts],
   );
 
   if (isLoading) return <ScreenLoading />;
@@ -96,12 +94,7 @@ export default function PositionsScreen() {
               Neighbouring basins
             </Text>
             {SPECIAL_POSITIONS.map(({ id, label }) => (
-              <IndexTile
-                key={id}
-                label={label}
-                count={summaries[id]?.count ?? 0}
-                onPress={() => open(id)}
-              />
+              <IndexTile key={id} label={label} count={counts[id] ?? 0} onPress={() => open(id)} />
             ))}
           </View>
         </ScreenScroll>

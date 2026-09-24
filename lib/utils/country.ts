@@ -1,5 +1,4 @@
 import { COUNTRY_NAMES } from "@/lib/components/common/CountryFlag";
-import { GRID_COLS, GRID_ROWS } from "@/lib/constants/position";
 import type { Storm } from "@/lib/types";
 import { isExternalPosition } from "@/lib/utils/position";
 
@@ -22,23 +21,7 @@ export const stepCountry = (country: string, step: 1 | -1): string => {
   return COUNTRY_NAMES[(index + step + COUNTRY_NAMES.length) % COUNTRY_NAMES.length];
 };
 
-// Each member contributes one grid column, so its positions are that column in every row.
-export const getCountryPositions = (country: string): number[] => {
-  const col = COUNTRY_NAMES.indexOf(country);
-  if (col === -1) return [];
-  return Array.from({ length: GRID_ROWS }, (_, row) => row * GRID_COLS + col + 1);
-};
-
 // The agency positions share no member's column, so they never count towards a country even when
 // the row carries the member's name.
 export const getCountryStorms = (storms: Storm[], country: string): Storm[] =>
   storms.filter((storm) => storm.country === country && !isExternalPosition(storm.position));
-
-export const getCountryPositionGroups = (
-  storms: Storm[],
-  country: string,
-): [position: number, storms: Storm[]][] =>
-  getCountryPositions(country).map((position) => [
-    position,
-    storms.filter((storm) => storm.position === position).sort((a, b) => a.year - b.year),
-  ]);

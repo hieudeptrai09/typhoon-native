@@ -89,16 +89,3 @@ export const formatDuration = (days: number): string => {
   const rounded = Math.round(days);
   return `${rounded} ${rounded === 1 ? "day" : "days"}`;
 };
-
-// Start-month runs of an already date-sorted season, so a storm carried over from the previous
-// December leads the list instead of joining that season's own December.
-export const getSeasonMonthGroups = (seasonStorms: Storm[]): [month: number, storms: Storm[]][] => {
-  const groups: [number, Storm[]][] = [];
-  seasonStorms.forEach((storm) => {
-    const { month } = parseStormDate(storm.dateStart);
-    const last = groups[groups.length - 1];
-    if (last && last[0] === month) last[1].push(storm);
-    else groups.push([month, [storm]]);
-  });
-  return groups;
-};

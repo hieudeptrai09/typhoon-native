@@ -7,9 +7,10 @@ import ScreenLoading from "@/lib/components/common/ScreenLoading";
 import SwipePager from "@/lib/components/common/SwipePager";
 import SeasonPageContent from "@/lib/components/season/SeasonPageContent";
 import { getStorms } from "@/lib/data/getStorms";
-import { getSeasonStorms, getSeasonYears } from "@/lib/utils/storm/aggregate";
+import { getTyphoonNames } from "@/lib/data/getTyphoonNames";
+import { getSeasonDebuts, getSeasonStorms, getSeasonYears } from "@/lib/utils/storm/aggregate";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { StyleSheet, View } from "react-native";
 
 export default function SeasonScreen() {
@@ -19,16 +20,37 @@ export default function SeasonScreen() {
   // Number("") is 0, so an empty segment needs its own rejection.
   const year = raw.trim() !== "" && Number.isInteger(Number(raw)) ? Number(raw) : null;
 
-  const { data, isLoading, isError, isRefetching, refetch } = useQuery(
-    year !== null ? "storms" : null,
-    () => getStorms(),
-  );
+  const stormsQuery = useQuery(year !== null ? "storms" : null, () => getStorms());
+  const namesQuery = useQuery(year !== null ? "typhoon-names" : null, getTyphoonNames);
+  const data = stormsQuery.data;
+  const names = namesQuery.data;
 
   const years = useMemo(() => getSeasonYears(data ?? []), [data]);
   const storms = useMemo(
     () => (data && year !== null ? getSeasonStorms(data, year) : []),
     [data, year],
   );
+  const debuts = useMemo(
+    () => (data && year !== null ? getSeasonDebuts(data, year) : []),
+    [data, year],
+  );
+  // lastYear is set only once a name leaves the rotation.
+  const retiredNames = useMemo(
+    () => (names ?? []).filter((name) => name.lastYear === year),
+    [names, year],
+  );
+
+  const isLoading = stormsQuery.isLoading || namesQuery.isLoading;
+  const isError = stormsQuery.isError || namesQuery.isError;
+  const hasData = data !== null && names !== null;
+  const isRefetching = stormsQuery.isRefetching || namesQuery.isRefetching;
+  const { refetch: refetchStorms } = stormsQuery;
+  const { refetch: refetchNames } = namesQuery;
+
+  const refetch = useCallback(() => {
+    refetchStorms();
+    refetchNames();
+  }, [refetchStorms, refetchNames]);
 
   const refreshValue = useMemo(
     () => ({ refreshing: isRefetching, onRefresh: refetch }),
@@ -64,10 +86,10 @@ export default function SeasonScreen() {
       />
 
       <SwipePager enabled={hasPager} onPrev={() => go(prevYear)} onNext={() => go(nextYear)}>
-        {isLoading ? (
-          <ScreenLoading />
-        ) : isError && !data ? (
+        {isError && !hasData ? (
           <FrownError onRetry={refetch} />
+        ) : isLoading || (year !== null && !hasData) ? (
+          <ScreenLoading />
         ) : isUnknown || year === null ? (
           <View style={styles.state}>
             <EmptyResults
@@ -77,7 +99,14 @@ export default function SeasonScreen() {
           </View>
         ) : (
           <RefreshProvider value={refreshValue}>
-            <SeasonPageContent year={year} storms={storms} staleError={isError} />
+            <SeasonPageContent
+              year={year}
+              storms={storms}
+              names={names ?? []}
+              retiredNames={retiredNames}
+              debuts={debuts}
+              staleError={isError}
+            />
           </RefreshProvider>
         )}
       </SwipePager>

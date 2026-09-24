@@ -5,7 +5,7 @@ import ScreenLoading from "@/lib/components/common/ScreenLoading";
 import StaleBanner from "@/lib/components/common/StaleBanner";
 import { COLOR, SPACE } from "@/lib/constants/theme";
 import { getStorms } from "@/lib/data/getStorms";
-import { getGroupSummaries, getSeasonYears } from "@/lib/utils/storm/aggregate";
+import { getGroupCounts, getSeasonYears } from "@/lib/utils/storm/aggregate";
 import { useRouter } from "expo-router";
 import { useMemo } from "react";
 import { RefreshControl, SectionList, StyleSheet, Text, View } from "react-native";
@@ -22,7 +22,7 @@ export default function SeasonsScreen() {
   const insets = useSafeAreaInsets();
   const { data, isLoading, isError, isRefetching, refetch } = useQuery("storms", () => getStorms());
 
-  const summaries = useMemo(() => getGroupSummaries(data ?? [], "year"), [data]);
+  const counts = useMemo(() => getGroupCounts(data ?? [], "year"), [data]);
 
   // Newest decade and season first: recent seasons are the ones people come to compare.
   const sections = useMemo<DecadeSection[]>(() => {
@@ -57,7 +57,7 @@ export default function SeasonsScreen() {
               <View key={year} style={styles.cell}>
                 <IndexTile
                   label={String(year)}
-                  count={summaries[year]?.count ?? 0}
+                  count={counts[year] ?? 0}
                   onPress={() => router.push(`/years/${year}`)}
                 />
               </View>

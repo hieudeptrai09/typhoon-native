@@ -1,37 +1,33 @@
 import StaleBanner from "@/lib/components/common/StaleBanner";
-import GroupedStormList, { type StormGroup } from "@/lib/components/storm/GroupedStormList";
+import SeasonNameChanges from "@/lib/components/season/SeasonNameChanges";
 import StatisticsSection from "@/lib/components/storm/StatisticsSection";
-import { MONTH_NAMES, TEXT_COLOR_WHITE_BACKGROUND } from "@/lib/constants";
+import StormNameList from "@/lib/components/storm/StormNameList";
+import { TEXT_COLOR_WHITE_BACKGROUND } from "@/lib/constants";
 import { COLOR, SPACE } from "@/lib/constants/theme";
-import type { Storm } from "@/lib/types";
+import type { RetiredName, Storm } from "@/lib/types";
 import { calculateAverage, getIntensityFromNumber } from "@/lib/utils/storm/aggregate";
-import { getSeasonMonthGroups } from "@/lib/utils/storm/dates";
-import { useMemo } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
 interface SeasonPageContentProps {
   year: number;
   // Already in start-date order.
   storms: Storm[];
+  names: RetiredName[];
+  // Names whose last season this was.
+  retiredNames: RetiredName[];
+  // The storms that first carried their name, in start-date order.
+  debuts: Storm[];
   staleError?: boolean;
 }
 
 export default function SeasonPageContent({
   year,
   storms,
+  names,
+  retiredNames,
+  debuts,
   staleError = false,
 }: SeasonPageContentProps) {
-  const groups = useMemo<StormGroup[]>(
-    () =>
-      getSeasonMonthGroups(storms).map(([month, monthStorms], index) => ({
-        // A carried-over December and the season's own December are separate runs.
-        key: `${month}-${index}`,
-        label: MONTH_NAMES[month],
-        storms: monthStorms,
-      })),
-    [storms],
-  );
-
   const titleColor =
     storms.length > 0
       ? TEXT_COLOR_WHITE_BACKGROUND[getIntensityFromNumber(calculateAverage(storms))]
@@ -44,9 +40,11 @@ export default function SeasonPageContent({
         <Text style={styles.subtitle}>Typhoon Season</Text>
       </View>
 
-      <StatisticsSection storms={storms} showGap={false} />
+      {(retiredNames.length > 0 || debuts.length > 0) && (
+        <SeasonNameChanges retiredNames={retiredNames} debuts={debuts} />
+      )}
 
-      <Text style={styles.listTitle}>All Storms ({storms.length})</Text>
+      <StatisticsSection storms={storms} showGap={false} />
     </View>
   );
 
@@ -54,7 +52,8 @@ export default function SeasonPageContent({
     <View style={styles.root}>
       {staleError && <StaleBanner />}
 
-      <GroupedStormList groups={groups} header={header} showRecurrence={false} />
+      {/* One season is one year, so the year would only repeat the screen title. */}
+      <StormNameList storms={storms} names={names} header={header} showYear={false} />
     </View>
   );
 }
@@ -65,7 +64,6 @@ const styles = StyleSheet.create({
   },
   header: {
     gap: SPACE.lg,
-    paddingBottom: SPACE.lg,
   },
   heading: {
     flexDirection: "row",
@@ -81,10 +79,5 @@ const styles = StyleSheet.create({
     fontFamily: "OpenSans_400Regular",
     fontSize: 15,
     color: COLOR.textBody,
-  },
-  listTitle: {
-    fontFamily: "OpenSans_700Bold",
-    fontSize: 17,
-    color: COLOR.textSecondary,
   },
 });
