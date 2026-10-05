@@ -26,7 +26,7 @@ SELECT
     s.isstrongest                                                       AS "isStrongest",
     s.startdate::text                                                   AS "dateStart",
     s.enddate::text                                                     AS "dateEnd",
-    LPAD(s.jtwcnumber::text, 2, '0') || p.suffix::text                   AS "jtwcDesignation",
+    s.jtwcdesignation::text                                             AS "jtwcDesignation",
     s.isfirst                                                           AS "isFirst",
     s.islast                                                            AS "isLast",
     -- Appended rather than slotted next to "jtwcDesignation": CREATE OR REPLACE VIEW only ever

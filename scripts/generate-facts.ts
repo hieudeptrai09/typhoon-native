@@ -2,12 +2,12 @@
  * Builds the fun-fact list and stores it in the `facts` table. Run with `npm run facts`, and re-run
  * whenever the storm data changes.
  *
- * This is a script rather than a query because assembling the list takes 51 queries, and the server
+ * This is a script rather than a query because assembling the list takes 53 queries, and the server
  * runtime can only reach Postgres through the functions in db/functions.sql. Translating them would
  * also drag all the sentence-building below into SQL.
  */
-import sql, { client, type QueryParam } from "@/scripts/db";
 import { MONTH_NAMES } from "@/lib/constants";
+import sql, { client, type QueryParam } from "@/scripts/db";
 
 type Row = Record<string, unknown>;
 
@@ -40,34 +40,39 @@ async function generateFacts(): Promise<string[]> {
 
   // --- Cross-basin facts ---
 
-  //add Li 1994
+  // Position is the naming agency, not the birthplace: a few Hawaiian names (Li 1994, Nolo) went to
+  // storms that formed east of 140°W, so the E in their designation is what marks all 3 basins.
+  const crossedThreeBasins = "(position = 142 OR (position = 141 AND jtwcdesignation LIKE '%E'))";
+
   let names = (
     await rows("SELECT DISTINCT name FROM storms WHERE position = 141 ORDER BY name")
   ).map((r) => String(r.name));
   if (names.length > 0) {
     facts.push(
       withNames(
-        `There are ${names.length + 1} names given in Hawaiian by CPHC that crossed into the West Pacific basin`,
+        `There are ${names.length} names given in Hawaiian by CPHC that crossed into the West Pacific basin`,
         names,
       ),
     );
   }
 
-  const crossers = await rows(
-    "SELECT name, MIN(year) AS year FROM storms WHERE position = 142 GROUP BY name ORDER BY name",
+  names = (await rows("SELECT DISTINCT name FROM storms WHERE position = 142 ORDER BY name")).map(
+    (r) => String(r.name),
   );
-  const nhcCrossers = crossers.filter((r) => r.name !== "Li").map((r) => String(r.name));
-  const hawaiianCrossers = crossers
-    .filter((r) => r.name === "Li")
-    .map((r) => `${r.name} (${r.year})`);
-  if (nhcCrossers.length > 0) {
+  if (names.length > 0) {
     facts.push(
       withNames(
-        `There are ${nhcCrossers.length} names assigned by NHC that cross 3 Pacific basins`,
-        nhcCrossers,
+        `There are ${names.length} names assigned by NHC that cross 3 Pacific basins`,
+        names,
       ),
     );
   }
+
+  const hawaiianCrossers = (
+    await rows(
+      "SELECT name, year FROM storms WHERE position = 141 AND jtwcdesignation LIKE '%E' ORDER BY year",
+    )
+  ).map((r) => `${r.name} (${r.year})`);
   if (hawaiianCrossers.length > 0) {
     const label =
       hawaiianCrossers.length === 1
@@ -77,7 +82,22 @@ async function generateFacts(): Promise<string[]> {
   }
 
   let rowsResult = await rows(
-    "SELECT name, COUNT(*) as cnt FROM storms WHERE position = 142 GROUP BY name HAVING COUNT(*) >= 2",
+    `SELECT name, year FROM storms WHERE ${crossedThreeBasins} ORDER BY year, startdate`,
+  );
+  if (rowsResult.length > 0) {
+    const items = rowsResult.map((r) => `${r.name} (${r.year})`);
+    facts.push(
+      withNames(
+        `There ${items.length === 1 ? "is" : "are"} ${items.length} storm${
+          items.length === 1 ? "" : "s"
+        } that crossed all 3 Pacific basins`,
+        items,
+      ),
+    );
+  }
+
+  rowsResult = await rows(
+    `SELECT name FROM storms WHERE ${crossedThreeBasins} GROUP BY name HAVING COUNT(*) >= 2 ORDER BY name`,
   );
   if (rowsResult.length > 0) {
     names = rowsResult.map((r) => String(r.name));
@@ -89,7 +109,7 @@ async function generateFacts(): Promise<string[]> {
   // --- Category 5 from external basins ---
 
   rowsResult = await rows(
-    "SELECT DISTINCT name FROM storms WHERE position = 142 AND intensity = '5' AND name != 'Li'",
+    "SELECT DISTINCT name FROM storms WHERE position = 142 AND intensity = '5' ORDER BY name",
   );
   if (rowsResult.length > 0) {
     names = rowsResult.map((r) => String(r.name));
@@ -101,7 +121,7 @@ async function generateFacts(): Promise<string[]> {
   }
 
   rowsResult = await rows(
-    "SELECT DISTINCT name FROM storms WHERE position = 141 AND intensity = '5'",
+    "SELECT DISTINCT name FROM storms WHERE position = 141 AND intensity = '5' ORDER BY name",
   );
   if (rowsResult.length > 0) {
     names = rowsResult.map((r) => String(r.name));
@@ -760,11 +780,10 @@ async function generateFacts(): Promise<string[]> {
 
   // The absurdity: not tracked, yet somehow still numbered in post-season reanalysis (Haiyan 27W).
   rowsResult = await rows(`
-    SELECT s.name, s.year, LPAD(s.jtwcnumber::text, 2, '0') || p.suffix::text AS designation
-    FROM storms s
-    INNER JOIN positions p ON s.position = p.id
-    WHERE s.intensity = 'MD' AND s.jtwcnumber IS NOT NULL
-    ORDER BY s.year, s.name
+    SELECT name, year, jtwcdesignation AS designation
+    FROM storms
+    WHERE intensity = 'MD' AND jtwcdesignation IS NOT NULL
+    ORDER BY year, name
   `);
   if (rowsResult.length > 0) {
     const items = rowsResult.map((r) => `${r.name} (${r.year}, ${r.designation})`);
