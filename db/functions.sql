@@ -21,17 +21,14 @@ SELECT
     s.name::text                                                        AS name,
     s.intensity::text                                                   AS intensity,
     s.map::text                                                         AS map,
-    s.correctspelling::text                                             AS "correctSpelling",
     s.year,
     s.isstrongest                                                       AS "isStrongest",
     s.startdate::text                                                   AS "dateStart",
     s.enddate::text                                                     AS "dateEnd",
     s.jtwcdesignation::text                                             AS "jtwcDesignation",
+    s.jmanumber::text                                                   AS "jmaNumber",
     s.isfirst                                                           AS "isFirst",
-    s.islast                                                            AS "isLast",
-    -- Appended rather than slotted next to "jtwcDesignation": CREATE OR REPLACE VIEW only ever
-    -- adds columns at the end, and get_storms depends on this view so it cannot be dropped.
-    s.jmanumber::text                                                   AS "jmaNumber"
+    s.islast                                                            AS "isLast"
 FROM catfisha_typhoons.storms s
 INNER JOIN catfisha_typhoons.positions p ON s.position = p.id;
 
@@ -78,7 +75,6 @@ RETURNS TABLE (
     name text,
     intensity text,
     map text,
-    "correctSpelling" text,
     year integer,
     "isStrongest" boolean,
     "dateStart" text,
@@ -94,7 +90,7 @@ SECURITY DEFINER
 SET search_path = catfisha_typhoons, public
 AS $$
     SELECT
-        v.position, v.country, v.name, v.intensity, v.map, v."correctSpelling", v.year,
+        v.position, v.country, v.name, v.intensity, v.map, v.year,
         v."isStrongest", v."dateStart", v."dateEnd", v."jtwcDesignation", v."jmaNumber",
         v."isFirst", v."isLast"
     FROM catfisha_typhoons.v_storms v

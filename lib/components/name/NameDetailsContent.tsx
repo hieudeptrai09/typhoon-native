@@ -15,7 +15,6 @@ const ROW_ICON_COLOR = COLOR.textMuted;
 export interface NameDetailsContentProps {
   name: TyphoonName | RetiredName | null;
   hideReplacedBy?: boolean;
-  correctSpelling?: string;
   hideStatus?: boolean;
 }
 
@@ -29,7 +28,6 @@ const InfoRow = ({ icon, children }: { icon: ReactNode; children: ReactNode }) =
 const NameDetailsContent = ({
   name,
   hideReplacedBy = false,
-  correctSpelling,
   hideStatus = false,
 }: NameDetailsContentProps) => {
   if (!name) {
@@ -46,11 +44,11 @@ const NameDetailsContent = ({
   const lastYear = "lastYear" in name ? name.lastYear : undefined;
   const note = "note" in name ? name.note?.trim() : undefined;
   const pronunciationFile = name.pronunciationFile?.trim();
-  const crossRef: { icon: IconName; label: string; value: string } | undefined = correctSpelling
-    ? { icon: "text-outline", label: "Correct spelling", value: correctSpelling }
-    : replacementName
-      ? { icon: "swap-horizontal-outline", label: "Replaced by", value: replacementName }
-      : undefined;
+  const crossRef: { icon: IconName; label: string; value: string } | undefined = !replacementName
+    ? undefined
+    : name.retirementReason === "misspell"
+      ? { icon: "text-outline", label: "Correct spelling", value: replacementName }
+      : { icon: "swap-horizontal-outline", label: "Replaced by", value: replacementName };
 
   return (
     <View style={styles.root}>

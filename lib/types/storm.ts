@@ -6,7 +6,6 @@ export interface Storm {
   intensity: IntensityType;
   position: number;
   country: string;
-  correctSpelling?: string;
   map: string;
   isStrongest?: boolean;
   isFirst?: boolean;

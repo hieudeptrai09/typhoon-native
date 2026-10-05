@@ -108,8 +108,7 @@ const StormNameList = ({
     return storms.map((storm, index) => ({
       key: `${storm.year}-${storm.position}-${storm.name}-${index}`,
       name: storm.name,
-      // A storm issued under a misspelled name still reaches its list entry through correctSpelling.
-      meaning: byName.get((storm.correctSpelling ?? storm.name).toLowerCase())?.meaning ?? "",
+      meaning: byName.get(storm.name.toLowerCase())?.meaning ?? "",
       intensity: storm.intensity,
       country: storm.country,
       position: storm.position,

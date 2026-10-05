@@ -76,7 +76,6 @@ export default function InfoPageContent({
     ? getNameStatusColor({ ...nameData, isExternal: !isInPosition })
     : COLOR.textSecondary;
 
-  const correctSpelling = storms[0]?.correctSpelling;
   const metaCountry = nameData?.country ?? storms[0]?.country;
   const metaPosition = nameData?.position ?? storms[0]?.position;
 
@@ -126,7 +125,7 @@ export default function InfoPageContent({
       {isInPosition && nameData && (
         <Section title="Name Details">
           {/* The page header already carries the status badge. */}
-          <NameDetailsContent name={nameData} correctSpelling={correctSpelling} hideStatus />
+          <NameDetailsContent name={nameData} hideStatus />
         </Section>
       )}
 

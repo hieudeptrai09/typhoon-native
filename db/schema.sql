@@ -100,8 +100,6 @@ CREATE TABLE storms (
     intensity storms_intensity NOT NULL,
     map character varying(200) DEFAULT NULL,        -- track map URL
     year integer NOT NULL,
-    -- Set only for the handful of storms whose official spelling differs from the list entry.
-    correctspelling character varying(10),
     isstrongest boolean DEFAULT false NOT NULL,     -- strongest storm to carry this name
     -- JTWC number plus the letter of the basin the storm formed in, e.g. "12W". Set even for a
     -- few 'MD' storms, which the JTWC numbered in post-season reanalysis without ever having
@@ -127,13 +125,13 @@ CREATE TABLE storms (
 CREATE INDEX idx_17761_position ON storms USING btree ("position");
 
 INSERT INTO storms (
-    id, "position", name, intensity, map, year, correctspelling,
+    id, "position", name, intensity, map, year,
     isstrongest, jtwcdesignation, jmanumber, isfirst, islast, startdate, enddate
 )
 VALUES (
     591, 19, 'Yagi', '5',
     'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Yagi_2024_track.png/960px-Yagi_2024_track.png',
-    2024, NULL, true, '12W', '2411', false, false, '2024-08-31', '2024-09-09'
+    2024, true, '12W', '2411', false, false, '2024-08-31', '2024-09-09'
 );
 
 -- Candidate replacements proposed for a retired name. Several candidates per retired name;
