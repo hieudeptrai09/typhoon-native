@@ -121,8 +121,8 @@ const DataList = <T,>({
   const listProps = {
     keyExtractor,
     renderItem,
-    ListHeaderComponent: header ? <>{header}</> : null,
-    ListEmptyComponent: empty ? <>{empty}</> : null,
+    ListHeaderComponent: header ? <>{header}</> : undefined,
+    ListEmptyComponent: empty ? <>{empty}</> : undefined,
     contentContainerStyle: sorted.length === 0 ? styles.contentEmpty : styles.content,
     refreshControl,
     initialNumToRender: 12,

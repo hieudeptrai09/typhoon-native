@@ -43,8 +43,8 @@ export default function TabsLayout() {
         options={{
           title: "Today",
           headerRight: () => <AboutButton />,
-          tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons name={focused ? "today" : "today-outline"} color={color} size={size} />
+          tabBarIcon: ({ size, focused }) => (
+            <Ionicons name={focused ? "today" : "today-outline"} color={focused ? ACTIVE : INACTIVE} size={size} />
           ),
         }}
       />
@@ -52,10 +52,10 @@ export default function TabsLayout() {
         name="storms"
         options={{
           title: "Storms",
-          tabBarIcon: ({ color, size, focused }) => (
+          tabBarIcon: ({ size, focused }) => (
             <Ionicons
               name={focused ? "thunderstorm" : "thunderstorm-outline"}
-              color={color}
+              color={focused ? ACTIVE : INACTIVE}
               size={size}
             />
           ),
@@ -65,8 +65,8 @@ export default function TabsLayout() {
         name="calendar"
         options={{
           title: "Calendar",
-          tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons name={focused ? "calendar" : "calendar-outline"} color={color} size={size} />
+          tabBarIcon: ({ size, focused }) => (
+            <Ionicons name={focused ? "calendar" : "calendar-outline"} color={focused ? ACTIVE : INACTIVE} size={size} />
           ),
         }}
       />
@@ -74,8 +74,8 @@ export default function TabsLayout() {
         name="names"
         options={{
           title: "Names",
-          tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons name={focused ? "book" : "book-outline"} color={color} size={size} />
+          tabBarIcon: ({ size, focused }) => (
+            <Ionicons name={focused ? "book" : "book-outline"} color={focused ? ACTIVE : INACTIVE} size={size} />
           ),
         }}
       />
@@ -83,8 +83,8 @@ export default function TabsLayout() {
         name="search"
         options={{
           title: "Search",
-          tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons name={focused ? "search" : "search-outline"} color={color} size={size} />
+          tabBarIcon: ({ size, focused }) => (
+            <Ionicons name={focused ? "search" : "search-outline"} color={focused ? ACTIVE : INACTIVE} size={size} />
           ),
         }}
       />

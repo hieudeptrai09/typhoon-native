@@ -16,6 +16,7 @@ import {
   type LayoutChangeEvent,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
+  type ScrollViewInstance,
 } from "react-native";
 
 interface CountryPagerProps {
@@ -30,7 +31,7 @@ const CountryPager = ({ renderPosition, onPositionPress, positionEnabled }: Coun
   const [pageWidth, setPageWidth] = useState(0);
   const [index, setIndex] = useState(0);
   const pagerRef = useRef<FlatList<string>>(null);
-  const tabsRef = useRef<ScrollView>(null);
+  const tabsRef = useRef<ScrollViewInstance>(null);
 
   const goTo = (next: number) => {
     if (next === index) return;

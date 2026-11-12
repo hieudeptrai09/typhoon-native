@@ -6,6 +6,7 @@ import {
   View,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
+  type ScrollViewInstance,
   type StyleProp,
   type ViewStyle,
 } from "react-native";
@@ -17,7 +18,7 @@ interface EdgeFadeProps {
   contentContainerStyle?: StyleProp<ViewStyle>;
   accessibilityLabel?: string;
   accessibilityRole?: "tablist";
-  scrollRef?: RefObject<ScrollView | null>;
+  scrollRef?: RefObject<ScrollViewInstance | null>;
   // Must match what the row sits on, or the fade reads as a grey smudge.
   backgroundColor?: string;
 }

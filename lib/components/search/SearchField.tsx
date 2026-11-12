@@ -2,7 +2,7 @@ import { COLOR } from "@/lib/constants/theme";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useRef } from "react";
-import { InteractionManager, Pressable, StyleSheet, TextInput, View } from "react-native";
+import { Pressable, StyleSheet, TextInput, View, type TextInputInstance } from "react-native";
 
 interface SearchFieldProps {
   value: string;
@@ -15,7 +15,7 @@ const SearchField = ({
   onChangeText,
   placeholder = "Search typhoon names",
 }: SearchFieldProps) => {
-  const input = useRef<TextInput>(null);
+  const input = useRef<TextInputInstance>(null);
   // Read inside the focus effect instead of listed as a dependency, so re-focusing is decided by
   // what is typed *now* without the effect tearing down on every keystroke.
   const typed = useRef(value);
@@ -30,8 +30,8 @@ const SearchField = ({
     useCallback(() => {
       if (typed.current !== "") return;
 
-      const task = InteractionManager.runAfterInteractions(() => input.current?.focus());
-      return () => task.cancel();
+      const task = requestIdleCallback(() => input.current?.focus());
+      return () => cancelIdleCallback(task);
     }, []),
   );
 
