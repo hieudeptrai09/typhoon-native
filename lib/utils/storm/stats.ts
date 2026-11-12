@@ -5,6 +5,7 @@ import { getPositionTitle } from "@/lib/utils/position";
 import {
   calculateAverage,
   calculateGapAverage,
+  calculateGapDaysAverage,
   formatDistance,
   getGroupedStorms,
   getIntensityFromNumber,
@@ -29,6 +30,8 @@ export interface StatRow {
   value: number;
   display: string;
   color: string;
+  // Only the recurrence metric fills this; -1 like value when there is no gap.
+  days?: number;
   // Only the dates metric fills these.
   startDoy?: number;
   endDoy?: number;
@@ -61,10 +64,15 @@ const labelOf = (key: string, groupBy: string): string => {
 const measure = (
   metric: string,
   storms: Storm[],
-): Pick<StatRow, "value" | "display" | "color" | "startDoy" | "endDoy" | "duration"> => {
+): Pick<StatRow, "value" | "display" | "color" | "days" | "startDoy" | "endDoy" | "duration"> => {
   if (metric === "recurrence") {
     const gap = calculateGapAverage(storms);
-    return { value: gap, display: formatDistance(gap), color: getDistanceColor(gap) };
+    return {
+      value: gap,
+      display: formatDistance(gap),
+      color: getDistanceColor(gap),
+      days: calculateGapDaysAverage(storms),
+    };
   }
 
   if (metric === "dates") {

@@ -1,7 +1,13 @@
 import { COLOR } from "@/lib/constants/theme";
 import type { Storm } from "@/lib/types";
 import { getDistanceColor } from "@/lib/utils/colors";
-import { formatStormDateRange } from "@/lib/utils/date";
+import {
+  calendarDuration,
+  daysBetween,
+  formatDayCount,
+  formatDurationParts,
+  formatStormDateRange,
+} from "@/lib/utils/date";
 import { StyleSheet, Text, View } from "react-native";
 
 interface RecurrenceBreakdownProps {
@@ -13,8 +19,13 @@ const formatGapLabel = (gap: number): string => {
   return gap === 1 ? "1 year" : `${gap} years`;
 };
 
+// "2193 days (6 years 3 days)": the exact distance between the two start dates.
+const formatDayGapLabel = (from: string, to: string): string =>
+  `${formatDayCount(daysBetween(from, to) ?? 0)} (${formatDurationParts(calendarDuration(from, to))})`;
+
 const RecurrenceBreakdown = ({ storms }: RecurrenceBreakdownProps) => {
-  const timeline = [...storms].sort((a, b) => a.year - b.year);
+  // Start dates order storms within a year too, so each day gap runs forward.
+  const timeline = [...storms].sort((a, b) => a.dateStart.localeCompare(b.dateStart));
 
   if (timeline.length === 0) {
     return <Text style={styles.empty}>No storms to show.</Text>;
@@ -41,7 +52,13 @@ const RecurrenceBreakdown = ({ storms }: RecurrenceBreakdownProps) => {
                 <View style={styles.rail}>
                   <View style={[styles.railLine, { backgroundColor: color }]} />
                 </View>
-                <Text style={[styles.gapLabel, { color }]}>{formatGapLabel(gap)}</Text>
+                <Text style={[styles.gapLabel, { color }]}>
+                  {formatGapLabel(gap)}
+                  <Text style={styles.gapDays}>
+                    {" · "}
+                    {formatDayGapLabel(timeline[index - 1].dateStart, storm.dateStart)}
+                  </Text>
+                </Text>
               </View>
             )}
 
@@ -93,9 +110,14 @@ const styles = StyleSheet.create({
     minHeight: 16,
   },
   gapLabel: {
+    flexShrink: 1,
     fontFamily: "OpenSans_600SemiBold",
     fontSize: 12,
     paddingVertical: 4,
+    fontVariant: ["tabular-nums"],
+  },
+  gapDays: {
+    fontFamily: "OpenSans_400Regular",
   },
   entry: {
     flexDirection: "row",

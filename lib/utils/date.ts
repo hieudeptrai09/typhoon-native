@@ -116,6 +116,76 @@ export const daysBetween = (dateStart: string, dateEnd?: string): number | null 
   );
 };
 
+export interface Duration {
+  years: number;
+  months: number;
+  days: number;
+}
+
+const daysInMonth = (year: number, month: number): number =>
+  new Date(Date.UTC(year, month, 0)).getUTCDate();
+
+// Whole years and months first, then the leftover days. A start on the 31st steps to the end of a
+// shorter month (31/1 + 1 month = 28/2), the way people count it by hand.
+export const calendarDuration = (dateStart: string, dateEnd: string): Duration => {
+  const start = parseStormDate(dateStart);
+  const end = parseStormDate(dateEnd);
+  let totalMonths = (end.year - start.year) * 12 + (end.month - start.month);
+  if (end.day < start.day) totalMonths -= 1;
+
+  const anchorYear = start.year + Math.floor((start.month - 1 + totalMonths) / 12);
+  const anchorMonth = ((start.month - 1 + totalMonths) % 12) + 1;
+  const anchorDay = Math.min(start.day, daysInMonth(anchorYear, anchorMonth));
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const anchor = `${anchorYear}-${pad(anchorMonth)}-${pad(anchorDay)}`;
+
+  return {
+    years: Math.floor(totalMonths / 12),
+    months: totalMonths % 12,
+    days: daysBetween(anchor, dateEnd) ?? 0,
+  };
+};
+
+// An average has no dates to anchor it, so it is floored to whole days, split into 365-day years,
+// and the rest walked through a common year's months from January until less than a month is left.
+// 1416 → 3 years (1095) + 321 → Jan…Oct (304) → 3 years 10 months 17 days.
+const DAYS_PER_YEAR = 365;
+const COMMON_YEAR_MONTH_DAYS = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+
+export const durationFromDays = (totalDays: number): Duration => {
+  const whole = Math.floor(totalDays);
+  const years = Math.floor(whole / DAYS_PER_YEAR);
+  let days = whole - years * DAYS_PER_YEAR;
+  let months = 0;
+  while (days >= COMMON_YEAR_MONTH_DAYS[months]) {
+    days -= COMMON_YEAR_MONTH_DAYS[months];
+    months += 1;
+  }
+  return { years, months, days };
+};
+
+const unit = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
+
+// "4 years 1 month 14 days"
+export const formatDurationParts = ({ years, months, days }: Duration): string => {
+  const parts = [
+    years > 0 && unit(years, "year"),
+    months > 0 && unit(months, "month"),
+    days > 0 && unit(days, "day"),
+  ].filter(Boolean);
+  return parts.length ? parts.join(" ") : "0 days";
+};
+
+// Floored, not rounded, so it always agrees with durationFromDays.
+export const formatDayNumber = (days: number): string => String(Math.floor(days));
+
+export const formatDayCount = (days: number): string =>
+  `${formatDayNumber(days)} ${Math.floor(days) === 1 ? "day" : "days"}`;
+
+// "1416 days ≈ 3 years 10 months 17 days"
+export const formatAverageDays = (days: number): string =>
+  `${formatDayCount(days)} ≈ ${formatDurationParts(durationFromDays(days))}`;
+
 export const formatStormDateRange = (dateStart: string, dateEnd?: string): string => {
   const start = parseStormDate(dateStart);
   const end = parseDateParts(dateEnd);

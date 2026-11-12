@@ -4,9 +4,11 @@ import { BACKGROUND_BADGE, TEXT_COLOR_WHITE_BACKGROUND } from "@/lib/constants";
 import { COLOR, HIT_SIZE, RADIUS, SPACE } from "@/lib/constants/theme";
 import type { Storm } from "@/lib/types";
 import { getDistanceColor } from "@/lib/utils/colors";
+import { formatDayCount } from "@/lib/utils/date";
 import {
   calculateAverage,
   calculateGapAverage,
+  calculateGapDaysAverage,
   formatDistance,
   getIntensityFromNumber,
 } from "@/lib/utils/storm/aggregate";
@@ -29,6 +31,7 @@ interface GroupSection extends StormGroup {
   data: Storm[];
   average: number;
   recurrence: number;
+  recurrenceDays: number;
 }
 
 interface GroupedStormListProps {
@@ -80,7 +83,7 @@ const GroupHeader = ({
                   <Text style={[styles.statValue, { color: getDistanceColor(group.recurrence) }]}>
                     {formatDistance(group.recurrence)}
                   </Text>{" "}
-                  yrs
+                  yrs · {formatDayCount(group.recurrenceDays)}
                 </Text>
               )}
             </View>
@@ -119,6 +122,7 @@ const GroupedStormList = ({ groups, header, showRecurrence = true }: GroupedStor
         ...group,
         average: calculateAverage(group.storms),
         recurrence: calculateGapAverage(group.storms),
+        recurrenceDays: calculateGapDaysAverage(group.storms),
       })),
     [groups],
   );

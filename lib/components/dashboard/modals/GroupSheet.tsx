@@ -9,6 +9,7 @@ export interface GroupStat {
   label: string;
   value: ReactNode;
   hint?: string;
+  caption?: string;
 }
 
 interface GroupSheetProps {
@@ -45,7 +46,7 @@ const GroupSheet = ({
       <View style={styles.tiles}>
         {stats.map((stat) => (
           <View key={stat.label} style={styles.tile}>
-            <StatTile label={stat.label} hint={stat.hint}>
+            <StatTile label={stat.label} hint={stat.hint} caption={stat.caption}>
               {stat.value}
             </StatTile>
           </View>

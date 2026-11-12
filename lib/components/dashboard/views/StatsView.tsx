@@ -9,6 +9,7 @@ import SpecialButtons, {
 import SpecialNamesList from "@/lib/components/dashboard/widgets/SpecialNamesList";
 import { COLOR } from "@/lib/constants/theme";
 import type { DashboardParams, Storm } from "@/lib/types";
+import { formatAverageDays, formatDayNumber } from "@/lib/utils/date";
 import { getPositionTitle, isExternalPosition } from "@/lib/utils/position";
 import { formatDuration } from "@/lib/utils/storm/dates";
 import { buildStatRows, statColorsByKey, type StatRow } from "@/lib/utils/storm/stats";
@@ -63,6 +64,14 @@ const makeSortFields = (metric: string, groupBy: string): SortField<StatRow>[] =
     compare: (a, b) => a.value - b.value,
   });
 
+  if (metric === "recurrence") {
+    fields.push({
+      key: "days",
+      label: "Avg. reuse gap (days)",
+      compare: (a, b) => (a.days ?? -1) - (b.days ?? -1),
+    });
+  }
+
   if (metric === "dates") {
     fields.push({
       key: "end",
@@ -93,6 +102,10 @@ const fieldsOf = (row: StatRow, metric: string, groupBy: string): DataField[] =>
       value: <Text style={[styles.value, { color: row.color }]}>{row.display}</Text>,
     },
   ];
+
+  if (metric === "recurrence" && row.days !== undefined && row.days >= 0) {
+    fields.push({ label: "In days", value: formatAverageDays(row.days) });
+  }
 
   if (metric === "dates") {
     fields.push({ label: "Avg. duration", value: formatDuration(row.duration ?? -1) });
@@ -161,8 +174,13 @@ const StatsView = ({ params, stormsData, onSelectGroup }: StatsViewProps) => {
     const specialValues: Record<number, SpecialValue> = {};
     rows.forEach((row) => {
       const position = Number(row.key);
-      if (isExternalPosition(position))
-        specialValues[position] = { color: row.color, suffix: row.display };
+      if (!isExternalPosition(position)) return;
+      const days = row.days ?? -1;
+      const suffix =
+        metric === "recurrence" && days >= 0
+          ? `${row.display}y · ${formatDayNumber(days)}d`
+          : row.display;
+      specialValues[position] = { color: row.color, suffix };
     });
 
     return (

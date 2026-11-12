@@ -3,7 +3,9 @@ import {
   calculateAverage,
   calculateDistances,
   calculateGapAverage,
+  calculateGapDaysAverage,
   formatDistance,
+  getGapDays,
   getGroupCounts,
   getGroupedStorms,
   getIntensityFromNumber,
@@ -94,6 +96,45 @@ describe("calculateGapAverage / calculateDistances", () => {
       "name",
     );
     expect(distances).toEqual({ Yagi: 6, Nakri: -1 });
+  });
+});
+
+describe("getGapDays / calculateGapDaysAverage", () => {
+  it("measures days between consecutive start dates, oldest first", () => {
+    const storms = [
+      storm({ year: 2006, dateStart: "2006-08-11" }),
+      storm({ year: 2000, dateStart: "2000-08-01" }),
+      storm({ year: 2000, dateStart: "2000-09-10" }),
+    ];
+    expect(getGapDays(storms)).toEqual([40, 2161]);
+    expect(calculateGapDaysAverage(storms)).toBe(1100.5);
+  });
+
+  it("counts every real calendar day, leap days included", () => {
+    // 15/9→31/12/2019 (108) + 2020–2022 (366+365+365) + 1/1→1/8/2023 (212)
+    const pair = [
+      storm({ year: 2019, dateStart: "2019-09-15" }),
+      storm({ year: 2023, dateStart: "2023-08-01" }),
+    ];
+    expect(getGapDays(pair)).toEqual([108 + 366 + 365 + 365 + 212]);
+  });
+
+  it("returns -1 when there is no gap to measure", () => {
+    expect(calculateGapDaysAverage([storm()])).toBe(-1);
+    expect(calculateGapDaysAverage([])).toBe(-1);
+  });
+
+  it("plugs into calculateDistances as the measure", () => {
+    const distances = calculateDistances(
+      [
+        storm({ name: "Yagi", dateStart: "2018-08-08" }),
+        storm({ name: "Yagi", dateStart: "2024-09-01" }),
+        storm({ name: "Nakri" }),
+      ],
+      "name",
+      calculateGapDaysAverage,
+    );
+    expect(distances).toEqual({ Yagi: 2216, Nakri: -1 });
   });
 });
 

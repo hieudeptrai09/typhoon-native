@@ -3,9 +3,11 @@ import { INTENSITY_LABEL, TEXT_COLOR_WHITE_BACKGROUND } from "@/lib/constants";
 import { COLOR } from "@/lib/constants/theme";
 import type { Storm } from "@/lib/types";
 import { getAvgDateColor, getDistanceColor } from "@/lib/utils/colors";
+import { formatAverageDays } from "@/lib/utils/date";
 import {
   calculateAverage,
   calculateGapAverage,
+  calculateGapDaysAverage,
   formatDistance,
   getIntensityFromNumber,
 } from "@/lib/utils/storm/aggregate";
@@ -34,6 +36,7 @@ const StormStats = ({ storms, showRecurrence = true }: StormStatsProps) => {
   const average = calculateAverage(storms);
   const intensity = getIntensityFromNumber(average);
   const recurrence = calculateGapAverage(storms);
+  const recurrenceDays = calculateGapDaysAverage(storms);
   const { startDoy, endDoy } = calculateAvgDates(storms);
   const duration = calculateAvgDuration(storms);
 
@@ -56,6 +59,7 @@ const StormStats = ({ storms, showRecurrence = true }: StormStatsProps) => {
                 ? "Only one storm, so no recurrence can be measured"
                 : "Average years between appearances"
             }
+            caption={recurrenceDays >= 0 ? formatAverageDays(recurrenceDays) : undefined}
           >
             <Text style={{ color: getDistanceColor(recurrence) }}>
               {formatDistance(recurrence)}

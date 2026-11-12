@@ -12,6 +12,7 @@ import IntensityBreakdown from "@/lib/components/storm/breakdowns/IntensityBreak
 import RecurrenceBreakdown from "@/lib/components/storm/breakdowns/RecurrenceBreakdown";
 import SeasonDatesBreakdown from "@/lib/components/storm/breakdowns/SeasonDatesBreakdown";
 import type { DashboardParams, Storm } from "@/lib/types";
+import { formatAverageDays } from "@/lib/utils/date";
 import { getPositionTitle } from "@/lib/utils/position";
 import { formatDayOfYear, formatDuration } from "@/lib/utils/storm/dates";
 import { VIEWS } from "@/lib/utils/storm/routing";
@@ -95,6 +96,7 @@ const statsFor = (group: OpenGroup): GroupStat[] => {
       {
         label: "Avg. reuse gap",
         value: row.value < 0 ? "N/A" : `${row.display} years`,
+        caption: row.days !== undefined && row.days >= 0 ? formatAverageDays(row.days) : undefined,
         hint: "About six years is one full turn of the 140-position list",
       },
       count,

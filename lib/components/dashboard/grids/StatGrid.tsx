@@ -7,6 +7,7 @@ import {
 } from "@/lib/constants";
 import { COLOR } from "@/lib/constants/theme";
 import type { Storm } from "@/lib/types";
+import { formatAverageDays } from "@/lib/utils/date";
 import { getIntensityFromNumber } from "@/lib/utils/storm/aggregate";
 import { formatDuration, getDoyMonth } from "@/lib/utils/storm/dates";
 import type { StatRow } from "@/lib/utils/storm/stats";
@@ -21,7 +22,8 @@ interface StatGridProps {
 
 const readoutLines = (row: StatRow, metric: string): string[] => {
   if (metric === "recurrence") {
-    return [row.value < 0 ? "Reuse gap not measurable" : `Avg reuse gap ${row.display} years`];
+    if (row.value < 0) return ["Reuse gap not measurable"];
+    return [`Avg reuse gap ${row.display} years`, formatAverageDays(row.days ?? 0)];
   }
   if (metric === "dates") {
     return [`Avg season ${row.display}`, `Avg duration ${formatDuration(row.duration ?? -1)}`];

@@ -1,5 +1,6 @@
 import { INTENSITY_RANK, NAMING_LIST_FIRST_YEAR, SORTING_RANK } from "@/lib/constants";
 import type { IntensityType, Storm } from "@/lib/types";
+import { daysBetween } from "@/lib/utils/date";
 import { isExternalPosition } from "@/lib/utils/position";
 
 // The inverse of INTENSITY_RANK.
@@ -57,15 +58,27 @@ export const calculateGapAverage = (storms: Storm[]): number => {
   return gaps.reduce((a, b) => a + b, 0) / gaps.length;
 };
 
+// Start dates are always set, so an active storm still counts.
+export const getGapDays = (storms: Storm[]): number[] => {
+  const starts = storms.map((s) => s.dateStart).sort();
+  return starts.slice(1).map((start, i) => daysBetween(starts[i], start) ?? 0);
+};
+
+export const calculateGapDaysAverage = (storms: Storm[]): number => {
+  const gaps = getGapDays(storms);
+  return gaps.length ? gaps.reduce((a, b) => a + b, 0) / gaps.length : -1;
+};
+
 export const calculateDistances = (
   stormsData: Storm[],
   groupBy: "position" | "name",
+  measure: (storms: Storm[]) => number = calculateGapAverage,
 ): Record<string, number> => {
   const grouped = getGroupedStorms(stormsData, groupBy);
   const result: Record<string, number> = {};
 
   Object.entries(grouped).forEach(([key, groupStorms]) => {
-    result[key] = calculateGapAverage(groupStorms);
+    result[key] = measure(groupStorms);
   });
 
   return result;

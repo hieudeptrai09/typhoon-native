@@ -1,7 +1,12 @@
 import {
+  calendarDuration,
   dayIndexOf,
   DAYS_OF_YEAR,
   daysBetween,
+  durationFromDays,
+  formatAverageDays,
+  formatDayCount,
+  formatDurationParts,
   formatLongDate,
   formatMonthDay,
   formatShortDate,
@@ -212,5 +217,71 @@ describe("dayIndexOf / monthDayAt", () => {
   it("clamps an index that runs off either end of the year", () => {
     expect(monthDayAt(-1)).toBe("01-01");
     expect(monthDayAt(999)).toBe("12-31");
+  });
+});
+
+describe("calendarDuration", () => {
+  it("counts whole years, then months, then leftover days", () => {
+    expect(calendarDuration("2019-08-01", "2023-09-15")).toEqual({ years: 4, months: 1, days: 14 });
+    expect(calendarDuration("2018-09-10", "2024-09-10")).toEqual({ years: 6, months: 0, days: 0 });
+  });
+
+  it("borrows a month when the end day falls before the start day", () => {
+    expect(calendarDuration("2020-10-20", "2021-01-05")).toEqual({ years: 0, months: 2, days: 16 });
+  });
+
+  it("steps a month-end start to the end of a shorter month", () => {
+    expect(calendarDuration("2023-01-31", "2023-03-01")).toEqual({ years: 0, months: 1, days: 1 });
+    expect(calendarDuration("2024-01-31", "2024-02-29")).toEqual({ years: 0, months: 0, days: 29 });
+  });
+
+  it("is zero for the same day", () => {
+    expect(calendarDuration("2024-08-31", "2024-08-31")).toEqual({ years: 0, months: 0, days: 0 });
+  });
+});
+
+describe("durationFromDays", () => {
+  it("floors to whole days, takes 365-day years, then walks the months from January", () => {
+    // 1416 = 3 × 365 + 321; Jan–Oct is 304 days, leaving 17
+    expect(durationFromDays(1416.25)).toEqual({ years: 3, months: 10, days: 17 });
+  });
+
+  it("counts a year as exactly 365 days", () => {
+    expect(durationFromDays(365)).toEqual({ years: 1, months: 0, days: 0 });
+    expect(durationFromDays(366)).toEqual({ years: 1, months: 0, days: 1 });
+    expect(durationFromDays(2192)).toEqual({ years: 6, months: 0, days: 2 });
+  });
+
+  it("uses the Gregorian month lengths of a common year", () => {
+    expect(durationFromDays(30)).toEqual({ years: 0, months: 0, days: 30 });
+    expect(durationFromDays(45)).toEqual({ years: 0, months: 1, days: 14 });
+    expect(durationFromDays(59)).toEqual({ years: 0, months: 2, days: 0 });
+    expect(durationFromDays(364)).toEqual({ years: 0, months: 11, days: 30 });
+  });
+
+  it("never rounds a fraction up", () => {
+    expect(durationFromDays(9.99)).toEqual({ years: 0, months: 0, days: 9 });
+  });
+});
+
+describe("formatDurationParts", () => {
+  it("spells out each non-zero part", () => {
+    expect(formatDurationParts({ years: 4, months: 1, days: 14 })).toBe("4 years 1 month 14 days");
+    expect(formatDurationParts({ years: 1, months: 0, days: 1 })).toBe("1 year 1 day");
+  });
+
+  it("reads 0 days when there is nothing to show", () => {
+    expect(formatDurationParts({ years: 0, months: 0, days: 0 })).toBe("0 days");
+  });
+});
+
+describe("formatDayCount / formatAverageDays", () => {
+  it("floors to whole days without a thousands separator", () => {
+    expect(formatDayCount(2193.9)).toBe("2193 days");
+    expect(formatDayCount(1)).toBe("1 day");
+  });
+
+  it("pairs the day count with its calendar reading", () => {
+    expect(formatAverageDays(1416.25)).toBe("1416 days ≈ 3 years 10 months 17 days");
   });
 });
